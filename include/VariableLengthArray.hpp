@@ -4,9 +4,9 @@
 #pragma warning(push, 0)
   #include <malloc.h>
 #pragma warning(pop)
-  #define VLA(_TYPE, _NAME, _SIZE) _TYPE* _NAME = static_cast<_TYPE*>(_alloca(_SIZE * sizeof(_TYPE)))
+  #define VLA(TYPE, NAME, SIZE) TYPE* NAME = static_cast<TYPE*>(_alloca((SIZE) * sizeof(TYPE)))
 #else
-  #define VLA(_TYPE, _NAME, _SIZE) _TYPE _NAME[_SIZE]
+  #define VLA(TYPE, NAME, SIZE) TYPE NAME[_SIZE]
 #endif
 
 #define VLA_MAX_LEN (512)

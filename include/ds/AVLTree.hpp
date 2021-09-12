@@ -5,7 +5,7 @@
 #include "allocator/TauAllocator.hpp"
 #include "TreeUtils.hpp"
 
-template<typename _T, typename _HeightT>
+template<typename T, typename HeightT>
 struct AVLNode final
 {
     DEFAULT_DESTRUCT(AVLNode);
@@ -13,38 +13,38 @@ struct AVLNode final
 public:
     AVLNode* left;
     AVLNode* right;
-    _HeightT height;
-    _T value;
+    HeightT height;
+    T value;
 public:
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const _HeightT _height, const _T& _value) noexcept
+    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, const T& _value) noexcept
         : left(_left)
         , right(_right)
         , height(_height)
         , value(_value)
     { }
 
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const _HeightT _height, _T&& _value) noexcept
+    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, T&& _value) noexcept
         : left(_left)
         , right(_right)
         , height(_height)
-        , value(::_TauAllocatorUtils::_move(_value))
+        , value(::TauAllocatorUtils::_move(_value))
     { }
 
     template<typename... _Args>
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const _HeightT _height, _Args&&... args) noexcept
+    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, _Args&&... args) noexcept
         : left(_left)
         , right(_right)
         , height(_height)
-        , value(_TauAllocatorUtils::_forward<_Args>(args)...)
+        , value(TauAllocatorUtils::_forward<_Args>(args)...)
     { }
 };
 
-template<typename _T, typename _HeightT, InsertMethod _InsertMethod = InsertMethod::Ignore>
+template<typename T, typename HeightT, InsertMethod _InsertMethod = InsertMethod::Ignore>
 class AVLTree final
 {
     DELETE_CM(AVLTree);
 public:
-    using Node = AVLNode<_T, _HeightT>;
+    using Node = AVLNode<T, HeightT>;
 private:
     TauAllocator& _allocator;
     Node* _root;
@@ -61,7 +61,7 @@ public:
     [[nodiscard]] const Node* root() const noexcept { return _root; }
 
     template<typename _Search>
-    [[nodiscard]] _T* find(const _Search& search) noexcept
+    [[nodiscard]] T* find(const _Search& search) noexcept
     {
         Node* const node = find(_root, search);
         if(!node)
@@ -70,7 +70,7 @@ public:
     }
 
     template<typename _Search>
-    [[nodiscard]] const _T* find(const _Search& search) const noexcept
+    [[nodiscard]] const T* find(const _Search& search) const noexcept
     {
         const Node* const node = find(_root, search);
         if(!node)
@@ -79,7 +79,7 @@ public:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _T* findClosestMatchAbove(const _SearchT& search) noexcept
+    [[nodiscard]] T* findClosestMatchAbove(const _SearchT& search) noexcept
     {
         Node* const node = findClosestMatchAbove(_root, search);
         if(!node)
@@ -88,7 +88,7 @@ public:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] const _T* findClosestMatchAbove(const _SearchT& search) const noexcept
+    [[nodiscard]] const T* findClosestMatchAbove(const _SearchT& search) const noexcept
     {
         const Node* const node = findClosestMatchAbove(_root, search);
         if(!node)
@@ -97,7 +97,7 @@ public:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _T* findClosestMatchBelow(const _SearchT& search) noexcept
+    [[nodiscard]] T* findClosestMatchBelow(const _SearchT& search) noexcept
     {
         Node* const node = findClosestMatchBelow(_root, search);
         if(!node)
@@ -106,7 +106,7 @@ public:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] const _T* findClosestMatchBelow(const _SearchT& search) const noexcept
+    [[nodiscard]] const T* findClosestMatchBelow(const _SearchT& search) const noexcept
     {
         const Node* const node = findClosestMatchBelow(_root, search);
         if(!node)
@@ -138,7 +138,7 @@ public:
     [[nodiscard]] const Node* getClosestMatchBelow(const _SearchT& search) const noexcept
     { return findClosestMatchBelow(_root, search); }
 
-    Node* insert(const _T& value) noexcept
+    Node* insert(const T& value) noexcept
     {
         if(!_root)
         {
@@ -153,16 +153,16 @@ public:
         }
     }
 
-    Node* insert(_T&& value) noexcept
+    Node* insert(T&& value) noexcept
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, _TauAllocatorUtils::_move(value));
+            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_move(value));
             return _root;
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, _TauAllocatorUtils::_move(value));
+            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_move(value));
             _root = insert(_root, newNode, _allocator);
             return newNode;
         }
@@ -173,12 +173,12 @@ public:
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, _TauAllocatorUtils::_forward<_Args>(args)...);
+            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_forward<_Args>(args)...);
             return _root;
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, _TauAllocatorUtils::_forward<_Args>(args)...);
+            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_forward<_Args>(args)...);
             _root = insert(_root, newNode, _allocator);
             return newNode;
         }
@@ -305,7 +305,7 @@ private:
         return newRoot;
     }
 
-    [[nodiscard]] static _HeightT height(const Node* const tree) noexcept
+    [[nodiscard]] static HeightT height(const Node* const tree) noexcept
     {
         if(!tree)
         { return 0; }
@@ -353,7 +353,7 @@ private:
 
         tree->height = maxT(height(tree->left), height(tree->right)) + 1;
 
-        const _HeightT balance = computeBalance(tree);
+        const HeightT balance = computeBalance(tree);
 
         // Left Left
         if(balance > 1 && newNode->value < tree->left->value)
@@ -437,7 +437,7 @@ private:
         
         root->height = maxT(height(root->left), height(root->right)) + 1;
 
-        const _HeightT balance = computeBalance(root);
+        const HeightT balance = computeBalance(root);
 
         // Left Left
         if(balance > 1 && computeBalance(root->left) >= 0)
@@ -514,7 +514,7 @@ private:
         
         root->height = maxT(height(root->left), height(root->right)) + 1;
 
-        const _HeightT balance = computeBalance(root);
+        const HeightT balance = computeBalance(root);
 
         // Left Left
         if(balance > 1 && computeBalance(root->left) >= 0)
@@ -617,14 +617,14 @@ private:
     }
 };
 
-template<typename _T>
-using PackedAVLNode = AVLNode<_T, i8>;
+template<typename T>
+using PackedAVLNode = AVLNode<T, i8>;
 
-template<typename _T>
-using FastAVLNode = AVLNode<_T, iSys>;
+template<typename T>
+using FastAVLNode = AVLNode<T, iSys>;
 
-template<typename _T, InsertMethod _InsertMethod = InsertMethod::Ignore>
-using PackedAVLTree = AVLTree<_T, i8, _InsertMethod>;
+template<typename T, InsertMethod _InsertMethod = InsertMethod::Ignore>
+using PackedAVLTree = AVLTree<T, i8, _InsertMethod>;
 
-template<typename _T, InsertMethod _InsertMethod = InsertMethod::Ignore>
-using FastAVLTree = AVLTree<_T, iSys, _InsertMethod>;
+template<typename T, InsertMethod _InsertMethod = InsertMethod::Ignore>
+using FastAVLTree = AVLTree<T, iSys, _InsertMethod>;

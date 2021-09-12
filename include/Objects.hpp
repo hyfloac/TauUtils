@@ -1,70 +1,70 @@
 #pragma once
 
-#define DELETE_COPY(_TYPE) \
-    public: \
-        inline _TYPE(const _TYPE& copy) noexcept = delete;            \
-        inline _TYPE& operator=(const _TYPE& copy) noexcept = delete
+#define DELETE_COPY(TYPE) \
+    public:                                                                    \
+        inline TYPE(const TYPE& copy)            noexcept = delete;            \
+        inline TYPE& operator=(const TYPE& copy) noexcept = delete
 
-#define DELETE_MOVE(_TYPE) \
-    public: \
-        inline _TYPE(_TYPE&& move) noexcept = delete; \
-        inline _TYPE& operator=(_TYPE&& move) noexcept = delete
+#define DELETE_MOVE(TYPE) \
+    public:                                                    \
+        inline TYPE(TYPE&& move)            noexcept = delete; \
+        inline TYPE& operator=(TYPE&& move) noexcept = delete
 
-#define DELETE_CM(_TYPE) \
-    DELETE_COPY(_TYPE); \
-    DELETE_MOVE(_TYPE)
+#define DELETE_CM(TYPE) \
+    DELETE_COPY(TYPE); \
+    DELETE_MOVE(TYPE)
 
-#define DEFAULT_COPY(_TYPE) \
-    inline _TYPE(const _TYPE& copy) noexcept = default;            \
-    inline _TYPE& operator=(const _TYPE& copy) noexcept = default
+#define DEFAULT_COPY(TYPE) \
+    inline TYPE(const TYPE& copy)            noexcept = default; \
+    inline TYPE& operator=(const TYPE& copy) noexcept = default
 
-#define DEFAULT_MOVE(_TYPE) \
-    inline _TYPE(_TYPE&& move) noexcept = default; \
-    inline _TYPE& operator=(_TYPE&& move) noexcept = default
+#define DEFAULT_MOVE(TYPE) \
+    inline TYPE(TYPE&& move)            noexcept = default; \
+    inline TYPE& operator=(TYPE&& move) noexcept = default
 
-#define DEFAULT_CM(_TYPE) \
-    DEFAULT_COPY(_TYPE); \
-    DEFAULT_MOVE(_TYPE)
+#define DEFAULT_CM(TYPE) \
+    DEFAULT_COPY(TYPE); \
+    DEFAULT_MOVE(TYPE)
 
-#define DEFAULT_COPY_PU(_TYPE) public:    DEFAULT_COPY(_TYPE)
-#define DEFAULT_COPY_PI(_TYPE) private:   DEFAULT_COPY(_TYPE)
-#define DEFAULT_COPY_PO(_TYPE) protected: DEFAULT_COPY(_TYPE)
+#define DEFAULT_COPY_PU(TYPE) public:    DEFAULT_COPY(TYPE)
+#define DEFAULT_COPY_PI(TYPE) private:   DEFAULT_COPY(TYPE)
+#define DEFAULT_COPY_PO(TYPE) protected: DEFAULT_COPY(TYPE)
 
-#define DEFAULT_MOVE_PU(_TYPE) public:    DEFAULT_MOVE(_TYPE)
-#define DEFAULT_MOVE_PI(_TYPE) private:   DEFAULT_MOVE(_TYPE)
-#define DEFAULT_MOVE_PO(_TYPE) protected: DEFAULT_MOVE(_TYPE)
+#define DEFAULT_MOVE_PU(TYPE) public:    DEFAULT_MOVE(TYPE)
+#define DEFAULT_MOVE_PI(TYPE) private:   DEFAULT_MOVE(TYPE)
+#define DEFAULT_MOVE_PO(TYPE) protected: DEFAULT_MOVE(TYPE)
 
-#define DEFAULT_CM_PU(_TYPE) public:    DEFAULT_CM(_TYPE)
-#define DEFAULT_CM_PI(_TYPE) private:   DEFAULT_CM(_TYPE)
-#define DEFAULT_CM_PO(_TYPE) protected: DEFAULT_CM(_TYPE)
+#define DEFAULT_CM_PU(TYPE)   public:    DEFAULT_CM(TYPE)
+#define DEFAULT_CM_PI(TYPE)   private:   DEFAULT_CM(TYPE)
+#define DEFAULT_CM_PO(TYPE)   protected: DEFAULT_CM(TYPE)
 
-#define DELETE_DESTRUCT(_TYPE) public: inline ~_TYPE() noexcept = delete
-#define DEFAULT_DESTRUCT(_TYPE) public: inline ~_TYPE() noexcept = default
-#define DEFAULT_DESTRUCT_VI(_TYPE) public: inline virtual ~_TYPE() noexcept = default
+#define DELETE_DESTRUCT(TYPE)     public: inline         ~TYPE() noexcept = delete
+#define DEFAULT_DESTRUCT(TYPE)    public: inline         ~TYPE() noexcept = default
+#define DEFAULT_DESTRUCT_VI(TYPE) public: inline virtual ~TYPE() noexcept = default
 
-#define DELETE_CONSTRUCT(_TYPE) private: inline _TYPE() noexcept = delete
-#define DEFAULT_CONSTRUCT(_TYPE) inline _TYPE() noexcept = default
-#define DEFAULT_CONSTRUCT_PU(_TYPE) public: DEFAULT_CONSTRUCT(_TYPE)
-#define DEFAULT_CONSTRUCT_PI(_TYPE) private: DEFAULT_CONSTRUCT(_TYPE)
-#define DEFAULT_CONSTRUCT_PO(_TYPE) protected: DEFAULT_CONSTRUCT(_TYPE)
+#define DELETE_CONSTRUCT(TYPE) private: inline TYPE() noexcept = delete
+#define DEFAULT_CONSTRUCT(TYPE) inline TYPE() noexcept = default
+#define DEFAULT_CONSTRUCT_PU(TYPE) public:    DEFAULT_CONSTRUCT(TYPE)
+#define DEFAULT_CONSTRUCT_PI(TYPE) private:   DEFAULT_CONSTRUCT(TYPE)
+#define DEFAULT_CONSTRUCT_PO(TYPE) protected: DEFAULT_CONSTRUCT(TYPE)
 
-#define DECL_OPAQUE_TYPE(_TYPE)                      \
-    struct _TYPE final {                             \
-        DEFAULT_CONSTRUCT_PU(_TYPE);                 \
-        DEFAULT_DESTRUCT(_TYPE);                     \
-        DEFAULT_CM_PU(_TYPE);                        \
-    public:                                          \
-        void* raw;                                   \
-    public:                                          \
-        _TYPE(void* const _raw) noexcept             \
-            : raw(_raw)                              \
-        { }                                          \
-        template<typename _T>                        \
-        [[nodiscard]] _T* get() noexcept             \
-        { return reinterpret_cast<_T*>(raw); }       \
-        template<typename _T>                        \
-        [[nodiscard]] const _T* get() const noexcept \
-        { return reinterpret_cast<_T*>(raw); }       \
+#define DECL_OPAQUE_TYPE(TYPE)                      \
+    struct TYPE final {                             \
+        DEFAULT_CONSTRUCT_PU(TYPE);                 \
+        DEFAULT_DESTRUCT(TYPE);                     \
+        DEFAULT_CM_PU(TYPE);                        \
+    public:                                         \
+        void* raw;                                  \
+    public:                                         \
+        _TYPE(void* const _raw) noexcept            \
+            : raw(_raw)                             \
+        { }                                         \
+        template<typename T>                        \
+        [[nodiscard]] T* get() noexcept             \
+        { return reinterpret_cast<T*>(raw); }       \
+        template<typename T>                        \
+        [[nodiscard]] const T* get() const noexcept \
+        { return reinterpret_cast<T*>(raw); }       \
     }
 
 namespace tau {

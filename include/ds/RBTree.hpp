@@ -29,7 +29,7 @@ public:
         , right(_right)
         , parent(_parent)
         , color(_height)
-        , value(::_TauAllocatorUtils::_move(_value))
+        , value(::TauAllocatorUtils::_move(_value))
     { }
 
     template<typename... _Args>
@@ -38,7 +38,7 @@ public:
         , right(_right)
         , parent(_parent)
         , color(_color)
-        , value(_TauAllocatorUtils::_forward<_Args>(args)...)
+        , value(TauAllocatorUtils::_forward<_Args>(args)...)
     { }
 };
 

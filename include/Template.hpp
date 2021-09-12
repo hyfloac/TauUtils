@@ -5,18 +5,18 @@
 #include <typeinfo>
 #pragma warning(push, 0)
 
-template<typename _T>
+template<typename T>
 struct TypeName final
 {
-    constexpr static const char* const Name = typeid(_T).name();
+    constexpr static const char* const Name = typeid(T).name();
 };
 
-#define TYPE_NAME(__TYPE, __NAME) \
+#define TYPE_NAME(TYPE, NAME) \
     template<> \
-    struct TypeName<__TYPE> final { \
-        constexpr static const char* const Name = __NAME; \
+    struct TypeName<TYPE> final { \
+        constexpr static const char* const Name = NAME; \
     };
-#define TYPE_NAME_T(__TYPE) TYPE_NAME(__TYPE, #__TYPE)
+#define TYPE_NAME_T(TYPE) TYPE_NAME(TYPE, #TYPE)
 
 #ifdef CHAR_IS_BYTE
   TYPE_NAME(char, "byte");

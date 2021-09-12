@@ -41,7 +41,7 @@
 #endif
 
 // Boolean bit masks
-typedef u8 b8;
+typedef u8  b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
@@ -81,16 +81,16 @@ typedef double f64;
 #endif
 
 constexpr uSys operator "" _uz(const unsigned long long n) noexcept
-{ return n; }
+{ return static_cast<uSys>(n); }
 
 constexpr iSys operator "" _iz(const unsigned long long n) noexcept
-{ return n; }
+{ return static_cast<iSys>(n); }
 
-template<typename _T>
+template<typename T>
 struct IntMaxMin final
 {
-    static constexpr _T Min = 0;
-    static constexpr _T Max = 0;
+    static constexpr T Min = 0;
+    static constexpr T Max = 0;
 };
 
 template<>

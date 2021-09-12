@@ -9,26 +9,26 @@
 #include "NumTypes.hpp"
 #include "Utils.hpp"
 
-#define STR_SWITCH(_PARAM, _BLOCK, _DEFAULT_BLOCK) \
+#define STR_SWITCH(PARAM, BLOCK, DEFAULT_BLOCK) \
 { \
-    const auto& _tmp__strSwitch_ = _PARAM; \
+    const auto& _tmp__strSwitch_ = PARAM; \
     bool _switch_defaulted_ = true; \
-    switch(_tmp__strSwitch_.hashCode()) _BLOCK \
-    if(_switch_defaulted_) _DEFAULT_BLOCK \
+    switch(_tmp__strSwitch_.hashCode()) BLOCK \
+    if(_switch_defaulted_) DEFAULT_BLOCK \
 }
 
-#define STR_CASE(_CASE, _BLOCK) \
-case ConstExprString(_CASE).hashCode(): \
-    if(ConstExprString(_CASE).equals(_tmp__strSwitch_.c_str())) { \
+#define STR_CASE(CASE, BLOCK) \
+case ConstExprString(CASE).hashCode(): \
+    if(ConstExprString(CASE).equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
-        _BLOCK \
+        BLOCK \
     } else { break; }
 
-template<typename _C>
-_C toLower(_C c) noexcept = delete;
+template<typename C>
+C toLower(C c) noexcept = delete;
 
-template<typename _C>
-_C toUpper(_C c) noexcept = delete;
+template<typename C>
+C toUpper(C c) noexcept = delete;
 
 /**
  * Converts a string to lower case.
@@ -36,8 +36,8 @@ _C toUpper(_C c) noexcept = delete;
  * @return
  *      The number of characters that are, or would need to be stored.
  */
-template<typename _C>
-uSys toLower(const _C* str, [[tau::nullable]] _C* store) noexcept;
+template<typename C>
+uSys toLower(const C* str, [[tau::nullable]] C* store) noexcept;
 
 /**
  * Converts a string to upper case.
@@ -45,23 +45,23 @@ uSys toLower(const _C* str, [[tau::nullable]] _C* store) noexcept;
  * @return
  *      The number of characters that are, or would need to be stored.
  */
-template<typename _C>
-uSys toUpper(const _C* str, [[tau::nullable]] _C* store) noexcept;
+template<typename C>
+uSys toUpper(const C* str, [[tau::nullable]] C* store) noexcept;
 
-template<typename _C>
-uSys findHashCode([[tau::nonnull]] const _C* str) noexcept;
+template<typename C>
+uSys findHashCode([[tau::nonnull]] const C* str) noexcept;
 
-template<typename _C>
-uSys findHashCode(const _C* str, uSys len) noexcept;
+template<typename C>
+uSys findHashCode(const C* str, uSys len) noexcept;
 
-template<typename _C>
-uSys strLength(const _C* str) noexcept;
+template<typename C>
+uSys strLength(const C* str) noexcept;
 
-template<typename _C>
-i32 strCompare(const _C* lhs, const _C* rhs) noexcept;
+template<typename C>
+i32 strCompare(const C* lhs, const C* rhs) noexcept;
 
-template<typename _C>
-i32 strCompare(const _C* lhs, const _C* rhs, uSys length) noexcept;
+template<typename C>
+i32 strCompare(const C* lhs, const C* rhs, uSys length) noexcept;
 
 inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs) noexcept
 {

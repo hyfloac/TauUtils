@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef _MSC_VER
-  #define ALIGN_MSVC(_ALIGNMENT) __declspec(align(_ALIGNMENT))
-  #define ALIGN_GCC(_ALIGNMENT)
+  #define ALIGN_MSVC(ALIGNMENT) __declspec(align(ALIGNMENT))
+  #define ALIGN_GCC(ALIGNMENT)
 #else
-  #define ALIGN_MSVC(_ALIGNMENT) 
-  #define ALIGN_GCC(_ALIGNMENT) __attribute__((aligned(_ALIGNMENT)))
+  #define ALIGN_MSVC(ALIGNMENT) 
+  #define ALIGN_GCC(ALIGNMENT) __attribute__((aligned(ALIGNMENT)))
 #endif

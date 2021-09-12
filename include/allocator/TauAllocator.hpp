@@ -3,33 +3,33 @@
 #include "Objects.hpp"
 #include "NumTypes.hpp"
 
-namespace _TauAllocatorUtils {
-template<typename _T>
-struct _RemoveReference final
-{ using type = _T; };
+namespace TauAllocatorUtils {
+template<typename T>
+struct RemoveReference final
+{ using type = T; };
 
-template<typename _T>
-struct _RemoveReference<_T&> final
-{ using type = _T; };
+template<typename T>
+struct RemoveReference<T&> final
+{ using type = T; };
 
-template<typename _T>
-struct _RemoveReference<_T&&> final
-{ using type = _T; };
+template<typename T>
+struct RemoveReference<T&&> final
+{ using type = T; };
 
-template<typename _T>
-using _RemoveReferenceT = typename _RemoveReference<_T>::type;
+template<typename T>
+using RemoveReferenceT = typename RemoveReference<T>::type;
 
-template<typename _T>
-[[nodiscard]] constexpr inline _T&& _forward(_RemoveReferenceT<_T>& ref) noexcept
-{ return static_cast<_T&&>(ref); }
+template<typename T>
+[[nodiscard]] constexpr inline T&& _forward(RemoveReferenceT<T>& ref) noexcept
+{ return static_cast<T&&>(ref); }
 
-template<typename _T>
-[[nodiscard]] constexpr inline _T&& _forward(_RemoveReferenceT<_T>&& ref) noexcept
-{ return static_cast<_T&&>(ref); }
+template<typename T>
+[[nodiscard]] constexpr inline T&& _forward(RemoveReferenceT<T>&& ref) noexcept
+{ return static_cast<T&&>(ref); }
 
-template<typename _T>
-[[nodiscard]] constexpr _RemoveReferenceT<_T>&& _move(_T&& arg) noexcept
-{ return static_cast<_RemoveReferenceT<_T>&&>(arg); }
+template<typename T>
+[[nodiscard]] constexpr RemoveReferenceT<T>&& _move(T&& arg) noexcept
+{ return static_cast<RemoveReferenceT<T>&&>(arg); }
 }
 
 enum class AllocationAlignment : uSys { };
@@ -67,16 +67,16 @@ public:
 
     virtual void deallocate(void* obj) noexcept = 0;
 
-    template<typename _T, typename... _Args>
-    _T* allocateT(_Args&&... args) noexcept
+    template<typename T, typename... Args>
+    T* allocateT(Args&&... args) noexcept
     {
-        void* const allocation = allocate(sizeof(_T));
+        void* const allocation = allocate(sizeof(T));
         if(!allocation) { return nullptr; }
-        return new(allocation) _T(_TauAllocatorUtils::_forward<_Args>(args)...);
+        return new(allocation) T(TauAllocatorUtils::_forward<Args>(args)...);
     }
 
-    template<typename _T>
-    void deallocateT(_T* const obj) noexcept
+    template<typename T>
+    void deallocateT(T* const obj) noexcept
     {
         if(!obj) { return; }
         obj->~_T();

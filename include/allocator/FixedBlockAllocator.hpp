@@ -29,7 +29,7 @@
  * consuming the entire potential address space of your
  * program.
  */
-template<AllocationTracking _AllocTracking = AllocationTracking::None>
+template<AllocationTracking AllocTracking = AllocationTracking::None>
 class FixedBlockAllocator final : public TauAllocator
 {
     DELETE_CONSTRUCT(FixedBlockAllocator);

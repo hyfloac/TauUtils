@@ -4,13 +4,13 @@
 #include "Objects.hpp"
 #include "String.hpp"
 
-template<typename _T>
+template<typename T>
 struct TPrinter final
 {
-    static i32 print(const _T& t) noexcept { return 0; }
-    static i32 printW(const _T& t) noexcept { return 0; }
-    static i32 print(FILE* const file, const _T& t) noexcept { return 0; }
-    static i32 printW(FILE* const file, const _T& t) noexcept { return 0; }
+    static i32 print(const T& t) noexcept { return 0; }
+    static i32 printW(const T& t) noexcept { return 0; }
+    static i32 print(FILE* const file, const T& t) noexcept { return 0; }
+    static i32 printW(FILE* const file, const T& t) noexcept { return 0; }
 };
 
 class ConPrinter final
@@ -91,15 +91,15 @@ public:
     static i32 printW(FILE* const file, const f32 f) noexcept { return fwprintf(file, L"%f", f); }
     static i32 printW(FILE* const file, const f64 f) noexcept { return fwprintf(file, L"%f", f); }
 
-    template<typename _T>
-    static i32 print(const _T* const p) noexcept { return fprintf(stdout, "%p", p); }
-    template<typename _T>
-    static i32 printW(const _T* const p) noexcept { return fwprintf(stdout, L"%p", p); }
+    template<typename T>
+    static i32 print(const T* const p) noexcept { return fprintf(stdout, "%p", p); }
+    template<typename T>
+    static i32 printW(const T* const p) noexcept { return fwprintf(stdout, L"%p", p); }
 
-    template<typename _T>
-    static i32 print(FILE* const file, const _T* const p) noexcept { return fprintf(file, "%p", p); }
-    template<typename _T>
-    static i32 printW(FILE* const file, const _T* const p) noexcept { return fwprintf(file, L"%p", p); }
+    template<typename T>
+    static i32 print(FILE* const file, const T* const p) noexcept { return fprintf(file, "%p", p); }
+    template<typename T>
+    static i32 printW(FILE* const file, const T* const p) noexcept { return fwprintf(file, L"%p", p); }
 
     static i32 print(const ConstExprString& str) noexcept { return fputs(str.c_str(), stdout); }
     static i32 print(const DynString& str) noexcept { return fputs(str.c_str(), stdout); }
@@ -125,18 +125,18 @@ public:
     static i32 printW(FILE* const file, const WDynString& str) noexcept { return fputws(str.c_str(), file); }
     static i32 printW(FILE* const file, const WDynStringView& str) noexcept { return fwprintf(file, L"%.*s", static_cast<int>(str.length()), str.c_str()); }
 
-    template<typename _T>
-    static i32 print(const _T& t) noexcept { return TPrinter<_T>::print(t); }
-    template<typename _T>
-    static i32 printW(const _T& t) noexcept { return TPrinter<_T>::printW(t); }
+    template<typename T>
+    static i32 print(const T& t) noexcept { return TPrinter<T>::print(t); }
+    template<typename T>
+    static i32 printW(const T& t) noexcept { return TPrinter<T>::printW(t); }
 
-    template<typename _T>
-    static i32 print(FILE* const file, const _T& t) noexcept { return TPrinter<_T>::print(file, t); }
-    template<typename _T>
-    static i32 printW(FILE* const file, const _T& t) noexcept { return TPrinter<_T>::printW(file, t); }
+    template<typename T>
+    static i32 print(FILE* const file, const T& t) noexcept { return TPrinter<T>::print(file, t); }
+    template<typename T>
+    static i32 printW(FILE* const file, const T& t) noexcept { return TPrinter<T>::printW(file, t); }
 
-    template<typename _CurrArg, typename... _Args>
-    static i32 print(const char* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 print(const char* fmt, CurrArg currArg, Args... args) noexcept
     {
         i32 count = 0;
         for(uSys i = 0; fmt[i]; ++i)
@@ -178,8 +178,8 @@ public:
         return count;
     }
 
-    template<typename _CurrArg, typename... _Args>
-    static i32 printW(const wchar_t* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 printW(const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
     {
         i32 count = 0;
         for(uSys i = 0; fmt[i]; ++i)
@@ -221,12 +221,12 @@ public:
         return count;
     }
     
-    template<typename _CurrArg, typename... _Args>
-    static i32 print(const wchar_t* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 print(const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
     { return printW(fmt, currArg, args...); }
 
-    template<typename _CurrArg, typename... _Args>
-    static i32 print(FILE* const file, const char* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 print(FILE* const file, const char* fmt, CurrArg currArg, Args... args) noexcept
     {
         i32 count = 0;
         for(uSys i = 0; fmt[i]; ++i)
@@ -268,8 +268,8 @@ public:
         return count;
     }
 
-    template<typename _CurrArg, typename... _Args>
-    static i32 printW(FILE* const file, const wchar_t* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 printW(FILE* const file, const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
     {
         i32 count = 0;
         for(uSys i = 0; fmt[i]; ++i)
@@ -311,7 +311,7 @@ public:
         return count;
     }
     
-    template<typename _CurrArg, typename... _Args>
-    static i32 print(FILE* const file, const wchar_t* fmt, _CurrArg currArg, _Args... args) noexcept
+    template<typename CurrArg, typename... Args>
+    static i32 print(FILE* const file, const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
     { return printW(file, fmt, currArg, args...); }
 };

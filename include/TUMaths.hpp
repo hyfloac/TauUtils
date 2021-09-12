@@ -15,95 +15,95 @@
   /**
    * Converts radians to degrees (single precision).
    */
-#define RAD_2_DEG_F(__F) (float) ((__F) * RADIANS_TO_DEGREES_CONVERTER_VAL)
+#define RAD_2_DEG_F(F) (float)  ((F) * RADIANS_TO_DEGREES_CONVERTER_VAL)
    /**
     * Converts degrees to radians (single precision).
     */
-#define DEG_2_RAD_F(__F) (float) ((__F) * DEGREES_TO_RADIANS_CONVERTER_VAL)
+#define DEG_2_RAD_F(F) (float)  ((F) * DEGREES_TO_RADIANS_CONVERTER_VAL)
     /**
      * Converts radians to degrees (double precision).
      */
-#define RAD_2_DEG_D(__D) (double) ((__D) * RADIANS_TO_DEGREES_CONVERTER_VAL)
+#define RAD_2_DEG_D(D) (double) ((D) * RADIANS_TO_DEGREES_CONVERTER_VAL)
      /**
       * Converts degrees to radians (double precision).
       */
-#define DEG_2_RAD_D(__D) (double) ((__D) * DEGREES_TO_RADIANS_CONVERTER_VAL)
+#define DEG_2_RAD_D(D) (double) ((D) * DEGREES_TO_RADIANS_CONVERTER_VAL)
 
-#define RAD_2_DEG(__F) RAD_2_DEG_F(__F)
-#define DEG_2_RAD(__F) DEG_2_RAD_F(__F)
+#define RAD_2_DEG(F) RAD_2_DEG_F(F)
+#define DEG_2_RAD(F) DEG_2_RAD_F(F)
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T minT(const _T a, const _T b) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T minT(const T a, const T b) noexcept
 { return a < b ? a : b; }
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T minT(const _T a, const _T b, const _T c) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T minT(const T a, const T b, const T c) noexcept
 { return minT(minT(a, b), c); }
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T minT(const _T a, const _T b, const _T c, const _T d) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T minT(const T a, const T b, const T c, const T d) noexcept
 { return minT(minT(a, b), minT(c, d)); }
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T maxT(const _T a, const _T b) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T maxT(const T a, const T b) noexcept
 { return a > b ? a : b; }
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T maxT(const _T a, const _T b, const _T c) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T maxT(const T a, const T b, const T c) noexcept
 { return maxT(maxT(a, b), c); }
 
-template<typename _T>
-[[nodiscard]] inline constexpr _T maxT(const _T a, const _T b, const _T c, const _T d) noexcept
+template<typename T>
+[[nodiscard]] inline constexpr T maxT(const T a, const T b, const T c, const T d) noexcept
 { return maxT(maxT(a, b), maxT(c, d)); }
 
-template<typename _T0, typename _T1>
-[[nodiscard]] inline constexpr _T0 minT(const _T0 a, const _T1 b) noexcept
+template<typename T0, typename T1>
+[[nodiscard]] inline constexpr T0 minT(const T0 a, const T1 b) noexcept
 { return a < b ? a : b; }
 
-template<typename _T0, typename _T1, typename _T2>
-[[nodiscard]] inline constexpr _T0 minT(const _T0 a, const _T1 b, const _T2 c) noexcept
+template<typename T0, typename T1, typename T2>
+[[nodiscard]] inline constexpr T0 minT(const T0 a, const T1 b, const T2 c) noexcept
 { return minT(minT(a, b), c); }
 
-template<typename _T0, typename _T1, typename _T2, typename _T3>
-[[nodiscard]] inline constexpr _T0 minT(const _T0 a, const _T1 b, const _T2 c, const _T3 d) noexcept
+template<typename T0, typename T1, typename T2, typename T3>
+[[nodiscard]] inline constexpr T0 minT(const T0 a, const T1 b, const T2 c, const T3 d) noexcept
 { return minT(minT(a, b), minT(c, d)); }
 
-template<typename _T0, typename _T1>
-[[nodiscard]] inline constexpr _T0 maxT(const _T0 a, const _T1 b) noexcept
+template<typename T0, typename T1>
+[[nodiscard]] inline constexpr T0 maxT(const T0 a, const T1 b) noexcept
 { return a > b ? a : b; }
 
-template<typename _T0, typename _T1, typename _T2>
-[[nodiscard]] inline constexpr _T0 maxT(const _T0 a, const _T1 b, const _T2 c) noexcept
+template<typename T0, typename T1, typename T2>
+[[nodiscard]] inline constexpr T0 maxT(const T0 a, const T1 b, const T2 c) noexcept
 { return maxT(maxT(a, b), c); }
 
-template<typename _T0, typename _T1, typename _T2, typename _T3>
-[[nodiscard]] inline constexpr _T0 maxT(const _T0 a, const _T1 b, const _T2 c, const _T3 d) noexcept
+template<typename T0, typename T1, typename T2, typename T3>
+[[nodiscard]] inline constexpr T0 maxT(const T0 a, const T1 b, const T2 c, const T3 d) noexcept
 { return maxT(maxT(a, b), maxT(c, d)); }
 
 /**
  * Relative epsilon equals function.
  */
-template<typename _T>
-static inline bool rEpsilonEquals(const _T x, const _T y, const _T epsilon = 1E-5)
+template<typename T>
+static inline bool rEpsilonEquals(const T x, const T y, const T epsilon = 1E-5)
 {
-    const _T epsilonRelative = maxT(fabs(x), fabs(y)) * epsilon;
+    const T epsilonRelative = maxT(fabs(x), fabs(y)) * epsilon;
     return fabs(x - y) <= epsilonRelative;
 }
 
 /**
  * Absolute epsilon equals function.
  */
-template<typename _T>
-static inline bool aEpsilonEquals(const _T x, const _T y, const _T epsilon = 1E-5)
+template<typename T>
+static inline bool aEpsilonEquals(const T x, const T y, const T epsilon = 1E-5)
 { return fabs(x - y) <= epsilon; }
 
-const u32 clzTab32[32] = {
+constexpr u32 clzTab32[32] = {
      0,  9,  1, 10, 13, 21,  2, 29,
     11, 14, 16, 18, 22, 25,  3, 30,
      8, 12, 20, 28, 15, 17, 24,  7,
     19, 27, 23,  6, 26,  5,  4, 31 };
 
-const u32 clzTab64[64] = {
+constexpr u32 clzTab64[64] = {
     63,  0, 58,  1, 59, 47, 53,  2,
     60, 39, 48, 27, 54, 33, 42,  3,
     61, 51, 37, 40, 49, 18, 28, 20,
@@ -113,14 +113,14 @@ const u32 clzTab64[64] = {
     56, 45, 25, 31, 35, 16,  9, 12,
     44, 24, 15,  8, 23,  7,  6,  5 };
 
-const u32 ctzTab32[32] = {
+constexpr u32 ctzTab32[32] = {
      0,  1, 28,  2, 29, 14, 24,  3,
     30, 22, 20, 15, 25, 17,  4,  8, 
     31, 27, 13, 23, 21, 19, 16,  7,
     26, 12, 18,  6, 11,  5, 10,  9
 };
 
-const u32 ctzTab64[64] = {
+constexpr u32 ctzTab64[64] = {
     0, 47,  1, 56, 48, 27,  2, 60,
    57, 49, 41, 37, 28, 16,  3, 61,
    54, 58, 35, 52, 50, 42, 21, 44,
@@ -131,36 +131,36 @@ const u32 ctzTab64[64] = {
    13, 18,  8, 12,  7,  6,  5, 63
 };
 
-template<typename _T>
-[[nodiscard]] constexpr inline _T _alignTo(const _T val, const _T alignment) noexcept
+template<typename T>
+[[nodiscard]] constexpr inline T _alignTo(const T val, const T alignment) noexcept
 {
     if(alignment == 1)
     { return val; }
     return (val + alignment) & ~(alignment - 1);
 }
 
-template<typename _Tv, typename _Ta>
-[[nodiscard]] constexpr inline _Tv _alignTo(const _Tv val, const _Ta _alignment) noexcept
+template<typename Tv, typename Ta>
+[[nodiscard]] constexpr inline Tv _alignTo(const Tv val, const Ta _alignment) noexcept
 {
-    const _Tv alignment = static_cast<_Tv>(_alignment);
+    const Tv alignment = static_cast<Tv>(_alignment);
 
     if(alignment == 1)
     { return val; }
     return (val + alignment) & ~(alignment - 1);
 }
 
-template<typename _T, _T _Alignment>
-[[nodiscard]] constexpr inline _T _alignTo(const _T val) noexcept
+template<typename T, T Alignment>
+[[nodiscard]] constexpr inline T _alignTo(const T val) noexcept
 {
-    if(_Alignment == 1)
+    if(Alignment == 1)
     { return val; }
-    return (val + _Alignment) & ~(_Alignment - 1);
+    return (val + Alignment) & ~(Alignment - 1);
 }
 
-template<typename _Tv, typename _Ta, _Ta _Alignment>
-[[nodiscard]] constexpr inline _Tv _alignTo(const _Tv val) noexcept
+template<typename Tv, typename Ta, Ta Alignment>
+[[nodiscard]] constexpr inline Tv _alignTo(const Tv val) noexcept
 {
-    constexpr _Tv alignment = static_cast<_Tv>(_Alignment);
+    constexpr Tv alignment = static_cast<Tv>(Alignment);
 
     if(alignment == 1)
     { return val; }

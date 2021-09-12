@@ -61,8 +61,8 @@ template<>
 inline c32 toUpper<c32>(const c32 c) noexcept
 { return ::std::toupper(c, ::std::locale()); }
 
-template<typename _C>
-inline uSys toLower(const _C* str, _C* store) noexcept
+template<typename C>
+inline uSys toLower(const C* const str, C* const store) noexcept
 {
     uSys i = 0;
     if(store)
@@ -80,8 +80,8 @@ inline uSys toLower(const _C* str, _C* store) noexcept
     return i;
 }
 
-template<typename _C>
-inline uSys toUpper(const _C* str, _C* store) noexcept
+template<typename C>
+inline uSys toUpper(const C* const str, C* const store) noexcept
 {
     uSys i = 0;
     if(store)
@@ -99,8 +99,8 @@ inline uSys toUpper(const _C* str, _C* store) noexcept
     return i;
 }
 
-template<typename _C>
-inline uSys findHashCode(const _C* str) noexcept
+template<typename C>
+inline uSys findHashCode(const C* str) noexcept
 {
     uSys hash = 0;
     for(uSys i = 0; str[i]; ++i)
@@ -110,8 +110,8 @@ inline uSys findHashCode(const _C* str) noexcept
     return hash;
 }
 
-template<typename _C>
-inline uSys findHashCode(const _C* str, const uSys len) noexcept
+template<typename C>
+inline uSys findHashCode(const C* str, const uSys len) noexcept
 {
     uSys hash = 0;
     for(uSys i = 0; i < len; ++i)
@@ -121,8 +121,8 @@ inline uSys findHashCode(const _C* str, const uSys len) noexcept
     return hash;
 }
 
-template<typename _C>
-inline uSys strLength(const _C* const str) noexcept
+template<typename C>
+inline uSys strLength(const C* const str) noexcept
 {
     if(!str)
     { return 0; }
@@ -141,8 +141,8 @@ template<>
 inline uSys strLength<wchar_t>(const wchar_t* const str) noexcept
 { return ::std::wcslen(str); }
 
-template<typename _C>
-inline i32 strCompare(const _C* const lhs, const _C* const rhs) noexcept
+template<typename C>
+inline i32 strCompare(const C* const lhs, const C* const rhs) noexcept
 {
     while(*lhs != '\0' && *rhs != '\0')
     {
@@ -183,8 +183,8 @@ template<>
 inline i32 strCompare(const wchar_t* const lhs, const wchar_t* const rhs) noexcept
 { return ::std::wcscmp(lhs, rhs); }
 
-template<typename _C>
-inline i32 strCompare(const _C* const lhs, const _C* const rhs, const uSys length) noexcept
+template<typename C>
+inline i32 strCompare(const C* const lhs, const C* const rhs, const uSys length) noexcept
 {
     uSys i = 0;
     while(*lhs != '\0' && *rhs != '\0' && i < length)

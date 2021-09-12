@@ -11,13 +11,13 @@
   #define SAVL_USE_TRACKING !defined(TAU_PRODUCTION)
 #endif
 
-template<typename _T, typename _IndexT, typename _HeightT>
+template<typename T, typename IndexT, typename HeightT>
 class StreamedAVLTreeAllocator final
 {
     DELETE_CM(StreamedAVLTreeAllocator);
 public:
-    static constexpr _IndexT INVALID_VALUE = static_cast<_IndexT>(-1);
-    static constexpr _IndexT DESTROYED_VALUE = static_cast<_IndexT>(0xCCCCCCCCCCCCCCCC);
+    static constexpr IndexT INVALID_VALUE = static_cast<IndexT>(-1);
+    static constexpr IndexT DESTROYED_VALUE = static_cast<IndexT>(0xCCCCCCCCCCCCCCCC);
 private:
     uSys _allocPages;
 
@@ -33,26 +33,26 @@ private:
     uSys _firstFree;
     uSys _lastFree;
 
-    _IndexT* _leftTree;
-    _IndexT* _rightTree;
-    _HeightT* _heightTree;
-    _T* _valueTree;
+    IndexT* _leftTree;
+    IndexT* _rightTree;
+    HeightT* _heightTree;
+    T* _valueTree;
 public:
     StreamedAVLTreeAllocator(const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _branchReservedPages(_alignTo((maxElements * sizeof(_IndexT)) / PageAllocator::pageSize() + 1, _allocPages))
-        , _heightReservedPages(_alignTo((maxElements * sizeof(_HeightT)) / PageAllocator::pageSize() + 1, _allocPages))
-        , _valueReservedPages(_alignTo((maxElements * sizeof(_T)) / PageAllocator::pageSize() + 1, _allocPages))
+        , _branchReservedPages(_alignTo((maxElements * sizeof(IndexT)) / PageAllocator::pageSize() + 1, _allocPages))
+        , _heightReservedPages(_alignTo((maxElements * sizeof(HeightT)) / PageAllocator::pageSize() + 1, _allocPages))
+        , _valueReservedPages(_alignTo((maxElements * sizeof(T)) / PageAllocator::pageSize() + 1, _allocPages))
         , _branchCommittedPages(0)
         , _heightCommittedPages(0)
         , _valueCommittedPages(0)
         , _allocIndex(0)
         , _firstFree(INVALID_VALUE)
         , _lastFree(INVALID_VALUE)
-        , _leftTree(reinterpret_cast<_IndexT*>(PageAllocator::reserve(_branchReservedPages)))
-        , _rightTree(reinterpret_cast<_IndexT*>(PageAllocator::reserve(_branchReservedPages)))
-        , _heightTree(reinterpret_cast<_HeightT*>(PageAllocator::reserve(_heightReservedPages)))
-        , _valueTree(reinterpret_cast<_T*>(PageAllocator::reserve(_valueReservedPages)))
+        , _leftTree(reinterpret_cast<IndexT*>(PageAllocator::reserve(_branchReservedPages)))
+        , _rightTree(reinterpret_cast<IndexT*>(PageAllocator::reserve(_branchReservedPages)))
+        , _heightTree(reinterpret_cast<HeightT*>(PageAllocator::reserve(_heightReservedPages)))
+        , _valueTree(reinterpret_cast<T*>(PageAllocator::reserve(_valueReservedPages)))
     { }
 
     ~StreamedAVLTreeAllocator() noexcept
@@ -63,15 +63,15 @@ public:
         PageAllocator::free(_valueTree);
     }
 
-    [[nodiscard]] _IndexT*    leftTree() noexcept { return _leftTree;   }
-    [[nodiscard]] _IndexT*   rightTree() noexcept { return _rightTree;  }
-    [[nodiscard]] _HeightT* heightTree() noexcept { return _heightTree; }
-    [[nodiscard]] _T*        valueTree() noexcept { return _valueTree;  }
+    [[nodiscard]] IndexT*    leftTree() noexcept { return _leftTree;   }
+    [[nodiscard]] IndexT*   rightTree() noexcept { return _rightTree;  }
+    [[nodiscard]] HeightT* heightTree() noexcept { return _heightTree; }
+    [[nodiscard]] T*        valueTree() noexcept { return _valueTree;  }
 
-    [[nodiscard]] const _IndexT*    leftTree() const noexcept { return _leftTree;   }
-    [[nodiscard]] const _IndexT*   rightTree() const noexcept { return _rightTree;  }
-    [[nodiscard]] const _HeightT* heightTree() const noexcept { return _heightTree; }
-    [[nodiscard]] const _T*        valueTree() const noexcept { return _valueTree;  }
+    [[nodiscard]] const IndexT*    leftTree() const noexcept { return _leftTree;   }
+    [[nodiscard]] const IndexT*   rightTree() const noexcept { return _rightTree;  }
+    [[nodiscard]] const HeightT* heightTree() const noexcept { return _heightTree; }
+    [[nodiscard]] const T*        valueTree() const noexcept { return _valueTree;  }
 
     [[nodiscard]] uSys allocate() noexcept
     {
@@ -129,7 +129,7 @@ private:
     {
         {
             const uSys branchPageBytes = _branchCommittedPages * PageAllocator::pageSize();
-            if(_allocIndex + sizeof(_IndexT) > branchPageBytes)
+            if(_allocIndex + sizeof(IndexT) > branchPageBytes)
             {
                 if(_branchCommittedPages == _branchReservedPages)
                 { return false; }
@@ -142,7 +142,7 @@ private:
 
         {
             const uSys heightPageBytes = _heightCommittedPages * PageAllocator::pageSize();
-            if(_allocIndex + sizeof(_HeightT) > heightPageBytes)
+            if(_allocIndex + sizeof(HeightT) > heightPageBytes)
             {
                 if(_heightCommittedPages == _heightReservedPages)
                 { return false; }
@@ -154,7 +154,7 @@ private:
 
         {
             const uSys valuePageBytes = _valueCommittedPages * PageAllocator::pageSize();
-            if(_allocIndex + sizeof(_T) > valuePageBytes)
+            if(_allocIndex + sizeof(T) > valuePageBytes)
             {
                 if(_valueCommittedPages == _valueReservedPages)
                 { return false; }
@@ -172,7 +172,7 @@ private:
         // If there are `_allocPages` empty pages, release the block of pages.
         {
             const uSys branchPageBytes = (_branchCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(branchPageBytes - sizeof(_IndexT) <= (PageAllocator::pageSize() * _allocPages))
+            if(branchPageBytes - sizeof(IndexT) <= (PageAllocator::pageSize() * _allocPages))
             {
                 (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
                 (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
@@ -182,7 +182,7 @@ private:
 
         {
             const uSys heightPageBytes = (_heightCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(heightPageBytes - sizeof(_HeightT) <= (PageAllocator::pageSize() * _allocPages))
+            if(heightPageBytes - sizeof(HeightT) <= (PageAllocator::pageSize() * _allocPages))
             {
                 (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
                 _heightCommittedPages -= _allocPages;
@@ -191,7 +191,7 @@ private:
 
         {
             const uSys valuePageBytes = (_valueCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(valuePageBytes - sizeof(_T) <= (PageAllocator::pageSize() * _allocPages))
+            if(valuePageBytes - sizeof(T) <= (PageAllocator::pageSize() * _allocPages))
             {
                 (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
                 _valueCommittedPages -= _allocPages;
@@ -200,7 +200,7 @@ private:
     }
 };
 
-template<typename _T, typename _IndexT, typename _HeightT = _IndexT, InsertMethod _InsertMethod = InsertMethod::Ignore>
+template<typename T, typename IndexT, typename HeightT = IndexT, InsertMethod InsertMethod = InsertMethod::Ignore>
 class StreamedAVLTree final
 {
     DELETE_CM(StreamedAVLTree);
@@ -211,11 +211,11 @@ public:
     using FBAllocator = FixedBlockAllocator<AllocationTracking::None>;
 #endif
 
-    static constexpr _IndexT INVALID_VALUE = static_cast<_IndexT>(-1);
+    static constexpr IndexT INVALID_VALUE = static_cast<IndexT>(-1);
 private:
-    StreamedAVLTreeAllocator<_T, _IndexT, _HeightT> _allocator;
+    StreamedAVLTreeAllocator<T, IndexT, HeightT> _allocator;
 
-    _IndexT _root;
+    IndexT _root;
 public:
     StreamedAVLTree(const uSys maxElements) noexcept
         : _allocator(maxElements)
@@ -225,67 +225,67 @@ public:
     ~StreamedAVLTree() noexcept
     { disposeTree(); }
 
-    [[nodiscard]] _IndexT root() const noexcept { return _root; }
+    [[nodiscard]] IndexT root() const noexcept { return _root; }
 
-    [[nodiscard]] _IndexT*    leftTree() noexcept { return _allocator.leftTree();   }
-    [[nodiscard]] _IndexT*   rightTree() noexcept { return _allocator.rightTree();  }
-    [[nodiscard]] _HeightT* heightTree() noexcept { return _allocator.heightTree(); }
-    [[nodiscard]] _T*        valueTree() noexcept { return _allocator.valueTree();  }
+    [[nodiscard]] IndexT*    leftTree() noexcept { return _allocator.leftTree();   }
+    [[nodiscard]] IndexT*   rightTree() noexcept { return _allocator.rightTree();  }
+    [[nodiscard]] HeightT* heightTree() noexcept { return _allocator.heightTree(); }
+    [[nodiscard]] T*        valueTree() noexcept { return _allocator.valueTree();  }
 
-    [[nodiscard]] const _IndexT*    leftTree() const noexcept { return _allocator.leftTree();   }
-    [[nodiscard]] const _IndexT*   rightTree() const noexcept { return _allocator.rightTree();  }
-    [[nodiscard]] const _HeightT* heightTree() const noexcept { return _allocator.heightTree(); }
-    [[nodiscard]] const _T*        valueTree() const noexcept { return _allocator.valueTree();  }
-
-    template<typename _Search>
-    [[nodiscard]] _T* find(const _Search& search) noexcept
-    {
-        const _IndexT node = find(_root, search);
-        if(node == INVALID_VALUE)
-        { return nullptr; }
-        return &valueTree()[node];
-    }
+    [[nodiscard]] const IndexT*    leftTree() const noexcept { return _allocator.leftTree();   }
+    [[nodiscard]] const IndexT*   rightTree() const noexcept { return _allocator.rightTree();  }
+    [[nodiscard]] const HeightT* heightTree() const noexcept { return _allocator.heightTree(); }
+    [[nodiscard]] const T*        valueTree() const noexcept { return _allocator.valueTree();  }
 
     template<typename _Search>
-    [[nodiscard]] const _T* find(const _Search& search) const noexcept
+    [[nodiscard]] T* find(const _Search& search) noexcept
     {
-        const _IndexT node = find(_root, search);
+        const IndexT node = find(_root, search);
+        if(node == INVALID_VALUE)
+        { return nullptr; }
+        return &valueTree()[node];
+    }
+
+    template<typename _Search>
+    [[nodiscard]] const T* find(const _Search& search) const noexcept
+    {
+        const IndexT node = find(_root, search);
         if(node == INVALID_VALUE)
         { return nullptr; }
         return &valueTree()[node];
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _T* findClosestMatchAbove(const _SearchT& search) noexcept
+    [[nodiscard]] T* findClosestMatchAbove(const _SearchT& search) noexcept
     {
-        const _IndexT node = findClosestMatchAbove(_root, search);
+        const IndexT node = findClosestMatchAbove(_root, search);
         if(node == INVALID_VALUE)
         { return nullptr; }
         return &valueTree()[node];
     }
 
     template<typename _SearchT>
-    [[nodiscard]] const _T* findClosestMatchAbove(const _SearchT& search) const noexcept
+    [[nodiscard]] const T* findClosestMatchAbove(const _SearchT& search) const noexcept
     {
-        const _IndexT node = findClosestMatchAbove(_root, search);
+        const IndexT node = findClosestMatchAbove(_root, search);
         if(node == INVALID_VALUE)
         { return nullptr; }
         return &valueTree()[node];
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _T* findClosestMatchBelow(const _SearchT& search) noexcept
+    [[nodiscard]] T* findClosestMatchBelow(const _SearchT& search) noexcept
     {
-        const _IndexT node = findClosestMatchBelow(_root, search);
+        const IndexT node = findClosestMatchBelow(_root, search);
         if(node == INVALID_VALUE)
         { return nullptr; }
         return &valueTree()[node];
     }
 
     template<typename _SearchT>
-    [[nodiscard]] const _T* findClosestMatchBelow(const _SearchT& search) const noexcept
+    [[nodiscard]] const T* findClosestMatchBelow(const _SearchT& search) const noexcept
     {
-        const _IndexT node = findClosestMatchBelow(_root, search);
+        const IndexT node = findClosestMatchBelow(_root, search);
         if(node == INVALID_VALUE)
         { return nullptr; }
         return &valueTree()[node];
@@ -303,7 +303,7 @@ public:
     [[nodiscard]] uSys getClosestMatchBelow(const _SearchT& search) const noexcept
     { return findClosestMatchBelow(_root, search); }
 
-    void insert(const _T& value) noexcept
+    void insert(const T& value) noexcept
     {
         if(_root == INVALID_VALUE)
         {
@@ -311,21 +311,21 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) _T(value);
+            new(&valueTree()[_root]) T(value);
         }
         else
         {
-            const _IndexT newNode = _allocator.allocate();
+            const IndexT newNode = _allocator.allocate();
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) _T(value);
+            new(&valueTree()[newNode]) T(value);
 
             _root = insert(_root, newNode);
         }
     }
 
-    void insert(_T&& value) noexcept
+    void insert(T&& value) noexcept
     {
         if(_root == INVALID_VALUE)
         {
@@ -333,15 +333,15 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) _T(_TauAllocatorUtils::_move(value));
+            new(&valueTree()[_root]) T(TauAllocatorUtils::_move(value));
         }
         else
         {
-            const _IndexT newNode = _allocator.allocate();
+            const IndexT newNode = _allocator.allocate();
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) _T(_TauAllocatorUtils::_move(value));
+            new(&valueTree()[newNode]) T(TauAllocatorUtils::_move(value));
 
             _root = insert(_root, newNode);
         }
@@ -356,15 +356,15 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) _T(_TauAllocatorUtils::_forward<_Args>(args)...);
+            new(&valueTree()[_root]) T(TauAllocatorUtils::_forward<_Args>(args)...);
         }
         else
         {
-            const _IndexT newNode = _allocator.allocate();
+            const IndexT newNode = _allocator.allocate();
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) _T(_TauAllocatorUtils::_forward<_Args>(args)...);
+            new(&valueTree()[newNode]) T(TauAllocatorUtils::_forward<_Args>(args)...);
 
             _root = insert(_root, newNode);
         }
@@ -374,20 +374,20 @@ public:
     void remove(const _SearchT& search) noexcept
     { _root = remove(&_root, search); }
 
-    void remove(const _IndexT search) noexcept
+    void remove(const IndexT search) noexcept
     { _root = remove(&_root, search); }
 
     void disposeTree() noexcept
     { disposeTree(_root); }
 private:
     template<typename _SearchT>
-    [[nodiscard]] _IndexT find(const _IndexT tree, const _SearchT& search) const noexcept
+    [[nodiscard]] IndexT find(const IndexT tree, const _SearchT& search) const noexcept
     {
-        _IndexT node = tree;
+        IndexT node = tree;
 
         while(node != INVALID_VALUE)
         {
-            const _T& value = valueTree()[node];
+            const T& value = valueTree()[node];
             if(search == value)
             { return node; }
 
@@ -401,16 +401,16 @@ private:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _IndexT findClosestMatchAbove(const _IndexT tree, const _SearchT& search) const noexcept
+    [[nodiscard]] IndexT findClosestMatchAbove(const IndexT tree, const _SearchT& search) const noexcept
     {
-        _IndexT contender = tree;
-        _IndexT node = tree;
+        IndexT contender = tree;
+        IndexT node = tree;
 
-        const _T* contenderValue = valueTree()[contender];
+        const T* contenderValue = valueTree()[contender];
 
         while(node != INVALID_VALUE)
         {
-            const _T& value = &valueTree()[node];
+            const T& value = &valueTree()[node];
             if(search == value)
             { return node; }
 
@@ -431,16 +431,16 @@ private:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _IndexT findClosestMatchBelow(const _IndexT tree, const _SearchT& search) const noexcept
+    [[nodiscard]] IndexT findClosestMatchBelow(const IndexT tree, const _SearchT& search) const noexcept
     {
-        _IndexT contender = tree;
-        _IndexT node = tree;
+        IndexT contender = tree;
+        IndexT node = tree;
         
-        const _T* contenderValue = valueTree()[contender];
+        const T* contenderValue = valueTree()[contender];
 
         while(node != INVALID_VALUE)
         {
-            const _T& value = valueTree()[node];
+            const T& value = valueTree()[node];
             if(search == *value)
             { return node; }
 
@@ -460,10 +460,10 @@ private:
         return contender;
     }
 
-    [[nodiscard]] _IndexT rotateRight(const _IndexT pivot) noexcept
+    [[nodiscard]] IndexT rotateRight(const IndexT pivot) noexcept
     {
-        const _IndexT newRoot = leftTree()[pivot];
-        const _IndexT transferNode = rightTree()[newRoot];
+        const IndexT newRoot = leftTree()[pivot];
+        const IndexT transferNode = rightTree()[newRoot];
 
         rightTree()[newRoot] = pivot;
         leftTree()[pivot] = transferNode;
@@ -474,10 +474,10 @@ private:
         return newRoot;
     }
 
-    [[nodiscard]] _IndexT rotateLeft(const _IndexT pivot) noexcept
+    [[nodiscard]] IndexT rotateLeft(const IndexT pivot) noexcept
     {
-        const _IndexT newRoot = rightTree()[pivot];
-        const _IndexT transferNode = leftTree()[newRoot];
+        const IndexT newRoot = rightTree()[pivot];
+        const IndexT transferNode = leftTree()[newRoot];
 
         leftTree()[newRoot] = pivot;
         rightTree()[pivot] = transferNode;
@@ -488,27 +488,27 @@ private:
         return newRoot;
     }
 
-    [[nodiscard]] _HeightT height(const _IndexT tree) const noexcept
+    [[nodiscard]] HeightT height(const IndexT tree) const noexcept
     {
         if(tree == INVALID_VALUE)
         { return 0; }
         return heightTree()[tree];
     }
 
-    [[nodiscard]] int computeBalance(const _IndexT tree) const noexcept
+    [[nodiscard]] int computeBalance(const IndexT tree) const noexcept
     {
         if(tree == INVALID_VALUE)
         { return 0; }
         return static_cast<int>(height(leftTree()[tree]) - height(rightTree()[tree]));
     }
 
-    [[nodiscard]] _IndexT insert(const _IndexT tree, const _IndexT newNode) noexcept
+    [[nodiscard]] IndexT insert(const IndexT tree, const IndexT newNode) noexcept
     {
         if(tree == INVALID_VALUE)
         { return newNode; }
 
-        const _T& newValue = valueTree()[newNode];
-        const _T& treeValue = valueTree()[tree];
+        const T& newValue = valueTree()[newNode];
+        const T& treeValue = valueTree()[tree];
 
         if(newValue < treeValue)
         { leftTree()[tree] = insert(leftTree()[tree], newNode); }
@@ -516,12 +516,12 @@ private:
         { rightTree()[tree] = insert(rightTree()[tree], newNode); }
         else
         {
-            if constexpr(_InsertMethod == InsertMethod::Ignore)
+            if constexpr(InsertMethod == InsertMethod::Ignore)
             {
                 _allocator.deallocate(newNode);
                 return tree;
             }
-            else if constexpr(_InsertMethod == InsertMethod::Replace)
+            else if constexpr(InsertMethod == InsertMethod::Replace)
             {
                 leftTree()[newNode] = leftTree()[tree];
                 rightTree()[newNode] = rightTree()[tree];
@@ -529,19 +529,19 @@ private:
                 _allocator.deallocate(tree);
                 return newNode;
             }
-            else if constexpr(_InsertMethod == InsertMethod::Greater)
+            else if constexpr(InsertMethod == InsertMethod::Greater)
             { rightTree()[tree] = insert(rightTree()[tree], newNode); }
-            else if constexpr(_InsertMethod == InsertMethod::Lesser)
+            else if constexpr(InsertMethod == InsertMethod::Lesser)
             { leftTree()[tree] = insert(leftTree()[tree], newNode); }
             else
             { return tree; }
         }
 
-        const _IndexT leftBranch = leftTree()[tree];
-        const _IndexT rightBranch = rightTree()[tree];
+        const IndexT leftBranch = leftTree()[tree];
+        const IndexT rightBranch = rightTree()[tree];
 
-        const _T* lValue = &valueTree()[leftBranch];
-        const _T* rValue = &valueTree()[rightBranch];
+        const T* lValue = &valueTree()[leftBranch];
+        const T* rValue = &valueTree()[rightBranch];
 
         heightTree()[tree] = maxT(height(leftBranch), height(rightBranch)) + 1;
 
@@ -572,10 +572,10 @@ private:
         return tree;
     }
 
-    [[nodiscard]] _IndexT* minValueNode(_IndexT* tree) noexcept
+    [[nodiscard]] IndexT* minValueNode(IndexT* tree) noexcept
     {
-        _IndexT parent = INVALID_VALUE;
-        _IndexT current = *tree;
+        IndexT parent = INVALID_VALUE;
+        IndexT current = *tree;
         while(leftTree()[current] != INVALID_VALUE)
         {
             parent = current;
@@ -588,17 +588,17 @@ private:
     }
 
     template<typename _SearchT>
-    [[nodiscard]] _IndexT remove(_IndexT* rootHolder, const _SearchT& search) noexcept
+    [[nodiscard]] IndexT remove(IndexT* rootHolder, const _SearchT& search) noexcept
     {
         if(!rootHolder || *rootHolder == INVALID_VALUE)
         { return INVALID_VALUE; }
 
-        _IndexT root = *rootHolder;
+        IndexT root = *rootHolder;
 
-        _T& rValue = valueTree()[root];
+        T& rValue = valueTree()[root];
 
-        _IndexT* rLeft = &leftTree()[root];
-        _IndexT* rRight = &rightTree()[root];
+        IndexT* rLeft = &leftTree()[root];
+        IndexT* rRight = &rightTree()[root];
 
         if(search < rValue)
         { *rLeft = remove(rLeft, search); }
@@ -608,7 +608,7 @@ private:
         {
             if(*rLeft == INVALID_VALUE || *rRight == INVALID_VALUE)
             {
-                _IndexT tmp = *rLeft != INVALID_VALUE ? *rLeft : *rRight;
+                IndexT tmp = *rLeft != INVALID_VALUE ? *rLeft : *rRight;
                 if(tmp == INVALID_VALUE)
                 { *rootHolder = INVALID_VALUE; }
                 else
@@ -618,7 +618,7 @@ private:
             }
             else
             {
-                _IndexT* tmp = minValueNode(rRight);
+                IndexT* tmp = minValueNode(rRight);
 
                 *rootHolder = *tmp;                 // Replace root
                 *tmp = rightTree()[*tmp];           // Store tmp's right branch in tmp's parent left branch
@@ -664,17 +664,17 @@ private:
         return root;
     }
 
-    [[nodiscard]] _IndexT remove(_IndexT* rootHolder, const _IndexT search) noexcept
+    [[nodiscard]] IndexT remove(IndexT* rootHolder, const IndexT search) noexcept
     {
         if(!rootHolder || *rootHolder == INVALID_VALUE)
         { return INVALID_VALUE; }
 
-        _IndexT root = *rootHolder;
+        IndexT root = *rootHolder;
 
-        _T& rValue = valueTree()[root];
+        T& rValue = valueTree()[root];
 
-        _IndexT* rLeft = &leftTree()[root];
-        _IndexT* rRight = &rightTree()[root];
+        IndexT* rLeft = &leftTree()[root];
+        IndexT* rRight = &rightTree()[root];
 
         if(search->value < rValue)
         { *rLeft = remove(rLeft, search); }
@@ -682,18 +682,18 @@ private:
         { *rRight = remove(rRight, search); }
         else if(search != root)
         {
-            if constexpr(_InsertMethod == InsertMethod::Ignore || _InsertMethod == InsertMethod::Replace)
+            if constexpr(InsertMethod == InsertMethod::Ignore || InsertMethod == InsertMethod::Replace)
             { return root; }
-            else if constexpr(_InsertMethod == InsertMethod::Greater)
+            else if constexpr(InsertMethod == InsertMethod::Greater)
             { *rRight = remove(rRight, search); }
-            else if constexpr(_InsertMethod == InsertMethod::Lesser)
+            else if constexpr(InsertMethod == InsertMethod::Lesser)
             { *rLeft = remove(rLeft, search); }
         }
         else
         {
             if(*rLeft == INVALID_VALUE || *rRight == INVALID_VALUE)
             {
-                _IndexT tmp = *rLeft != INVALID_VALUE ? *rLeft : *rRight;
+                IndexT tmp = *rLeft != INVALID_VALUE ? *rLeft : *rRight;
                 if(tmp == INVALID_VALUE)
                 { *rootHolder = INVALID_VALUE; }
                 else
@@ -703,7 +703,7 @@ private:
             }
             else
             {
-                _IndexT* tmp = minValueNode(rRight);
+                IndexT* tmp = minValueNode(rRight);
 
                 *rootHolder = *tmp;                 // Replace root
                 *tmp = rightTree()[*tmp];           // Store tmp's right branch in tmp's parent left branch
