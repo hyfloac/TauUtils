@@ -24,12 +24,12 @@ void PageAllocator::init() noexcept
 
 void* PageAllocator::reserve(const uSys numPages) noexcept
 {
-    return VirtualAlloc(nullptr, numPages * _pageSize, MEM_RESERVE, PAGE_NOACCESS);
+    return VirtualAlloc(nullptr, numPages * pageSize(), MEM_RESERVE, PAGE_NOACCESS);
 }
 
 void* PageAllocator::alloc(const uSys numPages) noexcept
 {
-    return VirtualAlloc(nullptr, numPages * _pageSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(nullptr, numPages * pageSize(), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 }
 
 void* PageAllocator::commitPage(void* const page) noexcept
