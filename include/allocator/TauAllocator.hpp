@@ -79,7 +79,7 @@ public:
     void deallocateT(T* const obj) noexcept
     {
         if(!obj) { return; }
-        obj->~_T();
+        obj->~T();
         deallocate(obj);
     }
 };

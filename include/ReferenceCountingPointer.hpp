@@ -13,7 +13,7 @@
 
 namespace ReferenceCountingPointerUtils {
 /**
- *   This does not store a direct _T because we may want to
+ *   This does not store a direct T because we may want to
  * cast it to a non-concrete interface, in which case the
  * compiler complains. By using a raw buffer we can convince
  * the compiler that it is still a reference to a concrete
@@ -26,15 +26,15 @@ struct ReferenceCountDataObject final
 public:
     uSys _refCount;
     TauAllocator& _allocator;
-    // u8 _objRaw[sizeof(_T)];
+    // u8 _objRaw[sizeof(T)];
 public:
     template<typename... Args>
     ReferenceCountDataObject(TauAllocator& allocator, Args&&... args) noexcept;
 
     ~ReferenceCountDataObject() noexcept;
 
-    [[nodiscard]] T* objPtr()       noexcept { return reinterpret_cast<_T*>(this + 1); }
-    [[nodiscard]] const T* objPtr() const noexcept { return reinterpret_cast<_T*>(this + 1); }
+    [[nodiscard]] T* objPtr()       noexcept { return reinterpret_cast<T*>(this + 1); }
+    [[nodiscard]] const T* objPtr() const noexcept { return reinterpret_cast<T*>(this + 1); }
 
     uSys addRef() noexcept
     {
@@ -68,7 +68,7 @@ public:
 };
 
 /**
- *   This does not store a direct _T because we may have to
+ *   This does not store a direct T because we may have to
  * destruct the value before the entire object is destroyed.
  */
 template<typename T>
@@ -80,15 +80,15 @@ public:
     uSys _strongRefCount;
     uSys _weakRefCount;
     TauAllocator& _allocator;
-    // u8 _objRaw[sizeof(_T)];
+    // u8 _objRaw[sizeof(T)];
 public:
     template<typename... Args>
     SWReferenceCount(TauAllocator& allocator, Args&&... args) noexcept;
 
-    [[nodiscard]] T* objPtr()       noexcept { return reinterpret_cast<_T*>(this + 1); }
-    [[nodiscard]] const T* objPtr() const noexcept { return reinterpret_cast<_T*>(this + 1); }
+    [[nodiscard]] T* objPtr()       noexcept { return reinterpret_cast<T*>(this + 1); }
+    [[nodiscard]] const T* objPtr() const noexcept { return reinterpret_cast<T*>(this + 1); }
 
-    void destroyObj() noexcept { reinterpret_cast<_T*>(this + 1)->~_T(); }
+    void destroyObj() noexcept { reinterpret_cast<T*>(this + 1)->~T(); }
 
     uSys addRefStrong() noexcept
     {
