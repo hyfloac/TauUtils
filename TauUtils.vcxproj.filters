@@ -123,4 +123,12 @@
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="include\ReferenceCountingPointer.inl">
+      <Filter>include</Filter>
+    </None>
+    <None Include="include\String.inl">
+      <Filter>include</Filter>
+    </None>
+  </ItemGroup>
 </Project>
