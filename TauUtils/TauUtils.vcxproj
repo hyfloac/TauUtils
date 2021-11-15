@@ -15,24 +15,21 @@
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TauUtils</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Win64|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -45,13 +42,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Win64|x64'">
-    <OutDir>bin\debug_win64-x64\</OutDir>
+    <OutDir>..\bin\debug_win64-x64\</OutDir>
     <IntDir>obj\Win64\Debug\</IntDir>
     <TargetName>TauUtils</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'">
-    <OutDir>bin\release_win64-x64\</OutDir>
+    <OutDir>..\bin\release_win64-x64\</OutDir>
     <IntDir>obj\Win64\Release\</IntDir>
     <TargetName>TauUtils</TargetName>
     <TargetExt>.lib</TargetExt>
@@ -72,10 +69,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <OmitFramePointers>false</OmitFramePointers>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,11 +92,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <OmitFramePointers>true</OmitFramePointers>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,8 +138,10 @@
   <ItemGroup>
     <ClCompile Include="src\DefaultTauAllocator.cpp" />
     <ClCompile Include="src\PageAllocator.cpp" />
+    <ClCompile Include="src\ReferenceCountingPointer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\EnumBitFields.inl" />
     <None Include="include\ReferenceCountingPointer.inl" />
     <None Include="include\String.inl" />
   </ItemGroup>

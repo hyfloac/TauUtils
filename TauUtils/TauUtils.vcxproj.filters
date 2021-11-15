@@ -122,8 +122,14 @@
     <ClCompile Include="src\PageAllocator.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ReferenceCountingPointer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\EnumBitFields.inl">
+      <Filter>include</Filter>
+    </None>
     <None Include="include\ReferenceCountingPointer.inl">
       <Filter>include</Filter>
     </None>

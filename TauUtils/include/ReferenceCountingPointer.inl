@@ -9,74 +9,109 @@
 #endif
 
 namespace ReferenceCountingPointerUtils {
+
 template<typename T>
 template<typename... Args>
 inline ReferenceCountDataObject<T>::ReferenceCountDataObject(TauAllocator& allocator, Args&&... args) noexcept
-    : _refCount(1)
-    , _allocator(allocator)
-{ (void) new(this + 1) T(TauAllocatorUtils::_forward<Args>(args)...); }
+    : m_RefCount(1)
+    , m_Allocator(allocator)
+{ (void) new(this + 1) Type(TauAllocatorUtils::Forward<Args>(args)...); }
+
+template<typename T>
+inline constexpr ReferenceCountDataObject<T>::ReferenceCountDataObject(nullptr_t) noexcept
+    : m_RefCount(0)
+    , m_Allocator(DefaultTauAllocator::Instance())
+{ }
 
 template<typename T>
 inline ReferenceCountDataObject<T>::~ReferenceCountDataObject() noexcept
-{ reinterpret_cast<T*>(this + 1)->~T(); }
+{ reinterpret_cast<Type*>(this + 1)->~Type(); }
+
+template<typename T>
+inline constexpr ReferenceCountDataObject<T>* ReferenceCountDataObject<T>::Null() noexcept
+{ return RCDOCast<T>(&NullRCDO); }
 
 template<typename T>
 template<typename... Args>
 inline SWReferenceCount<T>::SWReferenceCount(TauAllocator& allocator, Args&&... args) noexcept
-    : _strongRefCount(1)
-    , _weakRefCount(0)
-    , _allocator(allocator)
-{ (void) new(this + 1) T(TauAllocatorUtils::_forward<Args>(args)...); }
+    : m_StrongRefCount(1)
+    , m_WeakRefCount(0)
+    , m_Allocator(allocator)
+{ (void) new(this + 1) T(TauAllocatorUtils::Forward<Args>(args)...); }
+
+template<typename T>
+inline constexpr SWReferenceCount<T>::SWReferenceCount(nullptr_t) noexcept
+    : m_StrongRefCount(0)
+    , m_WeakRefCount(0)
+    , m_Allocator(DefaultTauAllocator::Instance())
+{ }
+
+template<typename T>
+inline constexpr SWReferenceCount<T>* SWReferenceCount<T>::Null() noexcept
+{ return SWRCCast<T>(&NullSWRC); }
 
 template<typename ToT, typename FromT>
-inline const ReferenceCountDataObject<ToT>& RCDOCast(const ReferenceCountDataObject<FromT>& obj) noexcept
+inline constexpr const ReferenceCountDataObject<ToT>& RCDOCast(const ReferenceCountDataObject<FromT>& obj) noexcept
 { return reinterpret_cast<const ReferenceCountDataObject<ToT>&>(obj); }
 
 template<typename ToT, typename FromT>
-inline ReferenceCountDataObject<ToT>& RCDOCast(ReferenceCountDataObject<FromT>& obj) noexcept
+inline constexpr ReferenceCountDataObject<ToT>& RCDOCast(ReferenceCountDataObject<FromT>& obj) noexcept
 { return reinterpret_cast<ReferenceCountDataObject<ToT>&>(obj); }
 
 template<typename ToT, typename FromT>
-inline ReferenceCountDataObject<ToT>&& RCDOCast(ReferenceCountDataObject<FromT>&& obj) noexcept
+inline constexpr ReferenceCountDataObject<ToT>&& RCDOCast(ReferenceCountDataObject<FromT>&& obj) noexcept
 { return reinterpret_cast<ReferenceCountDataObject<ToT>&&>(obj); }
 
 template<typename ToT, typename FromT>
-inline const SWReferenceCount<ToT>& SWRCCast(const SWReferenceCount<FromT>& obj) noexcept
+inline constexpr const ReferenceCountDataObject<ToT>* RCDOCast(const ReferenceCountDataObject<FromT>* obj) noexcept
+{ return reinterpret_cast<const ReferenceCountDataObject<ToT>*>(obj); }
+
+template<typename ToT, typename FromT>
+inline constexpr ReferenceCountDataObject<ToT>* RCDOCast(ReferenceCountDataObject<FromT>* obj) noexcept
+{ return reinterpret_cast<ReferenceCountDataObject<ToT>*>(obj); }
+
+template<typename ToT, typename FromT>
+inline constexpr const SWReferenceCount<ToT>& SWRCCast(const SWReferenceCount<FromT>& obj) noexcept
 { return reinterpret_cast<const SWReferenceCount<ToT>&>(obj); }
 
 template<typename ToT, typename FromT>
-inline SWReferenceCount<ToT>& SWRCCast(SWReferenceCount<FromT>& obj) noexcept
+inline constexpr SWReferenceCount<ToT>& SWRCCast(SWReferenceCount<FromT>& obj) noexcept
 { return reinterpret_cast<SWReferenceCount<ToT>&>(obj); }
 
 template<typename ToT, typename FromT>
-inline SWReferenceCount<ToT>&& SWRCCast(SWReferenceCount<FromT>&& obj) noexcept
+inline constexpr SWReferenceCount<ToT>&& SWRCCast(SWReferenceCount<FromT>&& obj) noexcept
 { return reinterpret_cast<SWReferenceCount<ToT>&&>(obj); }
+
+template<typename ToT, typename FromT>
+inline constexpr const SWReferenceCount<ToT>* SWRCCast(const SWReferenceCount<FromT>* obj) noexcept
+{ return reinterpret_cast<const SWReferenceCount<ToT>*>(obj); }
+
+template<typename ToT, typename FromT>
+inline constexpr SWReferenceCount<ToT>* SWRCCast(SWReferenceCount<FromT>* obj) noexcept
+{ return reinterpret_cast<SWReferenceCount<ToT>*>(obj); }
+
 }
 
 template<typename T>
-inline constexpr uSys ReferenceCountingPointer<T>::allocSize() noexcept
-{ return sizeof(RCDO<T>); }
+inline constexpr uSys ReferenceCountingPointer<T>::AllocSize() noexcept
+{ return sizeof(RCDO<T>) + sizeof(RCDO<T>::Type); }
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
 ReferenceCountingPointer<T>::ReferenceCountingPointer(Allocator& allocator, Args&&... args) noexcept
     : _rcdo(nullptr)
-    , _tPtr(nullptr)
 {
-    void* raw = allocator.allocate(sizeof(RCDO<T>) + sizeof(T));
-    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _rcdo->objPtr();
+    void* const raw = allocator.Allocate(AllocSize());
+    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
 template<typename Arg0, typename... Args, ::std::enable_if_t<!::std::is_base_of_v<TauAllocator, Arg0>, int>>
 ReferenceCountingPointer<T>::ReferenceCountingPointer(Arg0&& arg0, Args&&... args) noexcept
     : _rcdo(nullptr)
-    , _tPtr(nullptr)
 {
-    void* raw = DefaultTauAllocator::Instance().allocate(sizeof(RCDO<T>) + sizeof(T));
-    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::_forward<Arg0>(arg0), TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _rcdo->objPtr();
+    void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
+    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -84,64 +119,51 @@ template<typename TT>
 inline ReferenceCountingPointer<T>::ReferenceCountingPointer(const ReferenceCountingPointer<TT>& rcp) noexcept
     : TReferenceCountingPointerBase<T>(rcp)
     , _rcdo(reinterpret_cast<RCDO<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp._tPtr))
-{
-    if(_rcdo) 
-    { _rcdo->addRef(); }
-}
+{ _rcdo->AddRef(); }
 
 template<typename T>
 template<typename TT>
 inline ReferenceCountingPointer<T>::ReferenceCountingPointer(ReferenceCountingPointer<TT>&& rcp) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(rcp))
     , _rcdo(reinterpret_cast<RCDO<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp._tPtr))
 { rcp._getBlock() = nullptr; }
 
 template<typename T>
 inline constexpr ReferenceCountingPointer<T>::ReferenceCountingPointer(const nullptr_t) noexcept
-    : _rcdo(nullptr)
-    , _tPtr(nullptr)
+    : _rcdo(RCDO<T>::Null())
 { }
 
 template<typename T>
 inline constexpr ReferenceCountingPointer<T>::ReferenceCountingPointer() noexcept
-    : _rcdo(nullptr)
-    , _tPtr(nullptr)
+    : _rcdo(RCDO<T>::Null())
 { }
 
 template<typename T>
 inline ReferenceCountingPointer<T>::~ReferenceCountingPointer() noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo && _rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 }
 
 template<typename T>
 inline ReferenceCountingPointer<T>::ReferenceCountingPointer(const ReferenceCountingPointer<T>& copy) noexcept
     : TReferenceCountingPointerBase<T>(copy)
     , _rcdo(copy._rcdo)
-    , _tPtr(copy._tPtr)
-{
-    if(_rcdo) 
-    { _rcdo->addRef(); }
-}
+{ _rcdo->AddRef(); }
 
 template<typename T>
 inline ReferenceCountingPointer<T>::ReferenceCountingPointer(ReferenceCountingPointer<T>&& move) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(move))
     , _rcdo(move._rcdo)
-    , _tPtr(move._tPtr)
 { move._rcdo = nullptr; }
 
 template<typename T>
 inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(const nullptr_t) noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
-    _rcdo = nullptr;
-    _tPtr = nullptr;
+    _rcdo = RCDO<T>::Null();
 
     return *this;
 }
@@ -152,16 +174,14 @@ inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(const
     if(this == &copy)
     { return *this; }
 
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _rcdo = copy._rcdo;
-    _tPtr = copy._tPtr;
 
-    if(_rcdo)
-    { _rcdo->addRef(); }
+    _rcdo->AddRef();
 
     return *this;
 }
@@ -172,13 +192,12 @@ inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(Refer
     if(this == &move)
     { return *this; }
 
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     TReferenceCountingPointerBase<T>::operator =(::std::move(move));
 
     _rcdo = move._rcdo;
-    _tPtr = move._tPtr;
 
     move._rcdo = nullptr;
 
@@ -189,16 +208,14 @@ template<typename T>
 template<typename TT>
 inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(const ReferenceCountingPointer<TT>& copy) noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _rcdo = reinterpret_cast<RCDO<T>*>(copy._getBlock());
-    _tPtr = static_cast<T*>(copy._tPtr);
 
-    if(_rcdo)
-    { _rcdo->addRef(); }
+    _rcdo->AddRef();
 
     return *this;
 }
@@ -207,13 +224,12 @@ template<typename T>
 template<typename TT>
 inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(ReferenceCountingPointer<TT>&& move) noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     TReferenceCountingPointerBase<T>::operator =(::std::move(move));
 
     _rcdo = reinterpret_cast<RCDO<T>*>(move._getBlock());
-    _tPtr = static_cast<T*>(move._tPtr);
 
     move._getBlock() = nullptr;
 
@@ -222,72 +238,66 @@ inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(Refer
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
-inline void ReferenceCountingPointer<T>::reset(Allocator& allocator, Args&&... args) noexcept
+inline void ReferenceCountingPointer<T>::Reset(Allocator& allocator, Args&&... args) noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
-    void* raw = allocator.allocate(sizeof(RCDO<T>) + sizeof(T));
-    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _rcdo->objPtr();
+    void* const raw = allocator.Allocate(AllocSize());
+    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
 template<typename Arg0, typename... Args, ::std::enable_if_t<!::std::is_base_of_v<TauAllocator, Arg0>, int>>
-inline void ReferenceCountingPointer<T>::reset(Arg0&& arg0, Args&&... args) noexcept
+inline void ReferenceCountingPointer<T>::Reset(Arg0&& arg0, Args&&... args) noexcept
 {
-    if(_rcdo && _rcdo->release() == 0)
-    { _rcdo->_allocator.deallocateT(_rcdo); }
+    if(_rcdo->ObjPtr() && _rcdo->Release() == 0)
+    { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
-    void* raw = DefaultTauAllocator::Instance().allocate(sizeof(RCDO<T>) + sizeof(T));
-    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::_forward<Arg0>(arg0), TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _rcdo->objPtr();
+    void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
+    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
-inline bool ReferenceCountingPointer<T>::operator==(const T* const& ptr) const noexcept
+inline bool ReferenceCountingPointer<T>::operator==(const Type* const ptr) const noexcept
 {
-    if(_rcdo && ptr)
-    { return _rcdo->objPtr() == ptr; }
-    if(!_rcdo && !ptr)
+    if(_rcdo->ObjPtr() && ptr)
+    { return _rcdo->ObjPtr() == ptr; }
+    if(!_rcdo->ObjPtr() && !ptr)
     { return true; }
     return false;
 }
 
 template<typename T>
-inline bool ReferenceCountingPointer<T>::operator!=(const T* const& ptr) const noexcept
+inline bool ReferenceCountingPointer<T>::operator!=(const Type* const ptr) const noexcept
 {
-    if(_rcdo && ptr)
-    { return _rcdo->objPtr() != ptr; }
-    if(!_rcdo && !ptr)
+    if(_rcdo->ObjPtr() && ptr)
+    { return _rcdo->ObjPtr() != ptr; }
+    if(!_rcdo->ObjPtr() && !ptr)
     { return false; }
     return true;
 }
 
 template<typename T>
-inline constexpr uSys StrongReferenceCountingPointer<T>::allocSize() noexcept
-{ return sizeof(SWRC<T>); }
+inline constexpr uSys StrongReferenceCountingPointer<T>::AllocSize() noexcept
+{ return sizeof(SWRC<T>) + sizeof(SWRC<T>::Type); }
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
 StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(Allocator& allocator, Args&&... args) noexcept
     : _swrc(nullptr)
-    , _tPtr(nullptr)
 {
-    void* raw = allocator.allocate(sizeof(SWRC<T>) + sizeof(T));
-    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _swrc->objPtr();
+    void* const raw = allocator.Allocate(AllocSize());
+    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
 template<typename Arg0, typename... Args, ::std::enable_if_t<!::std::is_base_of_v<TauAllocator, Arg0>, int>>
 StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(Arg0&& arg0, Args&&... args) noexcept
     : _swrc(nullptr)
-    , _tPtr(nullptr)
 {
-    void* raw = DefaultTauAllocator::Instance().allocate(sizeof(SWRC<T>) + sizeof(T));
-    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::_forward<Arg0>(arg0), TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _swrc->objPtr();
+    void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
+    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -295,60 +305,52 @@ template<typename TT>
 inline StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(const StrongReferenceCountingPointer<TT>& rcp) noexcept
     : TReferenceCountingPointerBase<T>(rcp)
     , _swrc(reinterpret_cast<SWRC<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp._tPtr))
-{
-    if(_swrc) 
-    { _swrc->addRefStrong(); }
-}
+{ _swrc->AddRefStrong(); }
 
 template<typename T>
 template<typename TT>
 inline StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(StrongReferenceCountingPointer<TT>&& rcp) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(rcp))
     , _swrc(reinterpret_cast<SWRC<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp._tPtr))
 { rcp._getBlock() = nullptr; }
 
 template<typename T>
 inline constexpr StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(const nullptr_t) noexcept
-    : _swrc(nullptr)
-    , _tPtr(nullptr)
+    : _swrc(SWRC<T>::Null())
 { }
 
 template<typename T>
 inline constexpr StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer() noexcept
-    : _swrc(nullptr)
-    , _tPtr(nullptr)
+    : _swrc(SWRC<T>::Null())
 { }
 
 template<typename T>
 inline StrongReferenceCountingPointer<T>::~StrongReferenceCountingPointer() noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc && _swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc && _swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 }
 
 template<typename T>
 inline StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(const StrongReferenceCountingPointer<T>& copy) noexcept
     : TReferenceCountingPointerBase<T>(copy)
     , _swrc(copy._swrc)
-    , _tPtr(copy._tPtr)
 {
-    if(_swrc) 
-    { _swrc->addRefStrong(); }
+    if(_swrc->ObjPtr()) 
+    { _swrc->AddRefStrong(); }
 }
 
 template<typename T>
 inline StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(StrongReferenceCountingPointer<T>&& move) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(move))
     , _swrc(move._swrc)
-    , _tPtr(move._tPtr)
 { move._swrc = nullptr; }
 
 template<typename T>
@@ -357,22 +359,20 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
     if(this == &copy)
     { return *this; }
 
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = copy._swrc;
-    _tPtr = copy._tPtr;
-
-    if(_swrc) 
-    { _swrc->addRefStrong(); }
+    _swrc->AddRefStrong();
 
     return *this;
 }
@@ -383,19 +383,19 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
     if(this == &move)
     { return *this; }
 
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount <= 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(::std::move(move));
 
     _swrc = move._swrc;
-    _tPtr = move._tPtr;
 
     move._swrc = nullptr;
 
@@ -405,17 +405,17 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
 template<typename T>
 inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const nullptr_t) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount <= 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
-    _swrc = nullptr;
-    _tPtr = nullptr;
+    _swrc = SWRC<T>::Null();
 
     return *this;
 }
@@ -424,22 +424,21 @@ template<typename T>
 template<typename TT>
 inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const StrongReferenceCountingPointer<TT>& copy) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = reinterpret_cast<SWRC<T>*>(copy._getBlock());
-    _tPtr = static_cast<T*>(copy._tPtr);
 
-    if(_swrc)
-    { _swrc->addRefStrong(); }
+    _swrc->AddRefStrong();
 
     return *this;
 }
@@ -448,19 +447,19 @@ template<typename T>
 template<typename TT>
 inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(StrongReferenceCountingPointer<TT>&& move) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(::std::move(move));
 
     _swrc = reinterpret_cast<SWRC<T>*>(move._getBlock());
-    _tPtr = static_cast<T*>(move._tPtr);
 
     move._getBlock() = nullptr;
 
@@ -470,28 +469,27 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
 template<typename T>
 inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const WeakReferenceCountingPointer<T>& copy) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocate(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.Deallocate(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     if(copy)
     {
         _swrc = copy._rcdo;
-        _tPtr = copy._tPtr;
 
-        _swrc->addRefStrong();
+        _swrc->AddRefStrong();
     }
     else
     {
-        _swrc = nullptr;
-        _tPtr = nullptr;
+        _swrc = SWRC<T>::Null();
     }
 
     return *this;
@@ -501,28 +499,27 @@ template <typename T>
 template <typename TT>
 inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const WeakReferenceCountingPointer<TT>& copy) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocate(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.Deallocate(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     if(copy)
     {
         _swrc = reinterpret_cast<SWRC<T>*>(copy._getBlock());
-        _tPtr = static_cast<T*>(copy._tPtr);
 
-        _swrc->addRefStrong();
+        _swrc->AddRefStrong();
     }
     else
     {
-        _swrc = nullptr;
-        _tPtr = nullptr;
+        _swrc = SWRC<T>::Null();
     }
 
     return *this;
@@ -530,38 +527,38 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
-inline void StrongReferenceCountingPointer<T>::reset(Allocator& allocator, Args&&... args) noexcept
+inline void StrongReferenceCountingPointer<T>::Reset(Allocator& allocator, Args&&... args) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
-    void* raw = allocator.allocate(sizeof(SWRC<T>) + sizeof(T));
-    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _swrc->objPtr();
+    void* const raw = allocator.Allocate(AllocSize());
+    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
 template<typename Arg0, typename... Args, ::std::enable_if_t<!::std::is_base_of_v<TauAllocator, Arg0>, int>>
-inline void StrongReferenceCountingPointer<T>::reset(Arg0&& arg0, Args&&... args) noexcept
+inline void StrongReferenceCountingPointer<T>::Reset(Arg0&& arg0, Args&&... args) noexcept
 {
-    if(_swrc && _swrc->_strongRefCount == 1)
+    if(_swrc->ObjPtr() && _swrc->m_StrongRefCount == 1)
     {
-        _swrc->destroyObj();
-        if(!_swrc->_weakRefCount)
-        { _swrc->_allocator.deallocateT(_swrc); }
+        _swrc->ReleaseStrong();
+        _swrc->DestroyObj();
+        if(!_swrc->m_WeakRefCount)
+        { _swrc->m_Allocator.DeallocateT(_swrc); }
     }
-    else if(_swrc && _swrc->_strongRefCount > 1)
-    { _swrc->releaseStrong(); }
+    else if(_swrc->m_StrongRefCount > 1)
+    { _swrc->ReleaseStrong(); }
 
-    void* raw = DefaultTauAllocator::Instance().allocate(sizeof(SWRC<T>) + sizeof(T));
-    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::_forward<Arg0>(arg0), TauAllocatorUtils::_forward<Args>(args)...);
-    _tPtr = _swrc->objPtr();
+    void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
+    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -581,103 +578,83 @@ inline bool StrongReferenceCountingPointer<T>::operator!=(const WeakReferenceCou
 { return _swrc != ptr._rcdo; }
 
 template<typename T>
-inline bool StrongReferenceCountingPointer<T>::operator==(const T* const& ptr) const noexcept
+inline bool StrongReferenceCountingPointer<T>::operator==(const Type* const ptr) const noexcept
 {
-    if(_swrc && ptr)
-    { return _swrc->objPtr() == ptr; }
-    if(!_swrc && !ptr)
+    if(_swrc->ObjPtr() && ptr)
+    { return _swrc->ObjPtr() == ptr; }
+    if(!_swrc->ObjPtr() && !ptr)
     { return true; }
     return false;
 }
 
 template<typename T>
-inline bool StrongReferenceCountingPointer<T>::operator!=(const T* const& ptr) const noexcept
+inline bool StrongReferenceCountingPointer<T>::operator!=(const Type* const ptr) const noexcept
 {
-    if(_swrc && ptr)
-    { return _swrc->objPtr() != ptr; }
-    if(!_swrc && !ptr)
+    if(_swrc->ObjPtr() && ptr)
+    { return _swrc->ObjPtr() != ptr; }
+    if(!_swrc->ObjPtr() && !ptr)
     { return false; }
     return true;
 }
 
 template<typename T>
-inline constexpr uSys WeakReferenceCountingPointer<T>::allocSize() noexcept
-{ return sizeof(SWRC<T>); }
+inline constexpr uSys WeakReferenceCountingPointer<T>::AllocSize() noexcept
+{ return sizeof(SWRC<T>) + sizeof(SWRC<T>::Type); }
 
 template<typename T>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const StrongReferenceCountingPointer<T>& ptr) noexcept
     : TReferenceCountingPointerBase<T>(ptr)
     , _swrc(ptr._swrc)
-    , _tPtr(ptr._tPtr)
-{
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
-}
+{ _swrc->AddRefWeak(); }
 
 template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const StrongReferenceCountingPointer<TT>& rcp) noexcept
     : TReferenceCountingPointerBase<T>(rcp)
     , _swrc(reinterpret_cast<SWRC<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp.get()))
-{
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
-}
+{ _swrc->AddRefWeak(); }
 
 template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const WeakReferenceCountingPointer<TT>& rcp) noexcept
     : TReferenceCountingPointerBase<T>(rcp)
     , _swrc(reinterpret_cast<SWRC<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp.get()))
-{
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
-}
+{ _swrc->AddRefWeak(); }
 
 template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(WeakReferenceCountingPointer<TT>&& rcp) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(rcp))
     , _swrc(reinterpret_cast<SWRC<T>*>(rcp._getBlock()))
-    , _tPtr(static_cast<T*>(rcp.get()))
 { rcp._getBlock() = nullptr; }
 
 template<typename T>
 inline constexpr WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const nullptr_t) noexcept
-    : _swrc(nullptr)
-    , _tPtr(nullptr)
+    : _swrc(SWRC<T>::Null())
 { }
 
 template<typename T>
 inline constexpr WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer() noexcept
-    : _swrc(nullptr)
-    , _tPtr(nullptr)
+    : _swrc(SWRC<T>::Null())
 { }
 
 template<typename T>
 inline WeakReferenceCountingPointer<T>::~WeakReferenceCountingPointer() noexcept
 {
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc && _swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 }
 
 template<typename T>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const WeakReferenceCountingPointer<T>& copy) noexcept
     : TReferenceCountingPointerBase<T>(copy)
     , _swrc(copy._swrc)
-    , _tPtr(copy._tPtr)
-{
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
-}
+{ _swrc->AddRefWeak(); }
 
 template<typename T>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(WeakReferenceCountingPointer<T>&& move) noexcept
     : TReferenceCountingPointerBase<T>(::std::move(move))
     , _swrc(move._swrc)
-    , _tPtr(move._tPtr)
 { move._swrc = nullptr; }
 
 template<typename T>
@@ -686,16 +663,14 @@ inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operato
     if(this == &copy)
     { return *this; }
 
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = copy._swrc;
-    _tPtr = copy._tPtr;
 
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
+    _swrc->AddRefWeak();
 
     return *this;
 }
@@ -706,13 +681,12 @@ inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operato
     if(this == &move)
     { return *this; }
 
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator =(::std::move(move));
 
     _swrc = move._swrc;
-    _tPtr = move._tPtr;
 
     move._swrc = nullptr;
 
@@ -722,16 +696,14 @@ inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operato
 template<typename T>
 inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operator=(const StrongReferenceCountingPointer<T>& copy) noexcept
 {
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = copy._swrc;
-    _tPtr = copy._tPtr;
 
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
+    _swrc->AddRefWeak();
 
     return *this;
 }
@@ -740,16 +712,14 @@ template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operator=(const StrongReferenceCountingPointer<TT>& copy) noexcept
 {
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = reinterpret_cast<SWRC<T>*>(copy._getBlock());
-    _tPtr = static_cast<T*>(copy._tPtr);
 
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
+    _swrc->AddRefWeak();
 
     return *this;
 }
@@ -758,16 +728,14 @@ template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operator=(const WeakReferenceCountingPointer<TT>& copy) noexcept
 {
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator =(copy);
 
     _swrc = reinterpret_cast<SWRC<T>*>(copy._getBlock());
-    _tPtr = static_cast<T*>(copy._tPtr);
 
-    if(_swrc) 
-    { _swrc->addRefWeak(); }
+    _swrc->AddRefWeak();
 
     return *this;
 }
@@ -776,13 +744,12 @@ template<typename T>
 template<typename TT>
 inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operator=(WeakReferenceCountingPointer<TT>&& move) noexcept
 {
-    if(_swrc && _swrc->releaseWeak() == 0 && !_swrc->_strongRefCount)
-    { _swrc->_allocator.deallocate(_swrc); }
+    if(_swrc->ObjPtr() && _swrc->ReleaseWeak() == 0 && !_swrc->m_StrongRefCount)
+    { _swrc->m_Allocator.Deallocate(_swrc); }
 
     TReferenceCountingPointerBase<T>::operator=(::std::move(move));
 
     _swrc = reinterpret_cast<SWRC<T>*>(move._getBlock());
-    _tPtr = static_cast<T*>(move._tPtr);
 
     move._getBlock() = nullptr;
 
@@ -790,21 +757,21 @@ inline WeakReferenceCountingPointer<T>& WeakReferenceCountingPointer<T>::operato
 }
 
 template<typename T>
-inline bool WeakReferenceCountingPointer<T>::operator==(const T* const& ptr) const noexcept
+inline bool WeakReferenceCountingPointer<T>::operator==(const T* const ptr) const noexcept
 {
-    if(_swrc && ptr)
-    { return _swrc->objPtr() == ptr; }
-    if(!_swrc && !ptr)
+    if(_swrc->ObjPtr() && ptr)
+    { return _swrc->ObjPtr() == ptr; }
+    if(!_swrc->ObjPtr() && !ptr)
     { return true; }
     return false;
 }
 
 template<typename T>
-inline bool WeakReferenceCountingPointer<T>::operator!=(const T* const& ptr) const noexcept
+inline bool WeakReferenceCountingPointer<T>::operator!=(const T* const ptr) const noexcept
 {
-    if(_swrc && ptr)
-    { return _swrc->objPtr() != ptr; }
-    if(!_swrc && !ptr)
+    if(_swrc->ObjPtr() && ptr)
+    { return _swrc->ObjPtr() != ptr; }
+    if(!_swrc->ObjPtr() && !ptr)
     { return false; }
     return true;
 }

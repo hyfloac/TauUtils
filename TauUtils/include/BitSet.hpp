@@ -52,7 +52,7 @@ public:
         const uSys invBitIndex = BIT_COUNT - bitIndex;
 
         const uSys word = _bits[wordIndex];
-        const bool ret = word & (1 << invBitIndex);
+        const bool ret = word & (static_cast<uSys>(1) << invBitIndex);
 
         return ret;
     }
@@ -63,7 +63,7 @@ public:
         const uSys bitIndex = index % BIT_COUNT;
         const uSys invBitIndex = BIT_COUNT - bitIndex;
 
-        return BitRef(_bits[wordIndex], 1 << invBitIndex);
+        return BitRef(_bits[wordIndex], static_cast<uSys>(1) << invBitIndex);
     }
 
     [[nodiscard]] bool at(const uSys index) const noexcept
@@ -76,8 +76,38 @@ public:
         { return false; }
 
         const uSys word = _bits[wordIndex];
-        const bool ret = word & (1 << invBitIndex);
+        const bool ret = word & (static_cast<uSys>(1) << invBitIndex);
 
         return ret;
+    }
+
+    void set(const uSys index, bool value = true) noexcept
+    {
+        const uSys wordIndex = index / BIT_COUNT;
+        const uSys bitIndex = index % BIT_COUNT;
+        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        
+        if(wordIndex >= _bits.count())
+        { return; }
+        
+        if(value)
+        { _bits[wordIndex] |= static_cast<uSys>(1) << invBitIndex; }
+        else
+        { _bits[wordIndex] &= ~(static_cast<uSys>(1) << invBitIndex); }
+    }
+
+    void unset(const uSys index) noexcept
+    { set(index, false); }
+
+    void flip(const uSys index)
+    {
+        const uSys wordIndex = index / BIT_COUNT;
+        const uSys bitIndex = index % BIT_COUNT;
+        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        
+        if(wordIndex >= _bits.count())
+        { return; }
+        
+        _bits[wordIndex] ^= static_cast<uSys>(1) << invBitIndex;
     }
 };

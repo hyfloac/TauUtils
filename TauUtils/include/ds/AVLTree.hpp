@@ -27,7 +27,7 @@ public:
         : left(_left)
         , right(_right)
         , height(_height)
-        , value(::TauAllocatorUtils::_move(_value))
+        , value(::TauAllocatorUtils::Move(_value))
     { }
 
     template<typename... _Args>
@@ -35,7 +35,7 @@ public:
         : left(_left)
         , right(_right)
         , height(_height)
-        , value(TauAllocatorUtils::_forward<_Args>(args)...)
+        , value(TauAllocatorUtils::Forward<_Args>(args)...)
     { }
 };
 
@@ -142,12 +142,12 @@ public:
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, value);
+            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
             return _root;
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, value);
+            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
             _root = insert(_root, newNode, _allocator);
             return newNode;
         }
@@ -157,12 +157,12 @@ public:
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_move(value));
+            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
             return _root;
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_move(value));
+            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
             _root = insert(_root, newNode, _allocator);
             return newNode;
         }
@@ -173,12 +173,12 @@ public:
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_forward<_Args>(args)...);
+            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<_Args>(args)...);
             return _root;
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::_forward<_Args>(args)...);
+            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<_Args>(args)...);
             _root = insert(_root, newNode, _allocator);
             return newNode;
         }
@@ -332,7 +332,7 @@ private:
         {
             if constexpr(_InsertMethod == InsertMethod::Ignore)
             {
-                allocator.deallocateT(newNode);
+                allocator.DeallocateT(newNode);
                 return tree;
             }
             else if constexpr(_InsertMethod == InsertMethod::Replace)
@@ -340,7 +340,7 @@ private:
                 newNode->left = tree->left;
                 newNode->right = tree->right;
                 newNode->height = tree->height;
-                allocator.deallocateT(tree);
+                allocator.DeallocateT(tree);
                 return newNode;
             }
             else if constexpr(_InsertMethod == InsertMethod::Greater)
@@ -416,7 +416,7 @@ private:
                 { *rootHolder = nullptr; }
                 else
                 { *rootHolder = tmp; }
-                allocator.deallocateT(root);
+                allocator.DeallocateT(root);
                 root = *rootHolder;
             }
             else
@@ -427,7 +427,7 @@ private:
                 *tmp = (*tmp)->right;               // Store tmp's right branch in tmp's parent left branch
                 (*rootHolder)->left = root->left;   // Set tmp's left branch to the old root's left branch
                 (*rootHolder)->right = root->right; // Set tmp's right branch to the old root's right branch
-                allocator.deallocateT(root);        // Destroy root 
+                allocator.DeallocateT(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
         }
@@ -493,7 +493,7 @@ private:
                 { *rootHolder = nullptr; }
                 else
                 { *rootHolder = tmp; }
-                allocator.deallocateT(root);
+                allocator.DeallocateT(root);
                 root = *rootHolder;
             }
             else
@@ -504,7 +504,7 @@ private:
                 *tmp = (*tmp)->right;               // Store tmp's right branch in tmp's parent left branch
                 (*rootHolder)->left = root->left;   // Set tmp's left branch to the old root's left branch
                 (*rootHolder)->right = root->right; // Set tmp's right branch to the old root's right branch
-                allocator.deallocateT(root);        // Destroy root 
+                allocator.DeallocateT(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
         }
@@ -549,7 +549,7 @@ private:
         disposeTree(tree->left, allocator);
         disposeTree(tree->right, allocator);
 
-        allocator.deallocateT(tree);
+        allocator.DeallocateT(tree);
     }
 
     template<typename _Node, typename _F, IteratorMethod _IteratorMethod>

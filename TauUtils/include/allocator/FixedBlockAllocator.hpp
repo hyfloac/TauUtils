@@ -48,8 +48,8 @@ public:
     [[nodiscard]] uSys multipleDeleteCount() const noexcept { return 0; }
 
     [[nodiscard]] void* allocate() noexcept { return nullptr; }
-    [[nodiscard]] void* allocate(uSys size) noexcept override { return nullptr; }
-    void deallocate(void* obj) noexcept override { }
+    [[nodiscard]] void* Allocate(uSys size) noexcept override { return nullptr; }
+    void Deallocate(void* obj) noexcept override { }
 };
 
 /**
@@ -74,7 +74,7 @@ public:
     FixedBlockAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) : blockSize)
         , _allocIndex(0)
@@ -84,8 +84,8 @@ public:
 
     FixedBlockAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements * blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements * blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) : blockSize)
         , _allocIndex(0)
@@ -94,7 +94,7 @@ public:
     { }
 
     ~FixedBlockAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
 
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -127,9 +127,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void* obj) noexcept override
+    void Deallocate(void* obj) noexcept override
     {
         if(!obj)
         { return; }
@@ -154,12 +154,12 @@ public:
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 
@@ -169,10 +169,10 @@ private:
     void attemptRelease() noexcept
     {
         // If there are `_allocPages` empty pages, release the block of pages.
-        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::pageSize();
-        if(pageBytes - _blockSize <= (PageAllocator::pageSize() * _allocPages))
+        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::PageSize();
+        if(pageBytes - _blockSize <= (PageAllocator::PageSize() * _allocPages))
         {
-            (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages -= _allocPages;
         }
     }
@@ -202,7 +202,7 @@ public:
     FixedBlockAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) : blockSize)
         , _allocIndex(0)
@@ -213,8 +213,8 @@ public:
 
     FixedBlockAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) : blockSize)
         , _allocIndex(0)
@@ -224,7 +224,7 @@ public:
     { }
 
     ~FixedBlockAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
     
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -267,9 +267,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void* obj) noexcept override
+    void Deallocate(void* obj) noexcept override
     {
         if(!obj)
         { return; }
@@ -296,12 +296,12 @@ public:
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 
@@ -311,10 +311,10 @@ private:
     void attemptRelease() noexcept
     {
         // If there are `_allocPages` empty pages, release the block of pages.
-        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::pageSize();
-        if(pageBytes - _blockSize <= (PageAllocator::pageSize() * _allocPages))
+        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::PageSize();
+        if(pageBytes - _blockSize <= (PageAllocator::PageSize() * _allocPages))
         {
-            (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages -= _allocPages;
         }
     }
@@ -349,7 +349,7 @@ public:
     FixedBlockAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) + sizeof(uSys) : blockSize + sizeof(uSys))
         , _allocIndex(0)
@@ -362,8 +362,8 @@ public:
 
     FixedBlockAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize < sizeof(void*) ? sizeof(void*) + sizeof(uSys) : blockSize + sizeof(uSys))
         , _allocIndex(0)
@@ -375,7 +375,7 @@ public:
     { }
 
     ~FixedBlockAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
     
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -439,9 +439,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void* obj) noexcept override
+    void Deallocate(void* obj) noexcept override
     {
         if(!obj)
         { return; }
@@ -477,12 +477,12 @@ public:
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 
@@ -492,10 +492,10 @@ private:
     void attemptRelease() noexcept
     {
         // If there are `_allocPages` empty pages, release the block of pages.
-        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::pageSize();
-        if(pageBytes - _blockSize <= (PageAllocator::pageSize() * _allocPages))
+        const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::PageSize();
+        if(pageBytes - _blockSize <= (PageAllocator::PageSize() * _allocPages))
         {
-            (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages -= _allocPages;
         }
     }
@@ -539,8 +539,8 @@ public:
     [[nodiscard]] uSys multipleDeleteCount() const noexcept { return 0; }
 
     [[nodiscard]] void* allocate() noexcept { return nullptr; }
-    [[nodiscard]] void* allocate(uSys size) noexcept override { return nullptr; }
-    void deallocate(void* obj) noexcept override { }
+    [[nodiscard]] void* Allocate(uSys size) noexcept override { return nullptr; }
+    void Deallocate(void* obj) noexcept override { }
 };
 
 /**
@@ -563,7 +563,7 @@ public:
     FixedBlockArenaAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize)
         , _allocIndex(0)
@@ -571,15 +571,15 @@ public:
 
     FixedBlockArenaAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize)
         , _allocIndex(0)
     { }
 
     ~FixedBlockArenaAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
     
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -596,28 +596,28 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void*) noexcept override { }
+    void Deallocate(void*) noexcept override { }
 
     void reset(const bool releasePages = false) noexcept
     {
         _allocIndex = 0;
         if(releasePages)
         {
-            PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::pageSize(), _committedPages - _allocPages);
+            PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::PageSize(), _committedPages - _allocPages);
             _committedPages = _allocPages;
         }
     }
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 
@@ -647,7 +647,7 @@ public:
     FixedBlockArenaAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize)
         , _allocIndex(0)
@@ -656,8 +656,8 @@ public:
 
     FixedBlockArenaAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize)
         , _allocIndex(0)
@@ -665,7 +665,7 @@ public:
     { }
 
     ~FixedBlockArenaAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
     
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -689,9 +689,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void* const obj) noexcept override
+    void Deallocate(void* const obj) noexcept override
     {
         if(!obj)
         { return; }
@@ -704,19 +704,19 @@ public:
         _allocationDifference = 0;
         if(releasePages)
         {
-            PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::pageSize(), _committedPages - _allocPages);
+            PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::PageSize(), _committedPages - _allocPages);
             _committedPages = _allocPages;
         }
     }
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 
@@ -751,7 +751,7 @@ public:
     FixedBlockArenaAllocator(const uSys blockSize, const PageCountVal numReservedPages = static_cast<PageCountVal>(1024), const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize + sizeof(uSys))
         , _allocIndex(0)
@@ -762,8 +762,8 @@ public:
 
     FixedBlockArenaAllocator(const uSys blockSize, const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::pageSize() + 1, _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo((maxElements* blockSize) / PageAllocator::PageSize() + 1, _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _blockSize(blockSize + sizeof(uSys))
         , _allocIndex(0)
@@ -773,7 +773,7 @@ public:
     { }
 
     ~FixedBlockArenaAllocator() noexcept override
-    { PageAllocator::free(_pages); }
+    { PageAllocator::Free(_pages); }
     
     [[nodiscard]] const void* head() const noexcept { return _pages; }
     [[nodiscard]] uSys reservedPages() const noexcept { return _numReservedPages; }
@@ -814,9 +814,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void* const obj) noexcept override
+    void Deallocate(void* const obj) noexcept override
     {
         if(!obj)
         { return; }
@@ -840,19 +840,19 @@ public:
         _doubleDeleteCount = 0;
         if(releasePages)
         {
-            PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::pageSize(), _committedPages - _allocPages);
+            PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::PageSize(), _committedPages - _allocPages);
             _committedPages = _allocPages;
         }
     }
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + _blockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 

@@ -9,7 +9,7 @@
 bool PageAllocator::_initialized = false;
 uSys PageAllocator::_pageSize = 0;
 
-void PageAllocator::init() noexcept
+void PageAllocator::Init() noexcept
 {
     if(!_initialized)
     {
@@ -22,65 +22,65 @@ void PageAllocator::init() noexcept
     }
 }
 
-void* PageAllocator::reserve(const uSys numPages) noexcept
+void* PageAllocator::Reserve(const uSys numPages) noexcept
 {
-    return VirtualAlloc(nullptr, numPages * pageSize(), MEM_RESERVE, PAGE_NOACCESS);
+    return VirtualAlloc(nullptr, numPages * PageSize(), MEM_RESERVE, PAGE_NOACCESS);
 }
 
-void* PageAllocator::alloc(const uSys numPages) noexcept
+void* PageAllocator::Alloc(const uSys numPages) noexcept
 {
-    return VirtualAlloc(nullptr, numPages * pageSize(), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(nullptr, numPages * PageSize(), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 }
 
-void* PageAllocator::commitPage(void* const page) noexcept
+void* PageAllocator::CommitPage(void* const page) noexcept
 {
     return VirtualAlloc(page, _pageSize, MEM_COMMIT, PAGE_READWRITE);
 }
 
-void* PageAllocator::commitPages(void* const page, const uSys pageCount) noexcept
+void* PageAllocator::CommitPages(void* const page, const uSys pageCount) noexcept
 {
     return VirtualAlloc(page, pageCount * _pageSize, MEM_COMMIT, PAGE_READWRITE);
 }
 
-void PageAllocator::decommitPage(void* const page) noexcept
+void PageAllocator::DecommitPage(void* const page) noexcept
 {
     VirtualFree(page, 1, MEM_DECOMMIT);
 }
 
-void PageAllocator::decommitPages(void* const page, const uSys pageCount) noexcept
+void PageAllocator::DecommitPages(void* const page, const uSys pageCount) noexcept
 {
     VirtualFree(page, pageCount * _pageSize, MEM_DECOMMIT);
 }
 
-void PageAllocator::free(void* const page) noexcept
+void PageAllocator::Free(void* const page) noexcept
 {
     VirtualFree(page, 0, MEM_RELEASE);
 }
 
-void PageAllocator::setReadWrite(void* const page, const uSys pageCount) noexcept
+void PageAllocator::SetReadWrite(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
     VirtualProtect(page, pageCount * _pageSize, PAGE_READWRITE, &oldProtect);
 }
 
-void PageAllocator::setReadOnly(void* const page, const uSys pageCount) noexcept
+void PageAllocator::SetReadOnly(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
     VirtualProtect(page, pageCount * _pageSize, PAGE_READONLY, &oldProtect);
 }
 
-void PageAllocator::setExecute(void* const page, const uSys pageCount) noexcept
+void PageAllocator::SetExecute(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
     VirtualProtect(page, pageCount * _pageSize, PAGE_EXECUTE_READ, &oldProtect);
 }
 
-uSys PageAllocator::pageSize() noexcept
+uSys PageAllocator::PageSize() noexcept
 {
     /*   Screw it, I'm tired of dealing with problems of this value
        not being initialized. */
     if(!_initialized)
-    { init(); }
+    { Init(); }
     return _pageSize;
 }
 

@@ -80,7 +80,7 @@ public:
     inline ~ArrayListIterator() noexcept
     {
         if(_ctrlBlock && --_ctrlBlock->data.refCount == 0)
-        { PageAllocator::free(_ctrlBlock); }
+        { PageAllocator::Free(_ctrlBlock); }
     }
 
     inline ArrayListIterator(const ArrayListIterator<T>& copy) noexcept
@@ -179,7 +179,7 @@ public:
     inline ~ConstArrayListIterator() noexcept
     {
         if(_ctrlBlock && --_ctrlBlock->data.refCount == 0)
-        { PageAllocator::free(_ctrlBlock); }
+        { PageAllocator::Free(_ctrlBlock); }
     }
 
     inline ConstArrayListIterator(const ConstArrayListIterator<T>& copy) noexcept
@@ -200,7 +200,7 @@ public:
         { return *this; }
 
         if(--_ctrlBlock->data.refCount == 0)
-        { PageAllocator::free(_ctrlBlock); }
+        { PageAllocator::Free(_ctrlBlock); }
 
         _ctrlBlock = copy._ctrlBlock;
         _arr = copy._arr;
@@ -217,7 +217,7 @@ public:
         { return *this; }
 
         if(--_ctrlBlock->data.refCount == 0)
-        { PageAllocator::free(_ctrlBlock); }
+        { PageAllocator::Free(_ctrlBlock); }
 
         _ctrlBlock = move._ctrlBlock;
         _arr = move._arr;
@@ -283,10 +283,10 @@ private:
     T* _arr;
 public:
     ArrayList(const uSys maxElements) noexcept
-        : _ctrlBlock(reinterpret_cast<ControlBlock*>(PageAllocator::reserve((maxElements * sizeof(T)) / PageAllocator::pageSize() + 1)))
+        : _ctrlBlock(reinterpret_cast<ControlBlock*>(PageAllocator::Reserve((maxElements * sizeof(T)) / PageAllocator::PageSize() + 1)))
         , _arr(reinterpret_cast<T*>(_ctrlBlock + 1))
     {
-        (void) PageAllocator::commitPage(_ctrlBlock);
+        (void) PageAllocator::CommitPage(_ctrlBlock);
         _ctrlBlock->data.refCount = 1;
         _ctrlBlock->data.elementCount = 0;
         _ctrlBlock->data.dataSize = sizeof(ControlBlock);
@@ -302,7 +302,7 @@ public:
                 _arr[i].~_T();
             }
 
-            PageAllocator::free(_ctrlBlock);
+            PageAllocator::Free(_ctrlBlock);
         }
     }
 
@@ -360,7 +360,7 @@ public:
     {
         assertSize();
         void* const placement = _arr + _ctrlBlock->data.elementCount;
-        T* const ret = new(placement) T(TauAllocatorUtils::_forward<_Args>(args)...);
+        T* const ret = new(placement) T(TauAllocatorUtils::Forward<_Args>(args)...);
         ++_ctrlBlock->data.elementCount;
         _ctrlBlock->data.dataSize += sizeof(T);
 
@@ -424,7 +424,7 @@ public:
 
         if(releasePages)
         {
-            PageAllocator::decommitPages(_ctrlBlock + PageAllocator::pageSize(), _ctrlBlock->data.committedPages - 1);
+            PageAllocator::DecommitPages(_ctrlBlock + PageAllocator::PageSize(), _ctrlBlock->data.committedPages - 1);
         }
     }
 
@@ -458,10 +458,10 @@ public:
 private:
     void assertSize() noexcept
     {
-        const uSys pageBytes = _ctrlBlock->data.committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _ctrlBlock->data.committedPages * PageAllocator::PageSize();
         if(_ctrlBlock->data.dataSize + sizeof(T) >= pageBytes)
         {
-            (void) PageAllocator::commitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
+            (void) PageAllocator::CommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
             ++_ctrlBlock->data.committedPages;
         }
     }
@@ -469,10 +469,10 @@ private:
     void attemptRelease() noexcept
     {
         // If there are two empty pages, release the last page.
-        const uSys pageBytes = (_ctrlBlock->data.committedPages - 1) * PageAllocator::pageSize();
-        if(pageBytes - _ctrlBlock->data.dataSize <= PageAllocator::pageSize())
+        const uSys pageBytes = (_ctrlBlock->data.committedPages - 1) * PageAllocator::PageSize();
+        if(pageBytes - _ctrlBlock->data.dataSize <= PageAllocator::PageSize())
         {
-            (void) PageAllocator::decommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
+            (void) PageAllocator::DecommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
             --_ctrlBlock->data.committedPages;
         }
     }
@@ -488,10 +488,10 @@ private:
     T* _arr;
 public:
     ArrayList(const uSys maxElements) noexcept
-        : _ctrlBlock(reinterpret_cast<ControlBlock*>(PageAllocator::reserve(maxElements / PageAllocator::pageSize() + 1)))
+        : _ctrlBlock(reinterpret_cast<ControlBlock*>(PageAllocator::Reserve(maxElements / PageAllocator::PageSize() + 1)))
         , _arr(reinterpret_cast<T*>(_ctrlBlock + 1))
     {
-        (void)PageAllocator::commitPage(_ctrlBlock);
+        (void)PageAllocator::CommitPage(_ctrlBlock);
         _ctrlBlock->data.refCount = 1;
         _ctrlBlock->data.elementCount = 0;
         _ctrlBlock->data.dataSize = sizeof(ControlBlock);
@@ -507,7 +507,7 @@ public:
                 _arr[i].~_T();
             }
 
-            PageAllocator::free(_ctrlBlock);
+            PageAllocator::Free(_ctrlBlock);
         }
     }
 
@@ -565,7 +565,7 @@ public:
     {
         assertSize();
         void* const placement = _arr + _ctrlBlock->data.elementCount;
-        T* ret = new(placement) T(TauAllocatorUtils::_forward<_Args>(args)...);
+        T* ret = new(placement) T(TauAllocatorUtils::Forward<_Args>(args)...);
         ++_ctrlBlock->data.elementCount;
         _ctrlBlock->data.dataSize += sizeof(T);
 
@@ -620,7 +620,7 @@ public:
 
         if(releasePages)
         {
-            PageAllocator::decommitPages(_ctrlBlock + PageAllocator::pageSize(), _ctrlBlock->data.committedPages - 1);
+            PageAllocator::DecommitPages(_ctrlBlock + PageAllocator::PageSize(), _ctrlBlock->data.committedPages - 1);
         }
     }
 
@@ -654,10 +654,10 @@ public:
 private:
     void assertSize() noexcept
     {
-        const uSys pageBytes = _ctrlBlock->data.committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _ctrlBlock->data.committedPages * PageAllocator::PageSize();
         if(_ctrlBlock->data.dataSize + sizeof(T) >= pageBytes)
         {
-            (void) PageAllocator::commitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
+            (void) PageAllocator::CommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
             ++_ctrlBlock->data.committedPages;
         }
     }
@@ -665,10 +665,10 @@ private:
     void attemptRelease() noexcept
     {
         // If there are two empty pages, release the last page.
-        const uSys pageBytes = (_ctrlBlock->data.committedPages - 1) * PageAllocator::pageSize();
-        if(pageBytes - _ctrlBlock->data.dataSize <= PageAllocator::pageSize())
+        const uSys pageBytes = (_ctrlBlock->data.committedPages - 1) * PageAllocator::PageSize();
+        if(pageBytes - _ctrlBlock->data.dataSize <= PageAllocator::PageSize())
         {
-            (void) PageAllocator::decommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
+            (void) PageAllocator::DecommitPage(reinterpret_cast<u8*>(_ctrlBlock) + pageBytes);
             --_ctrlBlock->data.committedPages;
         }
     }

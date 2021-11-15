@@ -29,7 +29,7 @@ public:
         , right(_right)
         , parent(_parent)
         , color(_height)
-        , value(::TauAllocatorUtils::_move(_value))
+        , value(::TauAllocatorUtils::Move(_value))
     { }
 
     template<typename... _Args>
@@ -38,7 +38,7 @@ public:
         , right(_right)
         , parent(_parent)
         , color(_color)
-        , value(TauAllocatorUtils::_forward<_Args>(args)...)
+        , value(TauAllocatorUtils::Forward<_Args>(args)...)
     { }
 };
 
@@ -73,11 +73,11 @@ public:
     {
         if(!_root)
         {
-            _root = _allocator.allocateT<Node>(nullptr, nullptr, Black, value);
+            _root = _allocator.AllocateT<Node>(nullptr, nullptr, Black, value);
         }
         else
         {
-            Node* newNode = _allocator.allocateT<Node>(nullptr, nullptr, Red, value);
+            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, Red, value);
             insert(root, newNode, _allocator);
         }
     }
@@ -112,7 +112,7 @@ private:
         {
             if constexpr(_InsertMethod == InsertMethod::Ignore)
             {
-                allocator.deallocateT(newNode);
+                allocator.DeallocateT(newNode);
                 return tree;
             }
             else if constexpr(_InsertMethod == InsertMethod::Replace)
@@ -120,7 +120,7 @@ private:
                 newNode->left = tree->left;
                 newNode->right = tree->right;
                 newNode->color = tree->color;
-                allocator.deallocateT(tree);
+                allocator.DeallocateT(tree);
                 return newNode;
             }
             else if constexpr(_InsertMethod == InsertMethod::Greater)
@@ -135,7 +135,7 @@ private:
             }
             else
             {
-                allocator.deallocateT(newNode);
+                allocator.DeallocateT(newNode);
                 return tree;
             }
         }
@@ -195,7 +195,7 @@ private:
         disposeTree(tree->left, allocator);
         disposeTree(tree->right, allocator);
 
-        allocator.deallocateT(tree);
+        allocator.DeallocateT(tree);
     }
 };
 

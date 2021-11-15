@@ -4,6 +4,8 @@
 #include "EnumBitFields.hpp"
 #endif
 
+#include "NumTypes.hpp"
+
 template<typename _T>
 inline _T operator ~(const _T a) noexcept
 { return static_cast<_T>(~static_cast<u64>(a)); }

@@ -107,7 +107,7 @@ public:
         ++block.activeAllocations;
 
         _slabs[slabIndex].head = _slabs[slabIndex].head->next;
-        _allocPointAllocator.deallocateT(head);
+        _allocPointAllocator.DeallocateT(head);
         if(!_slabs[slabIndex].head)
         { _slabs[slabIndex].tail = nullptr; }
 
@@ -116,7 +116,7 @@ public:
 
     void deallocate(Allocation& allocation) noexcept
     {
-        AllocPoint* const allocPoint = _allocPointAllocator.allocateT<AllocPoint>(allocation.block, allocation.offset);
+        AllocPoint* const allocPoint = _allocPointAllocator.AllocateT<AllocPoint>(allocation.block, allocation.offset);
         if(!_slabs[allocation.slabIndex].head)
         {
             _slabs[allocation.slabIndex].head = allocPoint;
@@ -193,7 +193,7 @@ protected:
                 if(slabSize > remainingSize)
                 { continue; }
 
-                AllocPoint* const allocPoint = _allocPointAllocator.allocateT<AllocPoint>(blockIndex, offset);
+                AllocPoint* const allocPoint = _allocPointAllocator.AllocateT<AllocPoint>(blockIndex, offset);
 
                 if(!_slabs[slabIndex].head)
                 {

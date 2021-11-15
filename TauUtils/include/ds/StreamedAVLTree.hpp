@@ -40,27 +40,27 @@ private:
 public:
     StreamedAVLTreeAllocator(const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _branchReservedPages(_alignTo((maxElements * sizeof(IndexT)) / PageAllocator::pageSize() + 1, _allocPages))
-        , _heightReservedPages(_alignTo((maxElements * sizeof(HeightT)) / PageAllocator::pageSize() + 1, _allocPages))
-        , _valueReservedPages(_alignTo((maxElements * sizeof(T)) / PageAllocator::pageSize() + 1, _allocPages))
+        , _branchReservedPages(_alignTo((maxElements * sizeof(IndexT)) / PageAllocator::PageSize() + 1, _allocPages))
+        , _heightReservedPages(_alignTo((maxElements * sizeof(HeightT)) / PageAllocator::PageSize() + 1, _allocPages))
+        , _valueReservedPages(_alignTo((maxElements * sizeof(T)) / PageAllocator::PageSize() + 1, _allocPages))
         , _branchCommittedPages(0)
         , _heightCommittedPages(0)
         , _valueCommittedPages(0)
         , _allocIndex(0)
         , _firstFree(INVALID_VALUE)
         , _lastFree(INVALID_VALUE)
-        , _leftTree(reinterpret_cast<IndexT*>(PageAllocator::reserve(_branchReservedPages)))
-        , _rightTree(reinterpret_cast<IndexT*>(PageAllocator::reserve(_branchReservedPages)))
-        , _heightTree(reinterpret_cast<HeightT*>(PageAllocator::reserve(_heightReservedPages)))
-        , _valueTree(reinterpret_cast<T*>(PageAllocator::reserve(_valueReservedPages)))
+        , _leftTree(reinterpret_cast<IndexT*>(PageAllocator::Reserve(_branchReservedPages)))
+        , _rightTree(reinterpret_cast<IndexT*>(PageAllocator::Reserve(_branchReservedPages)))
+        , _heightTree(reinterpret_cast<HeightT*>(PageAllocator::Reserve(_heightReservedPages)))
+        , _valueTree(reinterpret_cast<T*>(PageAllocator::Reserve(_valueReservedPages)))
     { }
 
     ~StreamedAVLTreeAllocator() noexcept
     {
-        PageAllocator::free(_leftTree);
-        PageAllocator::free(_rightTree);
-        PageAllocator::free(_heightTree);
-        PageAllocator::free(_valueTree);
+        PageAllocator::Free(_leftTree);
+        PageAllocator::Free(_rightTree);
+        PageAllocator::Free(_heightTree);
+        PageAllocator::Free(_valueTree);
     }
 
     [[nodiscard]] IndexT*    leftTree() noexcept { return _leftTree;   }
@@ -128,38 +128,38 @@ private:
     [[nodiscard]] bool assertSize() noexcept
     {
         {
-            const uSys branchPageBytes = _branchCommittedPages * PageAllocator::pageSize();
+            const uSys branchPageBytes = _branchCommittedPages * PageAllocator::PageSize();
             if(_allocIndex + sizeof(IndexT) > branchPageBytes)
             {
                 if(_branchCommittedPages == _branchReservedPages)
                 { return false; }
 
-                (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
-                (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
+                (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
+                (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
                 _branchCommittedPages += _allocPages;
             }
         }
 
         {
-            const uSys heightPageBytes = _heightCommittedPages * PageAllocator::pageSize();
+            const uSys heightPageBytes = _heightCommittedPages * PageAllocator::PageSize();
             if(_allocIndex + sizeof(HeightT) > heightPageBytes)
             {
                 if(_heightCommittedPages == _heightReservedPages)
                 { return false; }
 
-                (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
+                (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
                 _heightCommittedPages += _allocPages;
             }
         }
 
         {
-            const uSys valuePageBytes = _valueCommittedPages * PageAllocator::pageSize();
+            const uSys valuePageBytes = _valueCommittedPages * PageAllocator::PageSize();
             if(_allocIndex + sizeof(T) > valuePageBytes)
             {
                 if(_valueCommittedPages == _valueReservedPages)
                 { return false; }
 
-                (void) PageAllocator::commitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
+                (void) PageAllocator::CommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
                 _valueCommittedPages += _allocPages;
             }
         }
@@ -171,29 +171,29 @@ private:
     {
         // If there are `_allocPages` empty pages, release the block of pages.
         {
-            const uSys branchPageBytes = (_branchCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(branchPageBytes - sizeof(IndexT) <= (PageAllocator::pageSize() * _allocPages))
+            const uSys branchPageBytes = (_branchCommittedPages - _allocPages) * PageAllocator::PageSize();
+            if(branchPageBytes - sizeof(IndexT) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
-                (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
+                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
+                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
                 _branchCommittedPages -= _allocPages;
             }
         }
 
         {
-            const uSys heightPageBytes = (_heightCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(heightPageBytes - sizeof(HeightT) <= (PageAllocator::pageSize() * _allocPages))
+            const uSys heightPageBytes = (_heightCommittedPages - _allocPages) * PageAllocator::PageSize();
+            if(heightPageBytes - sizeof(HeightT) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
+                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
                 _heightCommittedPages -= _allocPages;
             }
         }
 
         {
-            const uSys valuePageBytes = (_valueCommittedPages - _allocPages) * PageAllocator::pageSize();
-            if(valuePageBytes - sizeof(T) <= (PageAllocator::pageSize() * _allocPages))
+            const uSys valuePageBytes = (_valueCommittedPages - _allocPages) * PageAllocator::PageSize();
+            if(valuePageBytes - sizeof(T) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::decommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
+                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
                 _valueCommittedPages -= _allocPages;
             }
         }
@@ -333,7 +333,7 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) T(TauAllocatorUtils::_move(value));
+            new(&valueTree()[_root]) T(TauAllocatorUtils::Move(value));
         }
         else
         {
@@ -341,7 +341,7 @@ public:
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) T(TauAllocatorUtils::_move(value));
+            new(&valueTree()[newNode]) T(TauAllocatorUtils::Move(value));
 
             _root = insert(_root, newNode);
         }
@@ -356,7 +356,7 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) T(TauAllocatorUtils::_forward<_Args>(args)...);
+            new(&valueTree()[_root]) T(TauAllocatorUtils::Forward<_Args>(args)...);
         }
         else
         {
@@ -364,7 +364,7 @@ public:
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) T(TauAllocatorUtils::_forward<_Args>(args)...);
+            new(&valueTree()[newNode]) T(TauAllocatorUtils::Forward<_Args>(args)...);
 
             _root = insert(_root, newNode);
         }
@@ -518,7 +518,7 @@ private:
         {
             if constexpr(InsertMethod == InsertMethod::Ignore)
             {
-                _allocator.deallocate(newNode);
+                _allocator.Deallocate(newNode);
                 return tree;
             }
             else if constexpr(InsertMethod == InsertMethod::Replace)
@@ -526,7 +526,7 @@ private:
                 leftTree()[newNode] = leftTree()[tree];
                 rightTree()[newNode] = rightTree()[tree];
                 heightTree()[newNode] = heightTree()[tree];
-                _allocator.deallocate(tree);
+                _allocator.Deallocate(tree);
                 return newNode;
             }
             else if constexpr(InsertMethod == InsertMethod::Greater)
@@ -613,7 +613,7 @@ private:
                 { *rootHolder = INVALID_VALUE; }
                 else
                 { *rootHolder = tmp; }
-                _allocator.deallocate(root);
+                _allocator.Deallocate(root);
                 root = *rootHolder;
             }
             else
@@ -624,7 +624,7 @@ private:
                 *tmp = rightTree()[*tmp];           // Store tmp's right branch in tmp's parent left branch
                 leftTree()[*rootHolder] = *rLeft;   // Set tmp's left branch to the old root's left branch
                 rightTree()[*rootHolder] = *rRight; // Set tmp's right branch to the old root's right branch
-                _allocator.deallocate(root);        // Destroy root 
+                _allocator.Deallocate(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
 
@@ -698,7 +698,7 @@ private:
                 { *rootHolder = INVALID_VALUE; }
                 else
                 { *rootHolder = tmp; }
-                _allocator.deallocate(root);
+                _allocator.Deallocate(root);
                 root = *rootHolder;
             }
             else
@@ -709,7 +709,7 @@ private:
                 *tmp = rightTree()[*tmp];           // Store tmp's right branch in tmp's parent left branch
                 leftTree()[*rootHolder] = *rLeft;   // Set tmp's left branch to the old root's left branch
                 rightTree()[*rootHolder] = *rRight; // Set tmp's right branch to the old root's right branch
-                _allocator.deallocate(root);        // Destroy root 
+                _allocator.Deallocate(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
         }
@@ -754,6 +754,6 @@ private:
         disposeTree(leftTree()[tree]);
         disposeTree(rightTree()[tree]);
 
-        _allocator.deallocate(tree);
+        _allocator.Deallocate(tree);
     }
 };

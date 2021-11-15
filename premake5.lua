@@ -48,16 +48,44 @@ workspace "TauUtils"
     project "TauUtils"
         kind "StaticLib"
         language "C++"
-        toolset = "clang"
-        location "."
+        toolset "clang"
+        location "TauUtils"
 
         files { 
-            "**.h", 
-            "**.hpp", 
-            "src/**.c", 
-            "src/**.cpp" 
+            "%{prj.location}/**.h", 
+            "%{prj.location}/**.hpp", 
+            "%{prj.location}/**.inl", 
+            "%{prj.location}/src/**.c", 
+            "%{prj.location}/src/**.cpp" 
         }
 
         includedirs {
             "%{prj.location}/include"
         }
+
+    project "Testing"
+        kind "ConsoleApp"
+        language "C++"
+        toolset "clang"
+        location "Testing"
+
+        files { 
+            "%{prj.location}/**.h", 
+            "%{prj.location}/**.hpp", 
+            "%{prj.location}/src/**.c", 
+            "%{prj.location}/src/**.cpp" 
+        }
+
+        includedirs {
+            "%{prj.location}/include",
+            "%{wks.location}/TauUtils/include"
+        }
+
+        libdirs {
+            "%{cfg.outdir}"
+        }
+
+        links {
+            "TauUtils.lib"
+        }
+

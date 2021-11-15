@@ -60,15 +60,15 @@ public:
     FreeListAllocator(const PageCountVal numReservedPages = PageCountVal { 1024 }, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
         , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _allocIndex(0)
     { }
 
     FreeListAllocator(const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo(static_cast<uSys>((maxElements * BlockSize) / PageAllocator::pageSize() + 1), _allocPages))
-        , _pages(PageAllocator::reserve(_numReservedPages))
+        , _numReservedPages(_alignTo(static_cast<uSys>((maxElements * BlockSize) / PageAllocator::PageSize() + 1), _allocPages))
+        , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _allocIndex(0)
     { }
@@ -83,7 +83,7 @@ public:
             ReferenceCountingPointerBase* const base = reinterpret_cast<ReferenceCountingPointerBase* const>(reinterpret_cast<u8*>(_pages) + i);
             base->~ReferenceCountingPointerBase();
         }
-        PageAllocator::free(_pages);
+        PageAllocator::Free(_pages);
     }
 
     [[nodiscard]] uSys blockSize() const noexcept { return BlockSize; }
@@ -97,9 +97,9 @@ public:
         return ret;
     }
 
-    [[nodiscard]] void* allocate(uSys) noexcept override { return allocate(); }
+    [[nodiscard]] void* Allocate(uSys) noexcept override { return allocate(); }
 
-    void deallocate(void*) noexcept override { }
+    void Deallocate(void*) noexcept override { }
 
     void reset(const bool releasePages = false) noexcept
     {
@@ -115,19 +115,19 @@ public:
         _allocIndex = 0;
         if(releasePages)
         {
-            PageAllocator::decommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::pageSize(), _committedPages - _allocPages);
+            PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + _allocPages * PageAllocator::PageSize(), _committedPages - _allocPages);
             _committedPages = _allocPages;
         }
     }
 private:
     [[nodiscard]] bool assertSize() noexcept
     {
-        const uSys pageBytes = _committedPages * PageAllocator::pageSize();
+        const uSys pageBytes = _committedPages * PageAllocator::PageSize();
         if(_allocIndex + BlockSize > pageBytes)
         {
             if(_committedPages == _numReservedPages)
             { return false; }
-            (void)PageAllocator::commitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            (void)PageAllocator::CommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages += _allocPages;
         }
 

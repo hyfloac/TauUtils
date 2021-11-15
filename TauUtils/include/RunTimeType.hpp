@@ -316,7 +316,7 @@ namespace RTT_Utils
     template<typename T> struct remove_reference<T&&> { typedef T type; };
 
     template<typename T>
-    using remove_reference_t = typename remove_reference<T>::type;
+    using remove_reference_t = typename remove_reference<T>::Type;
 
     template<typename T> struct remove_pointer                      { typedef T type; };
     template<typename T> struct remove_pointer<T*>                  { typedef T type; };
@@ -335,7 +335,7 @@ namespace RTT_Utils
     template<typename T> struct remove_pointer<const WeakRef<T>>    { typedef T type; };
 
     template<typename T>
-    using remove_pointer_t = typename remove_pointer<T>::type;
+    using remove_pointer_t = typename remove_pointer<T>::Type;
 }
 
 template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>, TargetType>, int> = 0>
