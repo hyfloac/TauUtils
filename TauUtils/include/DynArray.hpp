@@ -375,7 +375,7 @@ private:
     uSys _size;
 public:
     explicit DynArray(const uSys size = 0)
-        : _arr(new(::std::nothrow) T[size])
+        : _arr(size ? new(::std::nothrow) T[size] : nullptr)
         , _size(size)
     { }
 
@@ -383,9 +383,12 @@ public:
     { delete[] _arr; }
 
     DynArray(const DynArray<T>& copy)
-        : _arr(new(::std::nothrow) T[copy._size])
+        : _arr(copy._size ? new(::std::nothrow) T[copy._size] : nullptr)
         , _size(copy._size)
-    { ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T)); }
+    {
+        if(copy._size) 
+        { ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T)); }
+    }
 
     DynArray(DynArray<T>&& move) noexcept
         : _arr(move._arr)
@@ -399,10 +402,11 @@ public:
 
         delete[] _arr;
 
-        _arr = new(::std::nothrow) T[copy._size];
+        _arr = copy._size ? new(::std::nothrow) T[copy._size] : nullptr;
         _size = copy._size;
 
-        ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T));
+        if(copy._size)
+        { ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T)); }
 
         return *this;
     }
@@ -450,7 +454,7 @@ private:
     uSys* _refCount;
 public:
     explicit RefDynArray(const uSys size = 0) noexcept
-        : _arr(new(::std::nothrow) T[size])
+        : _arr(size ? new(::std::nothrow) T[size] : nullptr)
         , _size(size)
         , _refCount(new(::std::nothrow) uSys(1))
     { }
