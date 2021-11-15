@@ -94,7 +94,7 @@ inline constexpr SWReferenceCount<ToT>* SWRCCast(SWReferenceCount<FromT>* obj) n
 
 template<typename T>
 inline constexpr uSys ReferenceCountingPointer<T>::AllocSize() noexcept
-{ return sizeof(RCDO<T>) + sizeof(RCDO<T>::Type); }
+{ return sizeof(RCDO<T>) + sizeof(typename RCDO<T>::Type); }
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
@@ -280,7 +280,7 @@ inline bool ReferenceCountingPointer<T>::operator!=(const Type* const ptr) const
 
 template<typename T>
 inline constexpr uSys StrongReferenceCountingPointer<T>::AllocSize() noexcept
-{ return sizeof(SWRC<T>) + sizeof(SWRC<T>::Type); }
+{ return sizeof(SWRC<T>) + sizeof(typename SWRC<T>::Type); }
 
 template<typename T>
 template<typename Allocator, typename... Args, ::std::enable_if_t<::std::is_base_of_v<TauAllocator, Allocator>, int>>
@@ -599,7 +599,7 @@ inline bool StrongReferenceCountingPointer<T>::operator!=(const Type* const ptr)
 
 template<typename T>
 inline constexpr uSys WeakReferenceCountingPointer<T>::AllocSize() noexcept
-{ return sizeof(SWRC<T>) + sizeof(SWRC<T>::Type); }
+{ return sizeof(SWRC<T>) + sizeof(typename SWRC<T>::Type); }
 
 template<typename T>
 inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const StrongReferenceCountingPointer<T>& ptr) noexcept
