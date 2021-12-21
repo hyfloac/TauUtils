@@ -108,21 +108,26 @@
     <ClInclude Include="include\ArrayList.hpp" />
     <ClInclude Include="include\AtomicIntrinsics.hpp" />
     <ClInclude Include="include\BitSet.hpp" />
+    <ClInclude Include="include\Console.hpp" />
     <ClInclude Include="include\CVersion.hpp" />
     <ClInclude Include="include\ConPrinter.hpp" />
     <ClInclude Include="include\ConPrinter.string.hpp" />
+    <ClInclude Include="include\Dragon4.hpp" />
     <ClInclude Include="include\DynArray.hpp" />
+    <ClInclude Include="include\Encoding.hpp" />
     <ClInclude Include="include\Endian.hpp" />
     <ClInclude Include="include\EnumBitFields.hpp" />
     <ClInclude Include="include\MapIterator.hpp" />
     <ClInclude Include="include\MathDefines.hpp" />
     <ClInclude Include="include\NumTypes.hpp" />
     <ClInclude Include="include\Objects.hpp" />
+    <ClInclude Include="include\ReferenceCounter.hpp" />
     <ClInclude Include="include\ReferenceCountingPointer.hpp" />
     <ClInclude Include="include\RunTimeType.hpp" />
     <ClInclude Include="include\Safeties.hpp" />
     <ClInclude Include="include\String.hpp" />
     <ClInclude Include="include\String.io.hpp" />
+    <ClInclude Include="include\ToString.hpp" />
     <ClInclude Include="include\TUMaths.hpp" />
     <ClInclude Include="include\Template.hpp" />
     <ClInclude Include="include\Triplet.hpp" />
@@ -139,7 +144,10 @@
     <ClInclude Include="include\ds\TreeUtils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Console.cpp" />
     <ClCompile Include="src\DefaultTauAllocator.cpp" />
+    <ClCompile Include="src\Dragon4.cpp" />
+    <ClCompile Include="src\Encoding.cpp" />
     <ClCompile Include="src\PageAllocator.cpp" />
     <ClCompile Include="src\ReferenceCountingPointer.cpp" />
   </ItemGroup>
@@ -147,6 +155,9 @@
     <None Include="include\EnumBitFields.inl" />
     <None Include="include\ReferenceCountingPointer.inl" />
     <None Include="include\String.inl" />
+    <None Include="include\String.utf16.inl" />
+    <None Include="include\String.utf8.inl" />
+    <None Include="include\String.utf8_16.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,6 +3,7 @@
 #pragma warning(push, 0)
 #include <cstring>
 #include <new>
+#include <iterator>
 #pragma warning(pop)
 
 #include "NumTypes.hpp"
@@ -371,38 +372,38 @@ template<typename T>
 class DynArray final
 {
 private:
-    T* _arr;
-    uSys _size;
+    T* m_Array;
+    uSys m_Length;
 public:
-    explicit DynArray(const uSys size = 0)
-        : _arr(new(::std::nothrow) T[size])
-        , _size(size)
+    explicit DynArray(const uSys length = 0)
+        : m_Array(new(::std::nothrow) T[length])
+        , m_Length(length)
     { }
 
     ~DynArray()
-    { delete[] _arr; }
+    { delete[] m_Array; }
 
     DynArray(const DynArray<T>& copy)
-        : _arr(new(::std::nothrow) T[copy._size])
-        , _size(copy._size)
-    { ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T)); }
+        : m_Array(new(::std::nothrow) T[copy.m_Length])
+        , m_Length(copy.m_Length)
+    { ::std::memcpy(m_Array, copy.m_Array, copy.m_Length * sizeof(T)); }
 
     DynArray(DynArray<T>&& move) noexcept
-        : _arr(move._arr)
-        , _size(move._size)
-    { move._arr = nullptr; }
+        : m_Array(move.m_Array)
+        , m_Length(move.m_Length)
+    { move.m_Array = nullptr; }
 
     DynArray<T>& operator =(const DynArray<T>& copy)
     {
         if(this == &copy)
         { return *this; }
 
-        delete[] _arr;
+        delete[] m_Array;
 
-        _arr = new(::std::nothrow) T[copy._size];
-        _size = copy._size;
+        m_Array = new(::std::nothrow) T[copy.m_Length];
+        m_Length = copy.m_Length;
 
-        ::std::memcpy(_arr, copy._arr, copy._size * sizeof(T));
+        ::std::memcpy(m_Array, copy.m_Array, copy.m_Length * sizeof(T));
 
         return *this;
     }
@@ -412,33 +413,46 @@ public:
         if(this == &move)
         { return *this; }
 
-        delete[] _arr;
+        delete[] m_Array;
 
-        _arr = move._arr;
-        _size = move._size;
+        m_Array = move.m_Array;
+        m_Length = move.m_Length;
 
-        move._arr = nullptr;
+        move.m_Array = nullptr;
 
         return *this;
     }
 
-    [[nodiscard]] operator const T*() const noexcept { return _arr; }
-    [[nodiscard]] operator       T*()       noexcept { return _arr; }
+    [[nodiscard]] operator const T*() const noexcept { return m_Array; }
+    [[nodiscard]] operator       T*()       noexcept { return m_Array; }
 
-    [[nodiscard]] const T* arr() const noexcept { return _arr; }
-    [[nodiscard]]       T* arr()       noexcept { return _arr; }
+    [[nodiscard]] const T* arr() const noexcept { return m_Array; }
+    [[nodiscard]]       T* arr()       noexcept { return m_Array; }
 
-    [[nodiscard]] uSys size()   const noexcept { return _size; }
-    [[nodiscard]] uSys length() const noexcept { return _size; }
-    [[nodiscard]] uSys count()  const noexcept { return _size; }
+    [[nodiscard]] const T* Array() const noexcept { return m_Array; }
+    [[nodiscard]]       T* Array()       noexcept { return m_Array; }
 
-    [[nodiscard]] operator uSys() const { return _size; }
+    [[nodiscard]] uSys   size() const noexcept { return m_Length; }
+    [[nodiscard]] uSys length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys  count() const noexcept { return m_Length; }
 
-    [[nodiscard]] DynArrayIterator<T> begin() noexcept { return DynArrayIterator<T>(_arr, _size, 0); }
-    [[nodiscard]] DynArrayIterator<T> end() noexcept { return DynArrayIterator<T>(_arr, _size, _size); }
+    [[nodiscard]] uSys   Size() const noexcept { return m_Length; }
+    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys  Count() const noexcept { return m_Length; }
 
-    [[nodiscard]] ConstDynArrayIterator<T> begin() const noexcept { return ConstDynArrayIterator<T>(_arr, _size, 0); }
-    [[nodiscard]] ConstDynArrayIterator<T> end() const noexcept { return ConstDynArrayIterator<T>(_arr, _size, _size); }
+    [[nodiscard]] operator uSys() const { return m_Length; }
+
+    [[nodiscard]] DynArrayIterator<T> begin() noexcept { return DynArrayIterator<T>(m_Array, m_Length, 0);     }
+    [[nodiscard]] DynArrayIterator<T>   end() noexcept { return DynArrayIterator<T>(m_Array, m_Length, m_Length); }
+
+    [[nodiscard]] ConstDynArrayIterator<T> begin() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, 0);     }
+    [[nodiscard]] ConstDynArrayIterator<T>   end() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, m_Length); }
+
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, 0);            }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, 0);            }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
 };
 
 template<typename T>
@@ -550,17 +564,17 @@ private:
     uSys* _refCount;
 public:
     ConstRefDynArray(const RefDynArray<T>& copy) noexcept
-        : _arr(copy._arr)
-        , _size(copy._size)
+        : _arr(copy.m_Array)
+        , _size(copy.m_Length)
         , _refCount(copy._refCount)
     { ++(*_refCount); }
 
     ConstRefDynArray(RefDynArray<T>&& move) noexcept
-        : _arr(move._arr)
-        , _size(move._size)
+        : _arr(move.m_Array)
+        , _size(move.m_Length)
         , _refCount(move._refCount)
     {
-        move._arr = nullptr;
+        move.m_Array = nullptr;
         move._refCount = nullptr;
     }
 
@@ -640,8 +654,8 @@ public:
             delete _refCount;
         }
 
-        _arr = copy._arr;
-        _size = copy._size;
+        _arr = copy.m_Array;
+        _size = copy.m_Length;
         _refCount = copy._refCount;
 
         ++(*_refCount);
@@ -660,11 +674,11 @@ public:
             delete _refCount;
         }
 
-        _arr = move._arr;
-        _size = move._size;
+        _arr = move.m_Array;
+        _size = move.m_Length;
         _refCount = move._refCount;
 
-        move._arr = nullptr;
+        move.m_Array = nullptr;
         move._refCount = nullptr;
 
         return *this;
@@ -682,4 +696,43 @@ public:
 
     [[nodiscard]] ConstRefDynArrayIterator<T> begin() const noexcept { return ConstRefDynArrayIterator<T>(_arr, _refCount, _size, 0); }
     [[nodiscard]] ConstRefDynArrayIterator<T> end() const noexcept { return ConstRefDynArrayIterator<T>(_arr, _refCount, _size, _size); }
+};
+
+template<typename T>
+class ArrayWrapper final
+{
+    DEFAULT_DESTRUCT(ArrayWrapper);
+    DEFAULT_CM_PU(ArrayWrapper);
+private:
+    T* m_Array;
+    uSys m_Length;
+public:
+    ArrayWrapper(T* const array, const uSys length) noexcept
+        : m_Array(array)
+        , m_Length(length)
+    { }
+
+    [[nodiscard]] operator const T*() const noexcept { return m_Array; }
+    [[nodiscard]] operator       T*()       noexcept { return m_Array; }
+
+    [[nodiscard]] const T* Array() const noexcept { return m_Array; }
+    [[nodiscard]]       T* Array()       noexcept { return m_Array; }
+
+    [[nodiscard]] uSys   Size() const noexcept { return m_Length; }
+    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys  Count() const noexcept { return m_Length; }
+
+    [[nodiscard]] operator uSys() const { return m_Length; }
+
+    [[nodiscard]] DynArrayIterator<T> begin() noexcept { return DynArrayIterator<T>(m_Array, m_Length, 0);        }
+    [[nodiscard]] DynArrayIterator<T>   end() noexcept { return DynArrayIterator<T>(m_Array, m_Length, m_Length); }
+
+    [[nodiscard]] ConstDynArrayIterator<T> begin() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, 0);        }
+    [[nodiscard]] ConstDynArrayIterator<T>   end() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, m_Length); }
+
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, 0);            }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, 0);            }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
 };

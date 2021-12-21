@@ -3,14 +3,14 @@
 #include "NumTypes.hpp"
 #include "Objects.hpp"
 #include "String.hpp"
+#include "Console.hpp"
+#include "ToString.hpp"
+#include "Dragon4.hpp"
 
 template<typename T>
 struct TPrinter final
 {
-    static i32 print(const T& t) noexcept { return 0; }
-    static i32 printW(const T& t) noexcept { return 0; }
-    static i32 print(FILE* const file, const T& t) noexcept { return 0; }
-    static i32 printW(FILE* const file, const T& t) noexcept { return 0; }
+    static i32 Print(const T& t) noexcept { return 0; }
 };
 
 class ConPrinter final
@@ -19,147 +19,185 @@ class ConPrinter final
     DELETE_DESTRUCT(ConPrinter);
     DELETE_CM(ConPrinter);
 public:
-    static i32 print(const char* str)    noexcept { return fputs(str, stdout);  }
-    static i32 print(const char c)       noexcept { return fputc(c, stdout);    }
-    static i32 print(const wchar_t* str) noexcept { return fputws(str, stdout); }
-    static i32 print(const wchar_t c)    noexcept { return fputwc(c, stdout);   }
-    
-    static i32 printW(const char* str)    noexcept { return fwprintf(stdout, L"%hs", str);  }
-    static i32 printW(const char c)       noexcept { return fputwc(c, stdout);   }
-    static i32 printW(const wchar_t* str) noexcept { return fputws(str, stdout); }
-    static i32 printW(const wchar_t c)    noexcept { return fputwc(c, stdout);   }
+    static u32 Print(const char c)    noexcept { return Console::Write(c); }
+    static u32 Print(const wchar_t c) noexcept { return Console::Write(c); }
+    static u32 Print(const c8 c)      noexcept { return Console::Write(c); }
+    static u32 Print(const c16 c)     noexcept { return Console::Write(c); }
+    static u32 Print(const c32 c)     noexcept { return Console::Write(c); }
 
-    static i32 print(FILE* const file, const char* str)    noexcept { return fputs(str, file);  }
-    static i32 print(FILE* const file, const char c)       noexcept { return fputc(c, file);    }
-    static i32 print(FILE* const file, const wchar_t* str) noexcept { return fputws(str, file); }
-    static i32 print(FILE* const file, const wchar_t c)    noexcept { return fputwc(c, file);   }
-    
-    static i32 printW(FILE* const file, const char* str)    noexcept { return fwprintf(file, L"%hs", str);  }
-    static i32 printW(FILE* const file, const char c)       noexcept { return fputwc(c, file);   }
-    static i32 printW(FILE* const file, const wchar_t* str) noexcept { return fputws(str, file); }
-    static i32 printW(FILE* const file, const wchar_t c)    noexcept { return fputwc(c, file);   }
+    static u32 Print(const char* const str)    noexcept { return Console::Write(str, strLength(str)); }
+    static u32 Print(const wchar_t* const str) noexcept { return Console::Write(str, strLength(str)); }
+    static u32 Print(const c8* const str)      noexcept { return Console::Write(str, strLength(str)); }
+    static u32 Print(const c16* const str)     noexcept { return Console::Write(str, strLength(str)); }
+    static u32 Print(const c32* const str)     noexcept { return Console::Write(str, strLength(str)); }
 
-    static i32 print(const i8  d) noexcept { return fprintf(stdout, "%d", d); }
-    static i32 print(const i16 d) noexcept { return fprintf(stdout, "%d", d); }
-    static i32 print(const i32 d) noexcept { return fprintf(stdout, "%d", d); }
-    static i32 print(const i64 d) noexcept { return fprintf(stdout, "%lld", d); }
-
-    static i32 printW(const i8  d) noexcept { return fwprintf(stdout, L"%d", d); }
-    static i32 printW(const i16 d) noexcept { return fwprintf(stdout, L"%d", d); }
-    static i32 printW(const i32 d) noexcept { return fwprintf(stdout, L"%d", d); }
-    static i32 printW(const i64 d) noexcept { return fwprintf(stdout, L"%lld", d); }
-
-    static i32 print(const u8  d) noexcept { return fprintf(stdout, "%u", d); }
-    static i32 print(const u16 d) noexcept { return fprintf(stdout, "%u", d); }
-    static i32 print(const u32 d) noexcept { return fprintf(stdout, "%u", d); }
-    static i32 print(const u64 d) noexcept { return fprintf(stdout, "%llu", d); }
-
-    static i32 printW(const u8  d) noexcept { return fwprintf(stdout, L"%u", d); }
-    static i32 printW(const u16 d) noexcept { return fwprintf(stdout, L"%u", d); }
-    static i32 printW(const u32 d) noexcept { return fwprintf(stdout, L"%u", d); }
-    static i32 printW(const u64 d) noexcept { return fwprintf(stdout, L"%llu", d); }
-
-    static i32 print(const f32 f) noexcept { return fprintf(stdout, "%f", f); }
-    static i32 print(const f64 f) noexcept { return fprintf(stdout, "%f", f); }
-
-    static i32 printW(const f32 f) noexcept { return fwprintf(stdout, L"%f", f); }
-    static i32 printW(const f64 f) noexcept { return fwprintf(stdout, L"%f", f); }
-
-    static i32 print(FILE* const file, const i8  d) noexcept { return fprintf(file, "%d", d); }
-    static i32 print(FILE* const file, const i16 d) noexcept { return fprintf(file, "%d", d); }
-    static i32 print(FILE* const file, const i32 d) noexcept { return fprintf(file, "%d", d); }
-    static i32 print(FILE* const file, const i64 d) noexcept { return fprintf(file, "%lld", d); }
-
-    static i32 printW(FILE* const file, const i8  d) noexcept { return fwprintf(file, L"%d", d); }
-    static i32 printW(FILE* const file, const i16 d) noexcept { return fwprintf(file, L"%d", d); }
-    static i32 printW(FILE* const file, const i32 d) noexcept { return fwprintf(file, L"%d", d); }
-    static i32 printW(FILE* const file, const i64 d) noexcept { return fwprintf(file, L"%lld", d); }
-
-    static i32 print(FILE* const file, const u8  d) noexcept { return fprintf(file, "%u", d); }
-    static i32 print(FILE* const file, const u16 d) noexcept { return fprintf(file, "%u", d); }
-    static i32 print(FILE* const file, const u32 d) noexcept { return fprintf(file, "%u", d); }
-    static i32 print(FILE* const file, const u64 d) noexcept { return fprintf(file, "%llu", d); }
-
-    static i32 printW(FILE* const file, const u8  d) noexcept { return fwprintf(file, L"%u", d); }
-    static i32 printW(FILE* const file, const u16 d) noexcept { return fwprintf(file, L"%u", d); }
-    static i32 printW(FILE* const file, const u32 d) noexcept { return fwprintf(file, L"%u", d); }
-    static i32 printW(FILE* const file, const u64 d) noexcept { return fwprintf(file, L"%llu", d); }
-
-    static i32 print(FILE* const file, const f32 f) noexcept { return fprintf(file, "%f", f); }
-    static i32 print(FILE* const file, const f64 f) noexcept { return fprintf(file, "%f", f); }
-
-    static i32 printW(FILE* const file, const f32 f) noexcept { return fwprintf(file, L"%f", f); }
-    static i32 printW(FILE* const file, const f64 f) noexcept { return fwprintf(file, L"%f", f); }
-
-    template<typename T>
-    static i32 print(const T* const p) noexcept { return fprintf(stdout, "%p", p); }
-    template<typename T>
-    static i32 printW(const T* const p) noexcept { return fwprintf(stdout, L"%p", p); }
-
-    template<typename T>
-    static i32 print(FILE* const file, const T* const p) noexcept { return fprintf(file, "%p", p); }
-    template<typename T>
-    static i32 printW(FILE* const file, const T* const p) noexcept { return fwprintf(file, L"%p", p); }
-
-    static i32 print(const ConstExprString& str) noexcept { return fputs(str.c_str(), stdout); }
-    static i32 print(const DynString& str) noexcept { return fputs(str.c_str(), stdout); }
-    static i32 print(const DynStringView& str) noexcept { return fprintf(stdout, "%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    static i32 print(const WConstExprString& str) noexcept { return fputws(str.c_str(), stdout); }
-    static i32 print(const WDynString& str) noexcept { return fputws(str.c_str(), stdout); }
-    static i32 print(const WDynStringView& str) noexcept { return fwprintf(stdout, L"%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    static i32 printW(const WConstExprString& str) noexcept { return fputws(str.c_str(), stdout); }
-    static i32 printW(const WDynString& str) noexcept { return fputws(str.c_str(), stdout); }
-    static i32 printW(const WDynStringView& str) noexcept { return fwprintf(stdout, L"%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    static i32 print(FILE* const file, const ConstExprString& str) noexcept { return fputs(str.c_str(), file); }
-    static i32 print(FILE* const file, const DynString& str) noexcept { return fputs(str.c_str(), file); }
-    static i32 print(FILE* const file, const DynStringView& str) noexcept { return fprintf(file, "%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    static i32 print(FILE* const file, const WConstExprString& str) noexcept { return fputws(str.c_str(), file); }
-    static i32 print(FILE* const file, const WDynString& str) noexcept { return fputws(str.c_str(), file); }
-    static i32 print(FILE* const file, const WDynStringView& str) noexcept { return fwprintf(file, L"%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    static i32 printW(FILE* const file, const WConstExprString& str) noexcept { return fputws(str.c_str(), file); }
-    static i32 printW(FILE* const file, const WDynString& str) noexcept { return fputws(str.c_str(), file); }
-    static i32 printW(FILE* const file, const WDynStringView& str) noexcept { return fwprintf(file, L"%.*s", static_cast<int>(str.length()), str.c_str()); }
-
-    template<typename T>
-    static i32 print(const T& t) noexcept { return TPrinter<T>::print(t); }
-    template<typename T>
-    static i32 printW(const T& t) noexcept { return TPrinter<T>::printW(t); }
-
-    template<typename T>
-    static i32 print(FILE* const file, const T& t) noexcept { return TPrinter<T>::print(file, t); }
-    template<typename T>
-    static i32 printW(FILE* const file, const T& t) noexcept { return TPrinter<T>::printW(file, t); }
-
-    template<typename CurrArg, typename... Args>
-    static i32 print(const char* fmt, CurrArg currArg, Args... args) noexcept
+    template<typename Int>
+    static u32 PrintInt(const Int d) noexcept
     {
-        i32 count = 0;
+        c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::ItoA(d, buffer);
+        return Console::Write(buffer, writeLen);
+    }
+
+    template<typename Int>
+    static u32 PrintIntPad(const Int d) noexcept
+    {
+        c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::ItoAP(d, buffer);
+        return Console::Write(buffer, writeLen);
+    }
+
+    template<bool Uppercase, typename Int>
+    static u32 PrintHex(const Int d) noexcept
+    {
+        c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::XtoA<Uppercase>(d, buffer);
+        return Console::Write(buffer, writeLen);
+    }
+
+    template<bool Uppercase, typename Int>
+    static u32 PrintHexPad(const Int d) noexcept
+    {
+        c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::XtoAP<Uppercase>(d, buffer);
+        return Console::Write(buffer, writeLen);
+    }
+
+    static u32 Print(const i8  d) noexcept { return PrintInt(d); }
+    static u32 Print(const i16 d) noexcept { return PrintInt(d); }
+    static u32 Print(const i32 d) noexcept { return PrintInt(d); }
+    static u32 Print(const i64 d) noexcept { return PrintInt(d); }
+
+    static u32 Print(const u8  d) noexcept { return PrintInt(d); }
+    static u32 Print(const u16 d) noexcept { return PrintInt(d); }
+    static u32 Print(const u32 d) noexcept { return PrintInt(d); }
+    static u32 Print(const u64 d) noexcept { return PrintInt(d); }
+    
+    static u32 Print(const f32 f, PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
+    {
+        c16 buffer[192];
+        const uSys writeLen = PrintFloat32(buffer, ::std::size(buffer), f, format, precision);
+        return Console::Write(buffer, writeLen);
+    }
+
+    static u32 Print(const f64 f, PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
+    {
+        c16 buffer[256];
+        const uSys writeLen = PrintFloat64(buffer, ::std::size(buffer), f, format, precision);
+        return Console::Write(buffer, writeLen);
+    }
+    
+    template<typename T>
+    static u32 print(const T* const p) noexcept
+    {
+        c16 buffer[sizeof(uPtr) * 2 + 1];
+        (void) ::tau::XtoAP<true>(reinterpret_cast<uPtr>(p), buffer);
+        return Console::Write(buffer, sizeof(uPtr) * 2);
+    }
+
+    template<typename Char>
+    static u32 Print(const ConstExprStringT<Char>& str) noexcept { return Console::Write(str.c_str(), str.length()); }
+    template<typename Char>
+    static u32 Print(const DynStringT<Char>& str)       noexcept { return Console::Write(str.c_str(), str.length()); }
+    template<typename Char>
+    static u32 Print(const DynStringViewT<Char>& str)   noexcept { return Console::Write(str.c_str(), str.length()); }
+    
+    template<typename T>
+    static u32 Print(const T& t) noexcept { return TPrinter<T>::Print(t); }
+    
+    template<typename Char, typename CurrArg, typename... Args>
+    static u32 Print(const Char* fmt, CurrArg currArg, Args... args) noexcept
+    {
+        u32 count = 0;
+        i32 blockBegin = 0;
+
         for(uSys i = 0; fmt[i]; ++i)
         {
-            if(fmt[i] == '%')
+            if(fmt[i] == Char{'{'})
             {
-                count += print(currArg);
-                count += print(fmt + i + 1, args...);
-                break;
-            }
-            else if(fmt[i] == '\'')
-            {
-                if(fmt[i + 1] == '\'')
+                Console::Write(fmt + blockBegin, i - blockBegin);
+
+                if(fmt[i + 1] == Char{'}'})
                 {
-                    fputc('\'', stdout);
+                    count += Print(currArg);
+                    count += Print(fmt + i + 2, args...);
+                    break;
+                }
+                else if(fmt[i + 1] == Char{'X'})
+                {
+                    if(fmt[i + 2] == Char{'p'} || fmt[i + 2] == Char{'P'})
+                    {
+                        if constexpr(::std::is_integral_v<CurrArg>)
+                        {
+                            count += PrintHexPad<true>(currArg);
+                        }
+                        else
+                        {
+                            count += Print(currArg);
+                        }
+                        count += Print(fmt + i + 4, args...);
+                        break;   
+                    }
+                    else
+                    {
+                        if constexpr(::std::is_integral_v<CurrArg>)
+                        {
+                            count += PrintHex<true>(currArg);
+                        }
+                        else
+                        {
+                            count += Print(currArg);
+                        }
+                        count += Print(fmt + i + 3, args...);
+                        break;
+                    }
+                }
+                else if(fmt[i + 1] == Char{'x'})
+                {
+                    if(fmt[i + 2] == Char{'p'} || fmt[i + 2] == Char{'P'})
+                    {
+                        if constexpr(::std::is_integral_v<CurrArg>)
+                        {
+                            count += PrintHexPad<false>(currArg);
+                        }
+                        else
+                        {
+                            count += Print(currArg);
+                        }
+                        count += Print(fmt + i + 4, args...);
+                        break;   
+                    }
+                    else
+                    {
+                        if constexpr(::std::is_integral_v<CurrArg>)
+                        {
+                            count += PrintHex<false>(currArg);
+                        }
+                        else
+                        {
+                            count += Print(currArg);
+                        }
+                        count += Print(fmt + i + 3, args...);
+                        break;
+                    }
+                }
+            }
+            else if(fmt[i] == Char{'\''})
+            {
+                if(fmt[i + 1] == Char{'\''})
+                {
+                    Console::Write(fmt + blockBegin, i - blockBegin);
+                    blockBegin = i + 2;
                     ++count;
                     ++i;
                 }
-                else if(fmt[i + 1] == '%')
+                else if(fmt[i + 1] == Char{'{'})
                 {
-                    if(fmt[i + 2] == '\'')
+                    if(fmt[i + 2] == Char{'\''})
                     {
-                        fputc('%', stdout);
+                        Console::Write(fmt + blockBegin, i - blockBegin);
+                        Console::Write(u'{');
+                        blockBegin = i + 3;
                         ++count;
                         i += 2;
                     }
@@ -171,147 +209,10 @@ public:
             }
             else
             {
-                fputc(fmt[i], stdout);
                 ++count;
             }
         }
-        return count;
-    }
 
-    template<typename CurrArg, typename... Args>
-    static i32 printW(const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
-    {
-        i32 count = 0;
-        for(uSys i = 0; fmt[i]; ++i)
-        {
-            if(fmt[i] == L'%')
-            {
-                count += printW(currArg);
-                count += printW(fmt + i + 1, args...);
-                break;
-            }
-            else if(fmt[i] == L'\'')
-            {
-                if(fmt[i + 1] == L'\'')
-                {
-                    fputwc(L'\'', stdout);
-                    ++count;
-                    ++i;
-                }
-                else if(fmt[i + 1] == L'%')
-                {
-                    if(fmt[i + 2] == L'\'')
-                    {
-                        fputwc(L'%', stdout);
-                        ++count;
-                        i += 2;
-                    }
-                }
-                else
-                {
-                    return count;
-                }
-            }
-            else
-            {
-                fputwc(fmt[i], stdout);
-                ++count;
-            }
-        }
         return count;
     }
-    
-    template<typename CurrArg, typename... Args>
-    static i32 print(const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
-    { return printW(fmt, currArg, args...); }
-
-    template<typename CurrArg, typename... Args>
-    static i32 print(FILE* const file, const char* fmt, CurrArg currArg, Args... args) noexcept
-    {
-        i32 count = 0;
-        for(uSys i = 0; fmt[i]; ++i)
-        {
-            if(fmt[i] == '%')
-            {
-                count += print(file, currArg);
-                count += print(file, fmt + i + 1, args...);
-                break;
-            }
-            else if(fmt[i] == '\'')
-            {
-                if(fmt[i + 1] == '\'')
-                {
-                    fputc('\'', file);
-                    ++count;
-                    ++i;
-                }
-                else if(fmt[i + 1] == '%')
-                {
-                    if(fmt[i + 2] == '\'')
-                    {
-                        fputc('%', file);
-                        ++count;
-                        i += 2;
-                    }
-                }
-                else
-                {
-                    return count;
-                }
-            }
-            else
-            {
-                fputc(fmt[i], file);
-                ++count;
-            }
-        }
-        return count;
-    }
-
-    template<typename CurrArg, typename... Args>
-    static i32 printW(FILE* const file, const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
-    {
-        i32 count = 0;
-        for(uSys i = 0; fmt[i]; ++i)
-        {
-            if(fmt[i] == L'%')
-            {
-                count += printW(file, currArg);
-                count += printW(file, fmt + i + 1, args...);
-                break;
-            }
-            else if(fmt[i] == L'\'')
-            {
-                if(fmt[i + 1] == L'\'')
-                {
-                    fputwc(L'\'', stdout);
-                    ++count;
-                    ++i;
-                }
-                else if(fmt[i + 1] == L'%')
-                {
-                    if(fmt[i + 2] == L'\'')
-                    {
-                        fputwc(L'%', stdout);
-                        ++count;
-                        i += 2;
-                    }
-                }
-                else
-                {
-                    return count;
-                }
-            }
-            else
-            {
-                fputwc(fmt[i], file);
-                ++count;
-            }
-        }
-        return count;
-    }
-    
-    template<typename CurrArg, typename... Args>
-    static i32 print(FILE* const file, const wchar_t* fmt, CurrArg currArg, Args... args) noexcept
-    { return printW(file, fmt, currArg, args...); }
 };

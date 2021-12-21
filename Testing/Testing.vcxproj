@@ -11,7 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\DragonTests.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\StringTests.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{63FFD639-CFDE-55D5-D8F6-E0AB4455BC36}</ProjectGuid>
@@ -25,8 +27,9 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -76,14 +79,18 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>-Wno-unknown-attributes %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>TauUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Win64|x64'">
@@ -106,6 +113,8 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalOptions>-Wno-unknown-attributes %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,6 +123,7 @@
       <AdditionalDependencies>TauUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

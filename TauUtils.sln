@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TauUtils", "TauUtils\TauUtils.vcxproj", "{60464D43-4C13-A84E-752C-96F66158DDDC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Testing", "Testing\Testing.vcxproj", "{63FFD639-CFDE-55D5-D8F6-E0AB4455BC36}"
+	ProjectSection(ProjectDependencies) = postProject
+		{60464D43-4C13-A84E-752C-96F66158DDDC} = {60464D43-4C13-A84E-752C-96F66158DDDC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,5 +27,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A0C5896B-C77C-468B-8CD6-B97882DCD359}
 	EndGlobalSection
 EndGlobal

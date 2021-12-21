@@ -7,7 +7,268 @@
 #include <cstring>
 #include <cwctype>
 #include <locale>
+#include <new>
 #include "TUMaths.hpp"
+
+namespace tau::string {
+
+template<typename Char>
+template<uSys Len>
+constexpr LargeString<Char>::LargeString(const Char(& str)[Len]) noexcept
+    : RefCount(nullptr)
+    , Buffer(nullptr)
+{ }
+
+template<typename Char>
+constexpr LargeString<Char>::LargeString() noexcept
+    : RefCount(nullptr)
+    , Buffer(nullptr)
+{ }
+
+template<typename Char>
+LargeString<Char>::LargeString(const Char* const buffer, const uSys codeUnits) noexcept
+{
+    void* newBuffer = operator new((codeUnits + 1) * sizeof(Char) + sizeof(ReferenceCounter::Type), ::std::nothrow);
+    RefCount = ReferenceCounter(new(newBuffer) ReferenceCounter::Type(0));
+    Char* cBuffer = reinterpret_cast<Char*>(reinterpret_cast<ReferenceCounter::Type*>(newBuffer) + 1);
+    cBuffer[codeUnits] = Char{ '\0' };
+
+    (void) ::std::memcpy(cBuffer, buffer, codeUnits * sizeof(Char));
+    Buffer = cBuffer;
+}
+
+template<typename Char>
+LargeString<Char>::LargeString(ReferenceCounter::Type* const refCount, const Char* const buffer) noexcept
+    : RefCount(refCount)
+    , Buffer(buffer)
+{ }
+
+template<typename Char>
+LargeString<Char>::~LargeString() noexcept
+{
+    if(RefCount.RefCount() == 1)
+    {
+        if(reinterpret_cast<const void*>(RefCount.RefCountPtr() + 1) != reinterpret_cast<const void*>(Buffer))
+        {
+            delete[] Buffer;
+        }
+    }
+}
+
+template<typename Char>
+constexpr StringData<Char>::StringData() noexcept
+    : Length(0)
+{ Buffer.StackString[0] = Char{ '\0' }; }
+
+template<typename Char>
+constexpr StringData<Char>::StringData(nullptr_t) noexcept
+    : Length(0)
+{ Buffer.StackString[0] = Char{ '\0' }; }
+
+template<typename Char>
+template<uSys Len>
+constexpr StringData<Char>::StringData(const Char(& str)[Len]) noexcept
+    : Buffer(str)
+    , Length(Len)
+{ }
+
+template<typename Char>
+StringData<Char>::StringData(const Char* const buffer, const uSys codeUnits) noexcept
+    : Length(codeUnits)
+{
+    if(codeUnits < 16)
+    {
+        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
+        Buffer.StackString[codeUnits] = Char{ '\0' };
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+    }
+}
+
+template<typename Char>
+StringData<Char>::StringData(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
+    : Length(codeUnits)
+{
+    if(codeUnits < 16)
+    {
+        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
+        Buffer.StackString[codeUnits] = Char{ '\0' };
+        delete refCount;
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(refCount, buffer);
+    }
+}
+
+template<typename Char>
+StringData<Char>::~StringData() noexcept
+{
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+}
+
+template<typename Char>
+StringData<Char>::StringData(const StringData& copy) noexcept
+    : Length(copy.Length)
+{
+    if(Length == 0)
+    {
+        Buffer.StackString[0] = Char{ '\0' };
+    }
+    else if(Length < 16)
+    {
+        // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
+        ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(copy.Buffer.AsLargeString());
+    }
+}
+
+template<typename Char>
+StringData<Char>::StringData(StringData&& move) noexcept
+    : Length(move.Length)
+{
+    if(Length == 0)
+    {
+        Buffer.StackString[0] = Char{ '\0' };
+    }
+    else if(Length < 16)
+    {
+        // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
+        ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(::std::move(move.Buffer.AsLargeString()));
+    }
+}
+
+template<typename Char>
+StringData<Char>& StringData<Char>::operator=(const StringData& copy) noexcept
+{
+    if(this == &copy)
+    {
+        return *this;
+    }
+
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+
+    Length = copy.Length;
+
+    if(Length == 0)
+    {
+        Buffer.StackString[0] = Char{ '\0' };
+    }
+    else if(Length < 16)
+    {
+        // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
+        ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(copy.Buffer.AsLargeString());
+    }
+
+    return *this;
+}
+
+template<typename Char>
+StringData<Char>& StringData<Char>::operator=(StringData&& move) noexcept
+{
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+
+    Length = move.Length;
+
+    if(Length == 0)
+    {
+        Buffer.StackString[0] = Char{ '\0' };
+    }
+    else if(Length < 16)
+    {
+        // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
+        ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(::std::move(move.Buffer.AsLargeString()));
+    }
+
+    return *this;
+}
+
+template<typename Char>
+template<uSys Len>
+StringData<Char>& StringData<Char>::operator=(const Char(& str)[Len]) noexcept
+{
+    if(String() == str)
+    { return *this; }
+    
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+
+    Length = Len;
+
+    new(Buffer.LargeString) LargeString<Char>(str);
+
+    return *this;
+}
+
+template<typename Char>
+void StringData<Char>::Reset(const Char* const buffer, const uSys codeUnits) noexcept
+{
+    if(String() == buffer)
+    { return; }
+
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+
+    Length = codeUnits;
+    
+    if(codeUnits < 16)
+    {
+        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
+        Buffer.StackString[codeUnits] = Char{ '\0' };
+    }
+    else
+    {
+        new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+    }
+}
+
+template<typename Char>
+void StringData<Char>::Reset(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
+{
+    if(String() == buffer)
+    { return; }
+
+    if(Length >= 16)
+    {
+        Buffer.AsLargeString().~LargeString();
+    }
+
+    Length = codeUnits;
+    
+    new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+}
+
+}
 
 template<>
 inline char toLower<char>(const char c) noexcept
@@ -130,7 +391,7 @@ inline uSys strLength(const C* const str) noexcept
     uSys i = 0;
     // ReSharper disable once CppPossiblyErroneousEmptyStatements
     for(; str[i]; ++i);
-    return i - 1;
+    return i;
 }
 
 template<>
@@ -321,6 +582,114 @@ template<typename _C>
 inline bool StringIteratorT<_C>::operator!=(const StringIteratorT<_C>& other) const noexcept
 { return _index != other._index; }
 
+template<typename Char>
+DynStringCodeUnitIteratorT<Char>::DynStringCodeUnitIteratorT(const StringData& string, const uSys index) noexcept
+    : m_String(string)
+    , m_Index(index)
+{ }
+
+template<typename Char>
+DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator++() noexcept
+{
+    if(m_Index < m_String.Length - 1)
+    { ++m_Index; }
+    return *this;
+}
+
+template<typename Char>
+DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator--() noexcept
+{
+    if(m_Index > 0)
+    { --m_Index; }
+    return *this;
+}
+
+template<typename Char>
+DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator++(int) noexcept
+{
+    const DynStringCodeUnitIteratorT copy(*this);
+    operator++();
+    return copy;
+}
+
+template<typename Char>
+DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator--(int) noexcept
+{
+    const DynStringCodeUnitIteratorT copy(*this);
+    operator--();
+    return copy;
+}
+
+template<typename Char>
+Char DynStringCodeUnitIteratorT<Char>::operator*() const noexcept
+{ return m_String.String()[m_Index]; }
+
+template<typename Char>
+bool DynStringCodeUnitIteratorT<Char>::operator==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
+{ return m_Index == other.m_Index; }
+
+template<typename Char>
+bool DynStringCodeUnitIteratorT<Char>::operator!=(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
+{ return m_Index != other.m_Index; }
+
+template<typename Char>
+DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index) noexcept
+    : m_String(string)
+    , m_Index(index)
+    , m_CurrentCodePoint(string.Length > 0 ? string.String()[index] : U'\0')
+{ }
+
+template<typename Char>
+DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const c32 currentCodePoint) noexcept
+    : m_String(string)
+    , m_Index(index)
+    , m_CurrentCodePoint(currentCodePoint)
+{ }
+
+template<typename Char>
+DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator++() noexcept
+{
+    if(m_Index < m_String.Length - 1)
+    { ++m_Index; }
+    return *this;
+}
+
+template<typename Char>
+DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator--() noexcept
+{
+    if(m_Index > 0)
+    { --m_Index; }
+    return *this;
+}
+
+template<typename Char>
+DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator++(int) noexcept
+{
+    const DynStringCodePointIteratorT copy(*this);
+    operator++();
+    return copy;
+}
+
+template<typename Char>
+DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator--(int) noexcept
+{
+    const DynStringCodePointIteratorT copy(*this);
+    operator--();
+    return copy;
+}
+
+template<typename Char>
+c32 DynStringCodePointIteratorT<Char>::operator*() const noexcept
+{ return m_CurrentCodePoint; }
+
+template<typename Char>
+bool DynStringCodePointIteratorT<Char>::operator==(const DynStringCodePointIteratorT<Char>& other) const noexcept
+{ return m_Index == other.m_Index; }
+
+template<typename Char>
+bool DynStringCodePointIteratorT<Char>::operator!=(const DynStringCodePointIteratorT<Char>& other) const noexcept
+{ return m_Index != other.m_Index; }
+
 template<typename _C>
 template<uSys _Len>
 inline constexpr ConstExprStringT<_C>::ConstExprStringT(const _C(&str)[_Len]) noexcept
@@ -334,7 +703,7 @@ template<uSys _Len>
 inline constexpr ConstExprStringT<_C>& ConstExprStringT<_C>::operator=(const _C(&str)[_Len]) noexcept
 {
     _string = str;
-    _length = _Len;
+    _length = _Len - 1;
     _hash = cexpr::findHashCode(str);
 
     return *this;
@@ -408,189 +777,77 @@ inline _C ConstExprStringT<_C>::at(const uSys index) const noexcept
     return _string[index];
 }
 
-template<typename _C>
-inline DynStringT<_C> DynStringT<_C>::passControl(const _C* const str) noexcept
+template<typename Char>
+template<uSys Len>
+constexpr DynStringT<Char> DynStringT<Char>::FromStatic(const Char(& str)[Len]) noexcept
+{
+    if(Len < 16)
+    {
+        return DynStringT<Char>(static_cast<const Char*>(str));
+    }
+
+    return DynStringT<Char>(str);
+}
+
+template<typename Char>
+inline DynStringT<Char> DynStringT<Char>::passControl(const Char* const str) noexcept
 {
     const uSys len = strLength(str);
     if(len < 16)
     {
-        DynStringT<_C> tmp(str);
+        DynStringT<Char> tmp(str);
         delete str;
         return tmp;
     }
-    return DynStringT<_C>(str, len);
+    return DynStringT<Char>(str, len);
 }
 
-template<typename _C>
-inline DynStringT<_C>::DynStringT(const _C* const string, const uSys length) noexcept
-    : _largeString { new(::std::nothrow) uSys(1), string }
-    , _length(length)
-    , _hash(findHashCode(string))
+template<typename Char>
+inline DynStringT<Char> DynStringT<Char>::passControl(ReferenceCounter::Type* const refCount, const Char* const str, const uSys length) noexcept
+{
+    if(length < 16)
+    {
+        DynStringT<Char> tmp(str);
+        delete refCount;
+        return tmp;
+    }
+    return DynStringT<Char>(refCount, str, length);
+}
+
+template<typename Char>
+template<uSys Len>
+constexpr DynStringT<Char>::DynStringT(const Char(& str)[Len]) noexcept
+    : m_Data(str)
+    , m_Hash(cexpr::findHashCode(str))
 { }
 
-template<typename _C>
-inline DynStringT<_C>::DynStringT(const uSys length) noexcept
-    : _stackString { }
-    , _length(length)
-    , _hash(0)
+template<typename Char>
+inline DynStringT<Char>::DynStringT(const Char* const string, const uSys length) noexcept
+    : m_Data(string, length)
+    , m_Hash(findHashCode(string))
 { }
 
-template<typename _C>
-DynStringT<_C>::DynStringT(const uSys length, const _C* const string) noexcept
-    : _largeString { null, null }
-    , _length(length)
-    , _hash(0)
-{
-    ::std::memcpy(_stackString, string, length * sizeof(_C));
-    _stackString[length] = '\0';
-    _hash = findHashCode(_stackString);
-}
-
-template<typename _C>
-inline DynStringT<_C>::DynStringT() noexcept
-    : _largeString { null, null }
-    , _length(0)
-    , _hash(0)
+template<typename Char>
+DynStringT<Char>::DynStringT(ReferenceCounter::Type* const refCount, const Char* const string, const uSys length) noexcept
+    : m_Data(refCount, string, length)
+    , m_Hash(findHashCode(string))
 { }
 
-template<typename _C>
-inline DynStringT<_C>::DynStringT(const _C* const string) noexcept
-    : _largeString { null, null }
-    , _length(strLength(string))
-    , _hash(findHashCode(string))
-{
-    if(_length >= 16)
-    {
-        void* const placement = new(::std::nothrow) u8[sizeof(uSys) + (_length + 1) * sizeof(_C)];
+template<typename Char>
+inline DynStringT<Char>::DynStringT() noexcept
+    : m_Data()
+    , m_Hash(0)
+{ }
 
-        _largeString.refCount = new(placement) uSys(1);
-        _C* const str = new(reinterpret_cast<u8* const>(placement) + sizeof(uSys)) _C[_length + 1];
+template<typename Char>
+inline DynStringT<Char>::DynStringT(const Char* const string) noexcept
+    : m_Data(string, strLength(string))
+    , m_Hash(findHashCode(string))
+{ }
 
-        ::std::memcpy(str, string, (_length + 1) * sizeof(_C));
-        _largeString.string = str;
-    }
-    else
-    {
-        ::std::memcpy(_stackString, string, (_length + 1) * sizeof(_C));
-    }
-}
 
-template<typename _C>
-inline DynStringT<_C>::~DynStringT() noexcept
-{
-    if(_length >= 16 && _largeString.string && --(*_largeString.refCount) == 0)
-    {
-        delete _largeString.refCount;
-        // Was this allocated as a single block.
-        if(reinterpret_cast<uPtr>(_largeString.refCount) != reinterpret_cast<uPtr>(_largeString.string) - static_cast<uPtr>(sizeof(uSys)))
-        {
-            delete[] _largeString.string;
-        }
-    }
-}
-
-template<typename _C>
-inline DynStringT<_C>::DynStringT(const DynStringT<_C>& copy) noexcept
-    : _length(copy._length)
-    , _hash(copy._hash)
-{
-    if(_length >= 16)
-    {
-        _largeString.refCount = copy._largeString.refCount;
-        _largeString.string = copy._largeString.string;
-        ++(*_largeString.refCount);
-    }
-    else
-    {
-        ::std::memcpy(_stackString, copy._stackString, 16 * sizeof(_C));
-    }
-}
-
-template<typename _C>
-inline DynStringT<_C>::DynStringT(DynStringT<_C>&& move) noexcept
-    : _length(move._length)
-    , _hash(move._hash)
-{
-    if(_length >= 16)
-    {
-        _largeString.refCount = move._largeString.refCount;
-        _largeString.string = move._largeString.string;
-        move._largeString.string = null;
-    }
-    else
-    {
-        ::std::memcpy(_stackString, move._stackString, 16 * sizeof(_C));
-    }
-}
-
-template<typename _C>
-inline DynStringT<_C>& DynStringT<_C>::operator=(const DynStringT<_C>& copy) noexcept  // NOLINT(cert-oop54-cpp)
-{
-    if(this == &copy)
-    { return *this; }
-
-    if(copy._length >= 16)
-    {
-        if(_length >= 16 && --(*_largeString.refCount) == 0)
-        {
-            delete _largeString.refCount;
-            // Was this allocated as a single block.
-            if(reinterpret_cast<uPtr>(_largeString.refCount) != reinterpret_cast<uPtr>(_largeString.string) - static_cast<uPtr>(sizeof(uSys)))
-            {
-                delete[] _largeString.string;
-            }
-        }
-
-        _largeString.refCount = copy._largeString.refCount;
-        _largeString.string = copy._largeString.string;
-        ++(*_largeString.refCount);
-    }
-    else
-    {
-        ::std::memcpy(_stackString, copy._stackString, 16 * sizeof(_C));
-    }
-
-    _length = copy._length;
-    _hash = copy._hash;
-
-    return *this;
-}
-
-template<typename _C>
-inline DynStringT<_C>& DynStringT<_C>::operator=(DynStringT<_C>&& move) noexcept
-{
-    if(this == &move)
-    { return *this; }
-
-    if(move._length >= 16)
-    {
-        if(_length >= 16 && --(*_largeString.refCount) == 0)
-        {
-            delete _largeString.refCount;
-            // Was this allocated as a single block.
-            if(reinterpret_cast<uPtr>(*_largeString.refCount) != reinterpret_cast<uPtr>(_largeString.string) - static_cast<uPtr>(sizeof(uSys)))
-            {
-                delete[] _largeString.string;
-            }
-        }
-
-        _largeString.refCount = move._largeString.refCount;
-        _largeString.string = move._largeString.string;
-        move._largeString.string = null;
-    }
-    else
-    {
-        ::std::memcpy(_stackString, move._stackString, 16 * sizeof(_C));
-    }
-
-    _length = move._length;
-    _hash = move._hash;
-
-    return *this;
-}
-
-template<typename _C>
-inline DynStringT<_C>& DynStringT<_C>::operator=(const _C* const string) noexcept
+template<typename Char>
+inline DynStringT<Char>& DynStringT<Char>::operator=(const Char* const string) noexcept
 {
     if(!string)
     {
@@ -600,76 +857,24 @@ inline DynStringT<_C>& DynStringT<_C>::operator=(const _C* const string) noexcep
     /**
      * _largeString.string and _stackString store the same address.
      */
-    if(string == _largeString.string)
+    if(string == m_Data.String())
     {
         return *this;
     }
 
     const uSys length = strLength(string);
 
-    if(_length >= 16 && length >= 16 && *_largeString.refCount == 1)
-    {
-        _length = length;
-
-        // Was this allocated as a single block.
-        if(reinterpret_cast<iPtr>(_largeString.refCount) != reinterpret_cast<iPtr>(_largeString.string) - sizeof(uSys))
-        {
-            delete[] _largeString.string;
-
-            _C* const str = new(::std::nothrow) _C[_length + 1];
-            ::std::memcpy(str, string, (_length + 1) * sizeof(_C));
-            _largeString.string = str;
-        }
-        else
-        {
-            delete _largeString.refCount;
-
-            void* const placement = new(::std::nothrow) u8[sizeof(uSys) + (_length + 1) * sizeof(_C)];
-
-            _largeString.refCount = new(placement) uSys(1);
-            _C* const str = new(reinterpret_cast<u8*>(placement) + sizeof(uSys)) _C[_length + 1];
-
-            ::std::memcpy(str, string, (_length + 1) * sizeof(_C));
-            _largeString.string = str;
-        }
-    }
-    else
-    {
-        if(_length >= 16 && --(*_largeString.refCount) == 0)
-        {
-            delete _largeString.refCount;
-            // Was this allocated as a single block.
-            if(reinterpret_cast<iPtr>(_largeString.refCount) != reinterpret_cast<iPtr>(_largeString.string) - static_cast<iPtr>(sizeof(uSys)))
-            {
-                delete[] _largeString.string;
-            }
-        }
-
-        _length = length;
-        if(_length >= 16)
-        {
-            void* const placement = new(::std::nothrow) u8[sizeof(uSys) + (_length + 1) * sizeof(_C)];
-
-            _largeString.refCount = new(placement) uSys(1);
-            _C* const str = new(reinterpret_cast<u8*>(placement) + sizeof(uSys)) _C[_length + 1];
-
-            ::std::memcpy(str, string, (_length + 1) * sizeof(_C));
-            _largeString.string = str;
-        }
-        else
-        {
-            ::std::memcpy(_stackString, string, (_length + 1) * sizeof(_C));
-        }
-    }
-
+    m_Data.Reset(string, length);
+    m_Hash = findHashCode(string);
+    
     return *this;
 }
 
 template<typename _C>
 inline bool DynStringT<_C>::equals(const ConstExprStringT<_C>& other) const noexcept
 {
-    if(_length != other._length ) { return false; }
-    if(_hash != other._hash) { return false; }
+    if(m_Data.Length != other._length ) { return false; }
+    if(m_Hash != other._hash) { return false; }
     return strCompare(c_str(), other._string) == 0;
 }
 
@@ -677,20 +882,14 @@ template<typename _C>
 inline bool DynStringT<_C>::equals(const DynStringT<_C>& other) const noexcept
 {
     if(this == &other) { return true; }
-    if(_length == other._length && _hash == other._hash)
+    if(m_Data.Length == other.m_Data.Length && m_Hash == other.m_Hash)
     {
-        if(_length >= 16)
+        if(m_Data.Length >= 16 && m_Data.String() == other.m_Data.String())
         {
-            if(_largeString.string == other._largeString.string)
-            {
-                return true;
-            }
-            return strCompare(_largeString.string, other._largeString.string) == 0;
+            return true;
         }
-        else
-        {
-            return strCompare(_stackString, other._stackString) == 0;
-        }
+
+        return strCompare(m_Data.String(), other.m_Data.String()) == 0;
     }
     return false;
 }
@@ -698,9 +897,9 @@ inline bool DynStringT<_C>::equals(const DynStringT<_C>& other) const noexcept
 template<typename _C>
 inline bool DynStringT<_C>::equals(const DynStringViewT<_C>& other) const noexcept
 {
-    if(_length != other._length ) { return false; }
-    if(_hash != other._hash) { return false; }
-    return strCompare(c_str(), other._string, _length) == 0;
+    if(m_Data.Length != other._length ) { return false; }
+    if(m_Hash != other._hash) { return false; }
+    return strCompare(m_Data.String(), other._string, other.Length) == 0;
 }
 
 template<typename _C>
@@ -717,7 +916,7 @@ inline i32 DynStringT<_C>::compareTo(const DynStringT<_C>& other) const noexcept
 
 template<typename _C>
 inline i32 DynStringT<_C>::compareTo(const DynStringViewT<_C>& other) const noexcept
-{ return strCompare(c_str(), other._string, _length); }
+{ return strCompare(c_str(), other._string, other._length); }
 
 template<typename _C>
 inline i32 DynStringT<_C>::compareTo(const _C* const str) const noexcept
@@ -729,7 +928,7 @@ inline DynStringT<_C> DynStringT<_C>::concat(const ConstExprStringT<_C>& other) 
 
 template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::concat(const DynStringT<_C>& other) const noexcept
-{ return _concat(other._length, other.c_str()); }
+{ return _concat(other.m_Data.Length, other.c_str()); }
 
 template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::concat(const DynStringViewT<_C>& other) const noexcept
@@ -739,33 +938,33 @@ template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::concat(const _C* const other) const noexcept
 { return _concat(strLength(other), other); }
 
-template<typename _C>
-inline DynStringT<_C> DynStringT<_C>::_concat(const uSys len, const _C* const str) const noexcept
+template<typename Char>
+inline DynStringT<Char> DynStringT<Char>::_concat(const uSys len, const Char* const str) const noexcept
 {
-    const uSys newLen = _length + len;
+    const uSys newLen = m_Data.Length + len;
     if(newLen >= 16)
     {
-        _C* const newStr = new(::std::nothrow) _C[newLen + 1];
+        Char* const newStr = new(::std::nothrow) Char[newLen + 1];
         newStr[newLen] = '\0';
-        ::std::memcpy(newStr, c_str(), _length * sizeof(_C));
-        ::std::memcpy(newStr + _length, str, len * sizeof(_C));
-        return DynStringT<_C>(newStr, newLen);
+        ::std::memcpy(newStr, c_str(), m_Data.Length * sizeof(Char));
+        ::std::memcpy(newStr + m_Data.Length, str, len * sizeof(Char));
+        return DynStringT<Char>(newStr, newLen);
     }
     else
     {
-        DynStringT<_C> tmp(newLen);
-        tmp._stackString[newLen] = '\0';
-        ::std::memcpy(tmp._stackString, _stackString, _length * sizeof(_C));
-        ::std::memcpy(tmp._stackString + _length, str, len * sizeof(_C));
-        tmp._hash = findHashCode(tmp._stackString);
-        return tmp;
+        Char buf[16];
+        buf[newLen] = Char{'\0'};
+        
+        ::std::memcpy(buf, m_Data.Buffer.StackString, 16); // Perform a fast intrinsic copy.
+        ::std::memcpy(buf + m_Data.Length, str, len * sizeof(Char));
+        return DynStringT<Char>(static_cast<const Char*>(buf), newLen);
     }
 }
 
 template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::subString(const uSys begin, const uSys end) const noexcept
 {
-    if(begin >= end || end > _length)
+    if(begin >= end || end > m_Data.Length)
     { return DynStringT<_C>(); }
 
     const uSys length = end - begin;
@@ -784,7 +983,7 @@ inline DynStringT<_C> DynStringT<_C>::subString(const uSys begin, const uSys end
 template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::subStringLen(const uSys begin, const uSys length) const noexcept
 {
-    if(begin + length > _length)
+    if(begin + length > m_Data.Length)
     {
         return DynStringT<_C>("");
     }
@@ -803,12 +1002,12 @@ inline DynStringT<_C> DynStringT<_C>::subStringLen(const uSys begin, const uSys 
 template<typename _C>
 inline DynStringT<_C> DynStringT<_C>::subString(const uSys from) const noexcept
 {
-    if(from > _length)
+    if(from > m_Data.Length)
     {
         return DynStringT<_C>("");
     }
 
-    const uSys length = _length - from;
+    const uSys length = m_Data.Length - from;
 
     if(length >= 16)
     {
@@ -828,7 +1027,7 @@ inline _C DynStringT<_C>::operator[](const uSys index) const noexcept
 template<typename _C>
 inline _C DynStringT<_C>::at(const uSys index) const noexcept
 {
-    if(index >= _length) { return '\0'; }
+    if(index >= m_Data.Length) { return '\0'; }
     return c_str()[index];
 }
 
@@ -1143,7 +1342,7 @@ inline DynStringT<_C> DynStringViewT<_C>::subString(const uSys begin, const uSys
 }
 
 template<typename _C>
-inline DynString DynStringViewT<_C>::subStringLen(const uSys begin, const uSys length) const noexcept
+inline DynStringT<_C> DynStringViewT<_C>::subStringLen(const uSys begin, const uSys length) const noexcept
 {
     if(begin + length > _length)
     { return DynStringT<_C>(""); }
@@ -1160,7 +1359,7 @@ inline DynString DynStringViewT<_C>::subStringLen(const uSys begin, const uSys l
 }
 
 template<typename _C>
-inline DynString DynStringViewT<_C>::subString(const uSys from) const noexcept
+inline DynStringT<_C> DynStringViewT<_C>::subString(const uSys from) const noexcept
 {
     if(from > _length)
     { return DynStringT<_C>(""); }
@@ -1325,41 +1524,111 @@ inline StringBuilderT<_C>& StringBuilderT<_C>::append(const _C* const string) no
 template<typename _C>
 inline StringBuilderT<_C>& StringBuilderT<_C>::append(const _C c) noexcept
 {
-    _C string[2] = { c,_C{ '\0' } };
+    const _C string[2] = { c,_C{ '\0' } };
     append(string, 1);
     return *this;
 }
 
 template<typename _C>
-inline StringBuilderT<_C>& StringBuilderT<_C>::reset() noexcept
+inline StringBuilderT<_C>& StringBuilderT<_C>::append(const c32 c) noexcept
+{
+    _C string[5] = { _C{ '\0' }, _C{ '\0' }, _C{ '\0' }, _C{ '\0' }, _C{ '\0' } };
+
+    if(c <= 0x7F)
+    {
+        string[0] = static_cast<_C>(c);
+        append(string, 1);
+    }
+    else if(c <= 0x07FF)
+    {
+        string[0] = _C{ 0b11000000 } | static_cast<_C>(c >> 6);
+        string[1] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+        append(string, 2);
+    }
+    else if(c <= 0xFFFF)
+    {
+        string[0] = _C{ 0b11100000 } | static_cast<_C>(c >> 12);
+        string[1] = _C{ 0b10000000 } | static_cast<_C>((c >> 6) & 0x3F);
+        string[2] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+        append(string, 3);
+    }
+    else if(c <= 0x10FFFF)
+    {
+        string[0] = _C{ 0b11100000 } | static_cast<_C>(c >> 18);
+        string[1] = _C{ 0b10000000 } | static_cast<_C>((c >> 12) & 0x3F);
+        string[2] = _C{ 0b10000000 } | static_cast<_C>((c >> 6) & 0x3F);
+        string[3] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+        append(string, 4);
+    }
+
+    return *this;
+}
+//
+// template<>
+// inline StringBuilderT<c16>& StringBuilderT<c16>::append(const c32 c) noexcept
+// {
+//     c16 string[3] = { c16{ '\0' }, c16{ '\0' }, c16{ '\0' } };
+//
+//     if(c <= 0x7F)
+//     {
+//         string[0] = static_cast<_C>(c);
+//         append(string, 1);
+//     }
+//     else if(c <= 0x07FF)
+//     {
+//         string[0] = _C{ 0b11000000 } | static_cast<_C>(c >> 6);
+//         string[1] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+//         append(string, 2);
+//     }
+//     else if(c <= 0xFFFF)
+//     {
+//         string[0] = _C{ 0b11100000 } | static_cast<_C>(c >> 12);
+//         string[1] = _C{ 0b10000000 } | static_cast<_C>((c >> 6) & 0x3F);
+//         string[2] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+//         append(string, 3);
+//     }
+//     else if(c <= 0x10FFFF)
+//     {
+//         string[0] = _C{ 0b11100000 } | static_cast<_C>(c >> 18);
+//         string[1] = _C{ 0b10000000 } | static_cast<_C>((c >> 12) & 0x3F);
+//         string[2] = _C{ 0b10000000 } | static_cast<_C>((c >> 6) & 0x3F);
+//         string[3] = _C{ 0b10000000 } | static_cast<_C>(c & 0x3F);
+//         append(string, 4);
+//     }
+//
+//     return *this;
+// }
+
+template<typename Char>
+inline StringBuilderT<Char>& StringBuilderT<Char>::reset() noexcept
 {
     _length = 0;
     _string[0] = '\0';
     return *this;
 }
 
-template<typename _C>
-inline StringBuilderT<_C>& StringBuilderT<_C>::reset(const uSys newSize) noexcept
+template<typename Char>
+inline StringBuilderT<Char>& StringBuilderT<Char>::reset(const uSys newSize) noexcept
 {
     if(newSize == 0) 
     { return *this; }
     delete[] _string;
-    _string = new(::std::nothrow) _C[newSize];
+    _string = new(::std::nothrow) Char[newSize];
     _size = newSize;
     _length = 0;
     _string[0] = '\0';
     return *this;
 }
 
-template<typename _C>
-inline StringBuilderT<_C>& StringBuilderT<_C>::resetIf(const uSys maxSize, const uSys newSize) noexcept
+template<typename Char>
+inline StringBuilderT<Char>& StringBuilderT<Char>::resetIf(const uSys maxSize, const uSys newSize) noexcept
 {
     if(newSize == 0) { return *this; }
     if(maxSize <= newSize) { return *this; }
     if(_size >= maxSize)
     {
         delete[] _string;
-        _string = new(::std::nothrow) _C[newSize];
+        _string = new(::std::nothrow) Char[newSize];
         _size = newSize;
     }
     _length = 0;
@@ -1367,8 +1636,8 @@ inline StringBuilderT<_C>& StringBuilderT<_C>::resetIf(const uSys maxSize, const
     return *this;
 }
 
-template<typename _C>
-inline StringBuilderT<_C>& StringBuilderT<_C>::backspace() noexcept
+template<typename Char>
+inline StringBuilderT<Char>& StringBuilderT<Char>::backspace() noexcept
 {
     if(_length > 0)
     {
@@ -1378,8 +1647,8 @@ inline StringBuilderT<_C>& StringBuilderT<_C>::backspace() noexcept
     return *this;
 }
 
-template<typename _C>
-inline StringBuilderT<_C>& StringBuilderT<_C>::backspace(const uSys count) noexcept
+template<typename Char>
+inline StringBuilderT<Char>& StringBuilderT<Char>::backspace(const uSys count) noexcept
 {
     if(_length > 0)
     {
@@ -1393,56 +1662,56 @@ inline StringBuilderT<_C>& StringBuilderT<_C>::backspace(const uSys count) noexc
     return *this;
 }
 
-template<typename _C>
-inline _C StringBuilderT<_C>::operator[](const uSys index) const noexcept
+template<typename Char>
+inline Char StringBuilderT<Char>::operator[](const uSys index) const noexcept
 { return _string[index]; }
 
-template<typename _C>
-inline _C StringBuilderT<_C>::at(const uSys index) const noexcept
+template<typename Char>
+inline Char StringBuilderT<Char>::at(const uSys index) const noexcept
 {
     if(index >= _length) { return '\0'; }
     return _string[index];
 }
 
-template<typename _C>
-inline void StringBuilderT<_C>::append(const _C* const string, const uSys length) noexcept
+template<typename Char>
+inline void StringBuilderT<Char>::append(const Char* const string, const uSys length) noexcept
 {
     const uSys newLen = _length + length;
     if(newLen >= _size)
     {
         const uSys newSize = newLen + (newLen >> 1);
-        _C* const newStr = new(::std::nothrow) _C[newSize];
-        ::std::memcpy(newStr, _string, (_length + 1) * sizeof(_C));
+        Char* const newStr = new(::std::nothrow) Char[newSize];
+        ::std::memcpy(newStr, _string, (_length + 1) * sizeof(Char));
         _string = newStr;
         _size = newSize;
     }
-    ::std::memcpy(_string + _length, string, length * sizeof(_C));
+    ::std::memcpy(_string + _length, string, length * sizeof(Char));
     _length += length;
     _string[_length] = '\0';
 }
 
-template<typename _CTo, typename _CFrom>
-DynStringT<_CTo> StringCast(const DynStringT<_CFrom>&) noexcept
-{ return DynStringT<_CTo>(); }
+template<typename CTo, typename CFrom>
+DynStringT<CTo> StringCast(const DynStringT<CFrom>&) noexcept
+{ return DynStringT<CTo>(); }
 
 template<>
 inline DynStringT<char> StringCast(const DynStringT<char>& string) noexcept
 { return string; }
 
 template<>
-inline DynStringT<wchar_t> StringCast(const DynStringT<wchar_t> & string) noexcept
+inline DynStringT<wchar_t> StringCast(const DynStringT<wchar_t>& string) noexcept
 { return string; }
 
 template<>
-inline DynStringT<c8> StringCast(const DynStringT<c8> & string) noexcept
+inline DynStringT<c8> StringCast(const DynStringT<c8>& string) noexcept
 { return string; }
 
 template<>
-inline DynStringT<c16> StringCast(const DynStringT<c16> & string) noexcept
+inline DynStringT<c16> StringCast(const DynStringT<c16>& string) noexcept
 { return string; }
 
 template<>
-inline DynStringT<c32> StringCast(const DynStringT<c32> & string) noexcept
+inline DynStringT<c32> StringCast(const DynStringT<c32>& string) noexcept
 { return string; }
 
 template<>
@@ -1451,12 +1720,42 @@ inline DynStringT<wchar_t> StringCast<wchar_t, char>(const DynStringT<char>& str
     const char* rawStr = string.c_str();
 
     ::std::mbstate_t state;
-    const uSys len = ::std::mbsrtowcs(null, &rawStr, 0, &state) + 1;
+    uSys len;
+    errno_t error = mbsrtowcs_s(&len, nullptr, 0, &rawStr, 0, &state);
 
-    wchar_t* const newStr = new(::std::nothrow) wchar_t[len];
-    ::std::mbsrtowcs(newStr, &rawStr, len, &state);
+    if(error != 0)
+    {
+        return DynStringT<wchar_t>();
+    }
 
-    return DynStringT<wchar_t>::passControl(newStr);
+    if(len < 16)
+    {
+        wchar_t newStr[16];
+        error = mbsrtowcs_s(&len, newStr, 16, &rawStr, 15, &state);
+        
+        if(error != 0)
+        {
+            return DynStringT<wchar_t>();
+        }
+
+        return DynStringT<wchar_t>::passControl(newStr);
+    }
+    else
+    {
+        void* const placement = operator new(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(wchar_t), ::std::nothrow);
+        
+        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
+        wchar_t* const newStr = new(refCount + 1) wchar_t[len + 1];
+        error = mbsrtowcs_s(&len, newStr, len + 1, &rawStr, len, &state);
+        
+        if(error != 0)
+        {
+            operator delete(placement);
+            return DynStringT<wchar_t>();
+        }
+
+        return DynStringT<wchar_t>::passControl(refCount, newStr, len);
+    }
 }
 
 template<>
@@ -1465,34 +1764,66 @@ inline DynStringT<char> StringCast<char, wchar_t>(const DynStringT<wchar_t>& str
     const wchar_t* rawStr = string.c_str();
 
     ::std::mbstate_t state;
-    const uSys len = ::std::wcsrtombs(null, &rawStr, 0, &state) + 1;
+    uSys len;
+    errno_t error = wcsrtombs_s(&len, nullptr, 0, &rawStr, 0, &state);
+    
+    if(error != 0)
+    {
+        return DynStringT<char>();
+    }
 
-    char* const newStr = new(::std::nothrow) char[len];
-    ::std::wcsrtombs(newStr, &rawStr, len, &state);
+    if(len < 16)
+    {
+        char newStr[16];
+        error = wcsrtombs_s(&len, newStr, 16, &rawStr, 15, &state);
 
-    return DynStringT<char>::passControl(newStr);
+        if(error != 0)
+        {
+            return DynStringT<char>();
+        }
+
+        return DynStringT<char>::passControl(newStr);
+    }
+    else
+    {
+        void* const placement = operator new(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(char), ::std::nothrow);
+        
+        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
+        char* const newStr = new(refCount + 1) char[len + 1];
+        error = wcsrtombs_s(&len, newStr, len + 1, &rawStr, len, &state);
+
+        if(error != 0)
+        {
+            operator delete(placement);
+            return DynStringT<char>();
+        }
+
+        return DynStringT<char>::passControl(refCount, newStr, len);
+    }
 }
 
 namespace std
 {
-template<typename _C>
-struct hash<ConstExprStringT<_C>>
+
+template<typename Char>
+struct hash<ConstExprStringT<Char>>
 {
-    inline uSys operator()(const ConstExprStringT<_C>& str) const noexcept
+    inline uSys operator()(const ConstExprStringT<Char>& str) const noexcept
     { return str.hashCode(); }
 };
 
-template<typename _C>
-struct hash<DynStringT<_C>>
+template<typename Char>
+struct hash<DynStringT<Char>>
 {
-    inline uSys operator()(const DynStringT<_C>& str) const noexcept
+    inline uSys operator()(const DynStringT<Char>& str) const noexcept
     { return str.hashCode(); }
 };
 
-template<typename _C>
-struct hash<DynStringViewT<_C>>
+template<typename Char>
+struct hash<DynStringViewT<Char>>
 {
-    inline uSys operator()(const DynStringViewT<_C>& str) const noexcept
+    inline uSys operator()(const DynStringViewT<Char>& str) const noexcept
     { return str.hashCode(); }
 };
+
 }

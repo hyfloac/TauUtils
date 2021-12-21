@@ -114,6 +114,21 @@
     <ClInclude Include="include\ds\TreeUtils.hpp">
       <Filter>include\ds</Filter>
     </ClInclude>
+    <ClInclude Include="include\Encoding.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReferenceCounter.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Console.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Dragon4.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ToString.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DefaultTauAllocator.cpp">
@@ -125,6 +140,15 @@
     <ClCompile Include="src\ReferenceCountingPointer.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Encoding.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Console.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Dragon4.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\EnumBitFields.inl">
@@ -134,6 +158,15 @@
       <Filter>include</Filter>
     </None>
     <None Include="include\String.inl">
+      <Filter>include</Filter>
+    </None>
+    <None Include="include\String.utf8.inl">
+      <Filter>include</Filter>
+    </None>
+    <None Include="include\String.utf16.inl">
+      <Filter>include</Filter>
+    </None>
+    <None Include="include\String.utf8_16.inl">
       <Filter>include</Filter>
     </None>
   </ItemGroup>
