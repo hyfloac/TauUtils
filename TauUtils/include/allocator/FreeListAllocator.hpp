@@ -59,7 +59,7 @@ private:
 public:
     FreeListAllocator(const PageCountVal numReservedPages = PageCountVal { 1024 }, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo(static_cast<uSys>(numReservedPages), _allocPages))
+        , _numReservedPages(AlignTo(static_cast<uSys>(numReservedPages), _allocPages))
         , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _allocIndex(0)
@@ -67,7 +67,7 @@ public:
 
     FreeListAllocator(const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _numReservedPages(_alignTo(static_cast<uSys>((maxElements * BlockSize) / PageAllocator::PageSize() + 1), _allocPages))
+        , _numReservedPages(AlignTo(static_cast<uSys>((maxElements * BlockSize) / PageAllocator::PageSize() + 1), _allocPages))
         , _pages(PageAllocator::Reserve(_numReservedPages))
         , _committedPages(0)
         , _allocIndex(0)
