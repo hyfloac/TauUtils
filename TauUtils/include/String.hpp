@@ -178,18 +178,33 @@ class StringBuilderT;
 
 using StringIterator = StringIteratorT<char>;
 using WStringIterator = StringIteratorT<wchar_t>;
+using C8StringIterator = StringIteratorT<c8>;
+using C16StringIterator = StringIteratorT<c16>;
+using C32StringIterator = StringIteratorT<c32>;
 
 using ConstExprString = ConstExprStringT<char>;
 using WConstExprString = ConstExprStringT<wchar_t>;
+using C8ConstExprString = ConstExprStringT<c8>;
+using C16ConstExprString = ConstExprStringT<c16>;
+using C32ConstExprString = ConstExprStringT<c32>;
 
 using DynString = DynStringT<char>;
 using WDynString = DynStringT<wchar_t>;
+using C8DynString = DynStringT<c8>;
+using C16DynString = DynStringT<c16>;
+using C32DynString = DynStringT<c32>;
 
 using DynStringView = DynStringViewT<char>;
 using WDynStringView = DynStringViewT<wchar_t>;
+using C8DynStringView = DynStringViewT<c8>;
+using C16DynStringView = DynStringViewT<c16>;
+using C32DynStringView = DynStringViewT<c32>;
 
 using StringBuilder = StringBuilderT<char>;
 using WStringBuilder = StringBuilderT<wchar_t>;
+using C8StringBuilder = StringBuilderT<c8>;
+using C16StringBuilder = StringBuilderT<c16>;
+using C32StringBuilder = StringBuilderT<c32>;
 
 template<typename _C>
 class StringIteratorT final
