@@ -227,4 +227,24 @@ u32 Console::Write(const c32* const str, const uSys length) noexcept
     return Write(ETB.GetAs<c16>(), wideLength);
 }
 
+bool Console::ReadLine(char* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+}
+
+bool Console::ReadLine(wchar_t* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+}
+
+bool Console::ReadLine(c8* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+}
+
+bool Console::ReadLine(c16* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+}
+
+bool Console::ReadLine(c32* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+}
+
 #endif

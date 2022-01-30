@@ -382,8 +382,8 @@ inline uSys findHashCode(const C* str, const uSys len) noexcept
     return hash;
 }
 
-template<typename C>
-inline uSys strLength(const C* const str) noexcept
+template<typename Char>
+inline uSys strLength(const Char* const str) noexcept
 {
     if(!str)
     { return 0; }

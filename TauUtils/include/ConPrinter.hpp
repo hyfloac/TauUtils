@@ -31,6 +31,20 @@ public:
     static u32 Print(const c16* const str)     noexcept { return Console::Write(str, strLength(str)); }
     static u32 Print(const c32* const str)     noexcept { return Console::Write(str, strLength(str)); }
 
+    static u32 Print(const bool b) noexcept
+    {
+        if(b)
+        {
+            constexpr c16 str[] = u"true";
+            return Console::Write(str, cexpr::strlen(str));
+        }
+        else
+        {
+            constexpr c16 str[] = u"false";
+            return Console::Write(str, cexpr::strlen(str));
+        }
+    }
+
     template<typename Int>
     static u32 PrintInt(const Int d) noexcept
     {

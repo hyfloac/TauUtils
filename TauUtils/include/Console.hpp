@@ -44,7 +44,11 @@ public:
     static c32 ReadChar() noexcept;
     static c32 ReadCharInvisible() noexcept;
 
-    static iSys ReadString();
+    [[nodiscard]] static bool ReadLine(char* buffer, uSys maxLength, uSys* lineLengthCodePoints);
+    [[nodiscard]] static bool ReadLine(wchar_t* buffer, uSys maxLength, uSys* lineLengthCodePoints);
+    [[nodiscard]] static bool ReadLine(c8* buffer, uSys maxLength, uSys* lineLengthCodePoints);
+    [[nodiscard]] static bool ReadLine(c16* buffer, uSys maxLength, uSys* lineLengthCodePoints);
+    [[nodiscard]] static bool ReadLine(c32* buffer, uSys maxLength, uSys* lineLengthCodePoints);
 private:
     enum CreatedState
     {

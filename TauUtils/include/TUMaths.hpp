@@ -132,37 +132,41 @@ constexpr u32 ctzTab64[64] = {
 };
 
 template<typename T>
-[[nodiscard]] constexpr inline T _alignTo(const T val, const T alignment) noexcept
+[[nodiscard]] constexpr inline T AlignTo(const T val, const T alignment) noexcept
 {
-    if(alignment == 1)
+    if(alignment == 1 || val % alignment == 0)
     { return val; }
     return (val + alignment) & ~(alignment - 1);
 }
 
 template<typename Tv, typename Ta>
-[[nodiscard]] constexpr inline Tv _alignTo(const Tv val, const Ta _alignment) noexcept
+[[nodiscard]] constexpr inline Tv AlignTo(const Tv val, const Ta _alignment) noexcept
 {
     const Tv alignment = static_cast<Tv>(_alignment);
 
-    if(alignment == 1)
+    if(alignment == 1 || val % alignment == 0)
     { return val; }
     return (val + alignment) & ~(alignment - 1);
 }
 
 template<typename T, T Alignment>
-[[nodiscard]] constexpr inline T _alignTo(const T val) noexcept
+[[nodiscard]] constexpr inline T AlignTo(const T val) noexcept
 {
-    if(Alignment == 1)
+    if constexpr(Alignment == 1)
+    { return val; }
+    if(val % Alignment == 0)
     { return val; }
     return (val + Alignment) & ~(Alignment - 1);
 }
 
 template<typename Tv, typename Ta, Ta Alignment>
-[[nodiscard]] constexpr inline Tv _alignTo(const Tv val) noexcept
+[[nodiscard]] constexpr inline Tv AlignTo(const Tv val) noexcept
 {
     constexpr Tv alignment = static_cast<Tv>(Alignment);
 
-    if(alignment == 1)
+    if constexpr(alignment == 1)
+    { return val; }
+    if(val % alignment == 0)
     { return val; }
     return (val + alignment) & ~(alignment - 1);
 }

@@ -29,6 +29,7 @@
 #include <cmath>
 #include <climits>
 #include <cstring>
+#include <immintrin.h>
 
 #define BIG_INT_MAX_BLOCKS (35)
 
@@ -91,6 +92,7 @@ public:
     }
 
     [[nodiscard]] iSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] iSys Length64() const noexcept { return (m_Length + 1) / 2; }
     [[nodiscard]] u32 GetBlock(const uSys index) const noexcept { return m_Blocks[index]; }
     void SetZero() noexcept { m_Length = 0; }
     [[nodiscard]] bool IsZero() const noexcept { return m_Length == 0; }
@@ -165,7 +167,36 @@ public:
             small = &right;
             large = &left;
         }
-        
+#if 1
+        unsigned char carry = 0;
+
+        const iSys smallLength = small->Length64();
+        const iSys largeLength = large->Length64();
+
+        for(iSys i = 0; i < smallLength; ++i)
+        {
+            u64 sum;
+            carry = _addcarry_u64(carry, large->m_Blocks64[i], small->m_Blocks64[i], &sum);
+            result->m_Blocks64[i] = sum;
+        }
+
+        for(iSys i = smallLength; i < largeLength; ++i)
+        {
+            u64 sum;
+            carry = _addcarry_u64(carry, large->m_Blocks64[i], 0, &sum);
+            result->m_Blocks64[i] = sum;
+        }
+
+        if(carry != 0)
+        {
+            result->m_Blocks[large->m_Length] = 1;
+            result->m_Length = large->m_Length + 1;
+        }
+        else
+        {
+            result->m_Length = large->m_Length;
+        }
+#else
         u64 carry = 0;
 
         for(iSys i = 0; i < small->m_Length; ++i)
@@ -191,6 +222,7 @@ public:
         {
             result->m_Length = large->m_Length;
         }
+#endif
     }
 
     static void Mul(BigInt* const result, const BigInt& left, const BigInt& right) noexcept
@@ -602,7 +634,11 @@ private:
     };
 private:
     i32 m_Length;
-    u32 m_Blocks[BIG_INT_MAX_BLOCKS];
+    union
+    {
+        u32 m_Blocks[BIG_INT_MAX_BLOCKS];
+        u64 m_Blocks64[(BIG_INT_MAX_BLOCKS + 1) / 2];
+    };
 };
 
 union FloatUnion32 final

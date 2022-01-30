@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NumTypes.hpp"
+#include "TUMaths.hpp"
 #include <new>
 
 namespace tau {
