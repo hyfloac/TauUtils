@@ -50,7 +50,7 @@
     { return in &= ~flag; } \
     [[nodiscard]] inline ENUM SetFlag(const ENUM& in, const ENUM flag, const bool enable) \
     { return enable ? SetFlag(in, flag) : UnsetFlag(in, flag); } \
-    [[nodiscard]] inline ENUM& SetFlag(ENUM& in, const ENUM flag, const bool enable) \
+    inline ENUM& SetFlag(ENUM& in, const ENUM flag, const bool enable) \
     { return enable ? SetFlag(in, flag) : UnsetFlag(in, flag); }
 
 #define ENUM_FLAG_DIRECT_ACCESSOR_INT(ENUM) \
