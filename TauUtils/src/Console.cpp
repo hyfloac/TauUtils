@@ -229,22 +229,27 @@ u32 Console::Write(const c32* const str, const uSys length) noexcept
 
 bool Console::ReadLine(char* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 {
+    return false;
 }
 
 bool Console::ReadLine(wchar_t* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 {
+    return false;
 }
 
 bool Console::ReadLine(c8* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 {
+    return false;
 }
 
 bool Console::ReadLine(c16* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 {
+    return false;
 }
 
 bool Console::ReadLine(c32* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 {
+    return false;
 }
 
 #endif

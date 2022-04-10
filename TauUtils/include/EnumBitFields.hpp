@@ -15,13 +15,13 @@
 
 
 #define ENUM_FLAG_COMPOUND_BINOP(ENUM, OP) \
-    inline ENUM& operator OP=(ENUM& a, const ENUM b) noexcept \
+    inline ENUM& operator OP##=(ENUM& a, const ENUM b) noexcept \
     { \
         a = a OP b; \
         return a; \
     } \
     template<typename Int> \
-    inline Int& operator OP=(Int& a, const ENUM b) noexcept \
+    inline Int& operator OP##=(Int& a, const ENUM b) noexcept \
     { \
         a = a OP b; \
         return a; \
