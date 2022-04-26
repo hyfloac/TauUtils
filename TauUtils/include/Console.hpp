@@ -13,7 +13,7 @@ public:
     {
         if(IsCreated == Created)
         {
-            Close();
+            ForceClose();
         }
     }
 

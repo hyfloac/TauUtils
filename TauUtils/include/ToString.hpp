@@ -112,6 +112,10 @@ struct MaxCharCount<i32> final
 { static constexpr uSys Value = 11; };
 
 template<>
+struct MaxCharCount<long> final
+{ static constexpr uSys Value = 11; };
+
+template<>
 struct MaxCharCount<i64> final
 { static constexpr uSys Value = 20; };
 
@@ -125,6 +129,10 @@ struct MaxCharCount<u16> final
 
 template<>
 struct MaxCharCount<u32> final
+{ static constexpr uSys Value = 10; };
+
+template<>
+struct MaxCharCount<unsigned long> final
 { static constexpr uSys Value = 10; };
 
 template<>
