@@ -1303,7 +1303,7 @@ static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 
     const uSys printLen = bufferSize - 1 > 3 ? 3 : bufferSize - 1;
     if(mantissa == 0)
     {
-        switch(printLen)
+        switch(printLen - 1)
         {
             case 2: outBuffer[2] = Char{'f'};
             case 1: outBuffer[1] = Char{'n'};
@@ -1314,7 +1314,7 @@ static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 
     }
     else
     {
-        switch(printLen)
+        switch(printLen - 1)
         {
             case 2: outBuffer[2] = Char{'N'};
             case 1: outBuffer[1] = Char{'a'};
