@@ -1356,7 +1356,7 @@ static uSys PrintFloat32T(Char* outBuffer, uSys bufferSize, const f32 value, con
 
     if(floatExponent == 0xFF)
     {
-        return PrintInfNaN(outBuffer, bufferSize, floatMantissa);
+        return PrintInfNaN(outBuffer, bufferSize, floatMantissa) + prefixLength;
     }
     else
     {
@@ -1439,7 +1439,7 @@ static uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 value, con
 
     if(floatExponent == 0x7FF)
     {
-        return PrintInfNaN(outBuffer, bufferSize, floatMantissa);
+        return PrintInfNaN(outBuffer, bufferSize, floatMantissa) + prefixLength;
     }
     else
     {
