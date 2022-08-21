@@ -1303,7 +1303,7 @@ static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 
     const uSys printLen = bufferSize - 1 > 3 ? 3 : bufferSize - 1;
     if(mantissa == 0)
     {
-        switch(printLen-1)
+        switch(printLen - 1)
         {
             case 2: outBuffer[2] = Char{'f'};
             case 1: outBuffer[1] = Char{'n'};
@@ -1314,7 +1314,7 @@ static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 
     }
     else
     {
-        switch(printLen-2)
+        switch(printLen - 1)
         {
             case 2: outBuffer[2] = Char{'N'};
             case 1: outBuffer[1] = Char{'a'};
@@ -1356,7 +1356,7 @@ static uSys PrintFloat32T(Char* outBuffer, uSys bufferSize, const f32 value, con
 
     if(floatExponent == 0xFF)
     {
-        return PrintInfNaN(outBuffer, bufferSize, floatMantissa);
+        return PrintInfNaN(outBuffer, bufferSize, floatMantissa) + prefixLength;
     }
     else
     {
@@ -1439,7 +1439,7 @@ static uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 value, con
 
     if(floatExponent == 0x7FF)
     {
-        return PrintInfNaN(outBuffer, bufferSize, floatMantissa);
+        return PrintInfNaN(outBuffer, bufferSize, floatMantissa) + prefixLength;
     }
     else
     {

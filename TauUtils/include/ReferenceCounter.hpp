@@ -32,7 +32,7 @@ public:
 
     ReferenceCounter(ReferenceCounter&& move) noexcept
         : m_RefCount(move.m_RefCount)
-    { }
+    { move.m_RefCount = nullptr; }
 
     ReferenceCounter& operator=(const ReferenceCounter& copy) noexcept
     {
@@ -52,6 +52,11 @@ public:
 
     ReferenceCounter& operator=(ReferenceCounter&& move) noexcept
     {
+        if(this == &move)
+        {
+            return *this;
+        }
+
         OnDestroy();
 
         m_RefCount = move.m_RefCount;

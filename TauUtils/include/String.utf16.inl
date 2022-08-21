@@ -411,8 +411,13 @@ inline DynStringT<c32> StringCast(const DynStringT<c16>& string) noexcept
     {
         void* const placement = operator new(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c32), ::std::nothrow);
 
-        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
-        c32* const newStr = new(refCount + 1) c32[len + 1];
+        if(!placement)
+        {
+            return DynStringT<c32>();
+        }
+
+        ReferenceCounter::Type* const refCount = ::new(placement) ReferenceCounter::Type(1);
+        c32* const newStr = ::new(refCount + 1) c32[len + 1];
         newStr[len] = U'\0';
 
         if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.length()), 16))

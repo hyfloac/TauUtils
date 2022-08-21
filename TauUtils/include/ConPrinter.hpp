@@ -102,7 +102,7 @@ public:
     }
     
     template<typename T>
-    static u32 print(const T* const p) noexcept
+    static u32 Print(const T* const p) noexcept
     {
         c16 buffer[sizeof(uPtr) * 2 + 1];
         (void) ::tau::XtoAP<true>(reinterpret_cast<uPtr>(p), buffer);
