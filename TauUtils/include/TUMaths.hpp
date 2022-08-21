@@ -325,3 +325,55 @@ template<typename Tv, typename Ta, Ta Alignment>
 [[nodiscard]] constexpr inline u32 log2i(const u64 v) noexcept
 { return 63 - _clzC(v); }
 #endif
+
+extern "C" {
+
+i16 AddReturnOverflowI16(i16 a, i16 b, i16* carryOut) noexcept;
+i32 AddReturnOverflowI32(i32 a, i32 b, i32* carryOut) noexcept;
+i64 AddReturnOverflowI64(i64 a, i64 b, i64* carryOut) noexcept;
+
+u16 AddReturnOverflowU16(u16 a, u16 b, u16* carryOut) noexcept;
+u32 AddReturnOverflowU32(u32 a, u32 b, u32* carryOut) noexcept;
+u64 AddReturnOverflowU64(u64 a, u64 b, u64* carryOut) noexcept;
+
+i16 SubReturnBorrowI16(i16 a, i16 b, i16* borrowOut) noexcept;
+i32 SubReturnBorrowI32(i32 a, i32 b, i32* borrowOut) noexcept;
+i64 SubReturnBorrowI64(i64 a, i64 b, i64* borrowOut) noexcept;
+
+u16 SubReturnBorrowU16(u16 a, u16 b, u16* borrowOut) noexcept;
+u32 SubReturnBorrowU32(u32 a, u32 b, u32* borrowOut) noexcept;
+u64 SubReturnBorrowU64(u64 a, u64 b, u64* borrowOut) noexcept;
+
+i16 MulReturnOverflowI16(i16 a, i16 b, i16* overflowOut) noexcept;
+i32 MulReturnOverflowI32(i32 a, i32 b, i32* overflowOut) noexcept;
+i64 MulReturnOverflowI64(i64 a, i64 b, i64* overflowOut) noexcept;
+
+u16 MulReturnOverflowU16(u16 a, u16 b, u16* overflowOut) noexcept;
+u32 MulReturnOverflowU32(u32 a, u32 b, u32* overflowOut) noexcept;
+u64 MulReturnOverflowU64(u64 a, u64 b, u64* overflowOut) noexcept;
+
+}
+
+inline i16 AddReturnOverflow(const i16 a, const i16 b, i16* const carryOut) noexcept { return AddReturnOverflowI16(a, b, carryOut); }
+inline i32 AddReturnOverflow(const i32 a, const i32 b, i32* const carryOut) noexcept { return AddReturnOverflowI32(a, b, carryOut); }
+inline i64 AddReturnOverflow(const i64 a, const i64 b, i64* const carryOut) noexcept { return AddReturnOverflowI64(a, b, carryOut); }
+
+inline u16 AddReturnOverflow(const u16 a, const u16 b, u16* const carryOut) noexcept { return AddReturnOverflowU16(a, b, carryOut); }
+inline u32 AddReturnOverflow(const u32 a, const u32 b, u32* const carryOut) noexcept { return AddReturnOverflowU32(a, b, carryOut); }
+inline u64 AddReturnOverflow(const u64 a, const u64 b, u64* const carryOut) noexcept { return AddReturnOverflowU64(a, b, carryOut); }
+
+inline i16 SubReturnBorrow(const i16 a, const i16 b, i16* const borrowOut) noexcept { return SubReturnBorrowI16(a, b, borrowOut); }
+inline i32 SubReturnBorrow(const i32 a, const i32 b, i32* const borrowOut) noexcept { return SubReturnBorrowI32(a, b, borrowOut); }
+inline i64 SubReturnBorrow(const i64 a, const i64 b, i64* const borrowOut) noexcept { return SubReturnBorrowI64(a, b, borrowOut); }
+
+inline u16 SubReturnBorrow(const u16 a, const u16 b, u16* const borrowOut) noexcept { return SubReturnBorrowU16(a, b, borrowOut); }
+inline u32 SubReturnBorrow(const u32 a, const u32 b, u32* const borrowOut) noexcept { return SubReturnBorrowU32(a, b, borrowOut); }
+inline u64 SubReturnBorrow(const u64 a, const u64 b, u64* const borrowOut) noexcept { return SubReturnBorrowU64(a, b, borrowOut); }
+
+inline i16 MulReturnOverflow(const i16 a, const i16 b, i16* const overflowOut) noexcept { return MulReturnOverflowI16(a, b, overflowOut); }
+inline i32 MulReturnOverflow(const i32 a, const i32 b, i32* const overflowOut) noexcept { return MulReturnOverflowI32(a, b, overflowOut); }
+inline i64 MulReturnOverflow(const i64 a, const i64 b, i64* const overflowOut) noexcept { return MulReturnOverflowI64(a, b, overflowOut); }
+
+inline u16 MulReturnOverflow(const u16 a, const u16 b, u16* const overflowOut) noexcept { return MulReturnOverflowU16(a, b, overflowOut); }
+inline u32 MulReturnOverflow(const u32 a, const u32 b, u32* const overflowOut) noexcept { return MulReturnOverflowU32(a, b, overflowOut); }
+inline u64 MulReturnOverflow(const u64 a, const u64 b, u64* const overflowOut) noexcept { return MulReturnOverflowU64(a, b, overflowOut); }

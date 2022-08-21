@@ -11,8 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ReferenceCountingTests.cpp" />
     <ClCompile Include="src\DragonTests.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\MathTests.cpp" />
     <ClCompile Include="src\StringTests.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -83,7 +85,7 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>-Wno-unknown-attributes %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-unknown-attributes -flto %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,7 +116,7 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>-Wno-unknown-attributes %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-unknown-attributes -flto %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
