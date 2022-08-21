@@ -183,7 +183,7 @@ template<typename T>
         [[nodiscard]] virtual RunTimeType<BASE_TYPE> _getRTType_##BASE_TYPE() const noexcept override \
         { return TYPE::_getStaticRTType_##BASE_TYPE(); }
 
-  #define RTTD_IMPL(TYPE, BASE_TYPE) \
+  #define RTTD_IMPL_TU(TYPE, BASE_TYPE) \
     RunTimeType<BASE_TYPE> TYPE::_getStaticRTType_##BASE_TYPE() noexcept \
     { static RunTimeType<BASE_TYPE> type;                                \
       return type; }

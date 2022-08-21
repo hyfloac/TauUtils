@@ -1,7 +1,8 @@
 #pragma once
 // ReSharper disable CppClangTidyClangDiagnosticUnusedFunction
 
-#define __STDC_WANT_LIB_EXT1__ 1  // NOLINT(clang-diagnostic-reserved-id-macro)
+// ReSharper disable once CppInconsistentNaming
+#define __STDC_WANT_LIB_EXT1__ 1  // NOLINT(clang-diagnostic-reserved-id-macro, clang-diagnostic-reserved-macro-identifier)
 #pragma warning(push, 0)
 #include <cctype>
 #pragma warning(pop)
@@ -94,11 +95,11 @@ public:
 
 }
 
-template<typename C>
-C toLower(C c) noexcept = delete;
+template<typename Char>
+Char toLower(Char c) noexcept = delete;
 
-template<typename C>
-C toUpper(C c) noexcept = delete;
+template<typename Char>
+Char toUpper(Char c) noexcept = delete;
 
 /**
  * Converts a string to lower case.
@@ -106,8 +107,8 @@ C toUpper(C c) noexcept = delete;
  * @return
  *      The number of characters that are, or would need to be stored.
  */
-template<typename C>
-uSys toLower(const C* str, [[tau::nullable]] C* store) noexcept;
+template<typename Char>
+uSys toLower(const Char* str, [[tau::nullable]] Char* store) noexcept;
 
 /**
  * Converts a string to upper case.
@@ -115,23 +116,23 @@ uSys toLower(const C* str, [[tau::nullable]] C* store) noexcept;
  * @return
  *      The number of characters that are, or would need to be stored.
  */
-template<typename C>
-uSys toUpper(const C* str, [[tau::nullable]] C* store) noexcept;
+template<typename Char>
+uSys toUpper(const Char* str, [[tau::nullable]] Char* store) noexcept;
 
-template<typename C>
-uSys findHashCode([[tau::nonnull]] const C* str) noexcept;
+template<typename Char>
+uSys findHashCode([[tau::nonnull]] const Char* str) noexcept;
 
-template<typename C>
-uSys findHashCode(const C* str, uSys len) noexcept;
+template<typename Char>
+uSys findHashCode(const Char* str, uSys len) noexcept;
 
-template<typename C>
-uSys strLength(const C* str) noexcept;
+template<typename Char>
+uSys strLength(const Char* str) noexcept;
 
-template<typename C>
-i32 strCompare(const C* lhs, const C* rhs) noexcept;
+template<typename Char>
+i32 strCompare(const Char* lhs, const Char* rhs) noexcept;
 
-template<typename C>
-i32 strCompare(const C* lhs, const C* rhs, uSys length) noexcept;
+template<typename Char>
+i32 strCompare(const Char* lhs, const Char* rhs, uSys length) noexcept;
 
 inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs) noexcept
 {
@@ -148,32 +149,32 @@ inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs)
 
 namespace cexpr
 {
-    template<typename _C, uSys _Len>
-    constexpr inline uSys strlen(const _C(&str)[_Len]) noexcept;
+    template<typename Char, uSys Len>
+    constexpr inline uSys strlen(const Char(&str)[Len]) noexcept;
 
-    template<typename _C, uSys _Len>
-    constexpr inline bool streq(const _C(&lhs)[_Len], const _C(&rhs)[_Len]);
+    template<typename Char, uSys Len>
+    constexpr inline bool streq(const Char(&lhs)[Len], const Char(&rhs)[Len]);
 
-    template<typename _C, uSys _Len>
-    constexpr inline bool streqIgnoreCase(const _C(&lhs)[_Len], const _C(&rhs)[_Len]);
+    template<typename Char, uSys Len>
+    constexpr inline bool streqIgnoreCase(const Char(&lhs)[Len], const Char(&rhs)[Len]);
 
-    template<typename _C, uSys _Len>
-    constexpr inline uSys findHashCode(const _C(&str)[_Len]) noexcept;
+    template<typename Char, uSys Len>
+    constexpr inline uSys findHashCode(const Char(&str)[Len]) noexcept;
 }
 
-template<typename _C>
+template<typename Char>
 class StringIteratorT;
 
-template<typename _C>
+template<typename Char>
 class ConstExprStringT;
 
-template<typename _C>
+template<typename Char>
 class DynStringT;
 
-template<typename _C>
+template<typename Char>
 class DynStringViewT;
 
-template<typename _C>
+template<typename Char>
 class StringBuilderT;
 
 using StringIterator = StringIteratorT<char>;
@@ -206,28 +207,28 @@ using C8StringBuilder = StringBuilderT<c8>;
 using C16StringBuilder = StringBuilderT<c16>;
 using C32StringBuilder = StringBuilderT<c32>;
 
-template<typename _C>
+template<typename Char>
 class StringIteratorT final
 {
     DEFAULT_DESTRUCT(StringIteratorT);
     DEFAULT_CM_PU(StringIteratorT);
 private:
-    const _C* _string;
+    const Char* _string;
     uSys _length;
     uSys _index;
 public:
-    StringIteratorT(const _C* string, uSys length, uSys index) noexcept;
+    StringIteratorT(const Char* string, uSys length, uSys index) noexcept;
 
-    StringIteratorT<_C>& operator++() noexcept;
-    StringIteratorT<_C>& operator--() noexcept;
+    StringIteratorT<Char>& operator++() noexcept;
+    StringIteratorT<Char>& operator--() noexcept;
 
-    [[nodiscard]] StringIteratorT<_C> operator++(int) noexcept;
-    [[nodiscard]] StringIteratorT<_C> operator--(int) noexcept;
+    [[nodiscard]] StringIteratorT<Char> operator++(int) noexcept;
+    [[nodiscard]] StringIteratorT<Char> operator--(int) noexcept;
 
-    [[nodiscard]] inline _C operator*() const noexcept;
+    [[nodiscard]] inline Char operator*() const noexcept;
 
-    [[nodiscard]] bool operator ==(const StringIteratorT<_C>& other) const noexcept;
-    [[nodiscard]] bool operator !=(const StringIteratorT<_C>& other) const noexcept;
+    [[nodiscard]] bool operator ==(const StringIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] bool operator !=(const StringIteratorT<Char>& other) const noexcept;
 };
 
 template<typename Char>
@@ -293,11 +294,11 @@ private:
     uSys _length;
     uSys _hash;
 public:
-    template<uSys _Len>
-    constexpr ConstExprStringT(const Char (&str)[_Len]) noexcept;
+    template<uSys Len>
+    constexpr ConstExprStringT(const Char (&str)[Len]) noexcept;
 
-    template<uSys _Len>
-    constexpr ConstExprStringT<Char>& operator=(const Char (&str)[_Len]) noexcept;
+    template<uSys Len>
+    constexpr ConstExprStringT<Char>& operator=(const Char (&str)[Len]) noexcept;
 
     [[nodiscard]] constexpr const Char* c_str() const noexcept { return _string; }
     [[nodiscard]] constexpr operator const Char*() const noexcept { return _string; }
@@ -308,8 +309,8 @@ public:
     [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(_string, _length, 0); }
     [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(_string, _length, _length - 1); }
 
-    template<uSys _Len>
-    [[nodiscard]] constexpr bool equals(const Char (&str)[_Len]) const noexcept;
+    template<uSys Len>
+    [[nodiscard]] constexpr bool equals(const Char (&str)[Len]) const noexcept;
     
     [[nodiscard]] bool equals(const ConstExprStringT<Char>& other) const noexcept;
     [[nodiscard]] bool equals(const DynStringT<Char>& other) const noexcept;
@@ -322,10 +323,10 @@ public:
     [[nodiscard]] i32 compareTo(const Char* str) const noexcept;
 
 #if __has_feature(__cpp_impl_three_way_comparison)
-    [[nodiscard]] i32 operator <=>(const ConstExprStringT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringViewT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const _C* const other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const Char* const other) const noexcept { return compareTo(other); }
 #endif
 
     [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  equals(other); }
@@ -444,10 +445,10 @@ public:
     [[nodiscard]] DynStringT<Char> subString([[tau::inclusive]] uSys from) const noexcept;
 
 #if __has_feature(__cpp_impl_three_way_comparison)
-    [[nodiscard]] i32 operator <=>(const ConstExprStringT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringViewT<_C>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const _C* const other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const Char* const other) const noexcept { return compareTo(other); }
 #endif
 
     [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  equals(other); }
@@ -488,216 +489,216 @@ public:
 private:
     [[nodiscard]] DynStringT<Char> _concat(uSys len, const Char* str) const noexcept;
 private:
-    template<typename _CC>
+    template<typename CharC>
     friend class ConstExprStringT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class DynStringT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class DynStringViewT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class StringBuilderT;
 };
 
-template<typename _C>
+template<typename Char>
 class DynStringViewT final
 {
 private:
-    const _C* _string;
+    const Char* _string;
     uSys* _refCount;
     uSys  _length;
     uSys  _hash;
 private:
-    DynStringViewT(uSys begin, uSys length, const DynStringT<_C>& str) noexcept;
-    DynStringViewT(uSys begin, uSys length, const DynStringViewT<_C>& str) noexcept;
+    DynStringViewT(uSys begin, uSys length, const DynStringT<Char>& str) noexcept;
+    DynStringViewT(uSys begin, uSys length, const DynStringViewT<Char>& str) noexcept;
 public:
-    DynStringViewT(const DynStringT<_C>& str, uSys begin, uSys end) noexcept;
-    DynStringViewT(const DynStringViewT<_C>& str, uSys begin, uSys end) noexcept;
+    DynStringViewT(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
+    DynStringViewT(const DynStringViewT<Char>& str, uSys begin, uSys end) noexcept;
 
-    DynStringViewT(DynStringT<_C>&& str, uSys begin, uSys end) noexcept = delete;
-    DynStringViewT(DynStringViewT<_C>&& str, uSys begin, uSys end) noexcept = delete;
+    DynStringViewT(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
+    DynStringViewT(DynStringViewT<Char>&& str, uSys begin, uSys end) noexcept = delete;
 
     ~DynStringViewT() noexcept;
 
-    inline DynStringViewT(const DynStringViewT<_C>& copy) noexcept;
-    inline DynStringViewT(DynStringViewT<_C>&& move) noexcept;
+    inline DynStringViewT(const DynStringViewT<Char>& copy) noexcept;
+    inline DynStringViewT(DynStringViewT<Char>&& move) noexcept;
 
-    inline DynStringViewT<_C>& operator=(const DynStringViewT<_C>& copy) noexcept;
-    inline DynStringViewT<_C>& operator=(DynStringViewT<_C>&& move) noexcept;
+    inline DynStringViewT<Char>& operator=(const DynStringViewT<Char>& copy) noexcept;
+    inline DynStringViewT<Char>& operator=(DynStringViewT<Char>&& move) noexcept;
 
-    [[nodiscard]] static inline DynStringViewT<_C> create(const DynStringT<_C>& str, uSys begin, uSys length) noexcept;
-    [[nodiscard]] static inline DynStringViewT<_C> create(const DynStringViewT<_C>& str, uSys begin, uSys length) noexcept;
+    [[nodiscard]] static inline DynStringViewT<Char> create(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
+    [[nodiscard]] static inline DynStringViewT<Char> create(const DynStringViewT<Char>& str, uSys begin, uSys length) noexcept;
 
-    [[nodiscard]] static inline DynStringViewT<_C> create(DynStringT<_C>&& str, uSys begin, uSys length) noexcept = delete;
-    [[nodiscard]] static inline DynStringViewT<_C> create(DynStringViewT<_C>&& str, uSys begin, uSys length) noexcept = delete;
+    [[nodiscard]] static inline DynStringViewT<Char> create(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
+    [[nodiscard]] static inline DynStringViewT<Char> create(DynStringViewT<Char>&& str, uSys begin, uSys length) noexcept = delete;
 
-    DynStringViewT<_C>& reset(const DynStringT<_C>& str, uSys begin, uSys end) noexcept;
-    DynStringViewT<_C>& resetLen(const DynStringT<_C>& str, uSys begin, uSys length) noexcept;
+    DynStringViewT<Char>& reset(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
+    DynStringViewT<Char>& resetLen(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
 
-    DynStringViewT<_C>& reset(DynStringT<_C>&& str, uSys begin, uSys end) noexcept = delete;
-    DynStringViewT<_C>& resetLen(DynStringT<_C>&& str, uSys begin, uSys length) noexcept = delete;
+    DynStringViewT<Char>& reset(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
+    DynStringViewT<Char>& resetLen(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
 
-    [[nodiscard]] const _C* c_str() const noexcept { return _string; }
+    [[nodiscard]] const Char* c_str() const noexcept { return _string; }
     [[nodiscard]] uSys length() const noexcept { return _length; }
     [[nodiscard]] uSys hashCode() const noexcept { return _hash; }
 
-    [[nodiscard]] StringIteratorT<_C> begin() const noexcept { return StringIteratorT<_C>(_string, _length, 0); }
-    [[nodiscard]] StringIteratorT<_C>   end() const noexcept { return StringIteratorT<_C>(_string, _length, _length - 1); }
+    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(_string, _length, 0); }
+    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(_string, _length, _length - 1); }
 
-    [[nodiscard]] bool equals(const ConstExprStringT<_C>& other) const noexcept;
-    [[nodiscard]] bool equals(const DynStringT<_C>& other) const noexcept;
-    [[nodiscard]] bool equals(const DynStringViewT<_C>& other) const noexcept;
-    [[nodiscard]] bool equals(const _C* str) const noexcept;
+    [[nodiscard]] bool equals(const ConstExprStringT<Char>& other) const noexcept;
+    [[nodiscard]] bool equals(const DynStringT<Char>& other) const noexcept;
+    [[nodiscard]] bool equals(const DynStringViewT<Char>& other) const noexcept;
+    [[nodiscard]] bool equals(const Char* str) const noexcept;
 
-    [[nodiscard]] i32 compareTo(const ConstExprStringT<_C>& other) const noexcept;
-    [[nodiscard]] i32 compareTo(const DynStringViewT<_C>& other) const noexcept;
-    [[nodiscard]] i32 compareTo(const DynStringT<_C>& other) const noexcept;
-    [[nodiscard]] i32 compareTo(const _C* str) const noexcept;
+    [[nodiscard]] i32 compareTo(const ConstExprStringT<Char>& other) const noexcept;
+    [[nodiscard]] i32 compareTo(const DynStringViewT<Char>& other) const noexcept;
+    [[nodiscard]] i32 compareTo(const DynStringT<Char>& other) const noexcept;
+    [[nodiscard]] i32 compareTo(const Char* str) const noexcept;
 
-    [[nodiscard]] DynStringT<_C> concat(const ConstExprStringT<_C>& other) const noexcept;
-    [[nodiscard]] DynStringT<_C> concat(const DynStringT<_C>& other) const noexcept;
-    [[nodiscard]] DynStringT<_C> concat(const DynStringViewT<_C>& other) const noexcept;
-    [[nodiscard]] DynStringT<_C> concat(const _C* other) const noexcept;
+    [[nodiscard]] DynStringT<Char> concat(const ConstExprStringT<Char>& other) const noexcept;
+    [[nodiscard]] DynStringT<Char> concat(const DynStringT<Char>& other) const noexcept;
+    [[nodiscard]] DynStringT<Char> concat(const DynStringViewT<Char>& other) const noexcept;
+    [[nodiscard]] DynStringT<Char> concat(const Char* other) const noexcept;
 
-    [[nodiscard]] inline DynStringT<_C> subString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
-    [[nodiscard]] inline DynStringT<_C> subStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
-    [[nodiscard]] inline DynStringT<_C> subString([[tau::inclusive]] uSys from) const noexcept;
+    [[nodiscard]] inline DynStringT<Char> subString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
+    [[nodiscard]] inline DynStringT<Char> subStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
+    [[nodiscard]] inline DynStringT<Char> subString([[tau::inclusive]] uSys from) const noexcept;
 
 #if __has_feature(__cpp_impl_three_way_comparison)
-    [[nodiscard]] i32 operator <=>(const ConstExprStringT<_C>g& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStrinT<_C>g& other)        const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringViewT<_C>& other)    const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const _C* other)                    const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>g& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStrinT<Char>g& other)        const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other)    const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const Char* other)                    const noexcept { return compareTo(other); }
 #endif
 
-    [[nodiscard]] bool operator ==(const ConstExprStringT<_C>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] bool operator !=(const ConstExprStringT<_C>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] bool operator < (const ConstExprStringT<_C>& other) const noexcept { return compareTo(other) <  0; }
-    [[nodiscard]] bool operator > (const ConstExprStringT<_C>& other) const noexcept { return compareTo(other) >  0; }
-    [[nodiscard]] bool operator <=(const ConstExprStringT<_C>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] bool operator >=(const ConstExprStringT<_C>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  equals(other); }
+    [[nodiscard]] bool operator !=(const ConstExprStringT<Char>& other) const noexcept { return !equals(other); }
+    [[nodiscard]] bool operator < (const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) <  0; }
+    [[nodiscard]] bool operator > (const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) >  0; }
+    [[nodiscard]] bool operator <=(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) <= 0; }
+    [[nodiscard]] bool operator >=(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) >= 0; }
 
 
-    [[nodiscard]] inline bool operator ==(const DynStringT<_C>& str) const noexcept { return  equals(str); }
-    [[nodiscard]] inline bool operator !=(const DynStringT<_C>& str) const noexcept { return !equals(str); }
-    [[nodiscard]] inline bool operator < (const DynStringT<_C>& str) const noexcept { return compareTo(str) < 0; }
-    [[nodiscard]] inline bool operator > (const DynStringT<_C>& str) const noexcept { return compareTo(str) > 0; }
-    [[nodiscard]] inline bool operator <=(const DynStringT<_C>& str) const noexcept { return compareTo(str) <= 0; }
-    [[nodiscard]] inline bool operator >=(const DynStringT<_C>& str) const noexcept { return compareTo(str) >= 0; }
+    [[nodiscard]] inline bool operator ==(const DynStringT<Char>& str) const noexcept { return  equals(str); }
+    [[nodiscard]] inline bool operator !=(const DynStringT<Char>& str) const noexcept { return !equals(str); }
+    [[nodiscard]] inline bool operator < (const DynStringT<Char>& str) const noexcept { return compareTo(str) < 0; }
+    [[nodiscard]] inline bool operator > (const DynStringT<Char>& str) const noexcept { return compareTo(str) > 0; }
+    [[nodiscard]] inline bool operator <=(const DynStringT<Char>& str) const noexcept { return compareTo(str) <= 0; }
+    [[nodiscard]] inline bool operator >=(const DynStringT<Char>& str) const noexcept { return compareTo(str) >= 0; }
 
-    [[nodiscard]] inline bool operator ==(const DynStringViewT<_C>& str) const noexcept { return  equals(str); }
-    [[nodiscard]] inline bool operator !=(const DynStringViewT<_C>& str) const noexcept { return !equals(str); }
-    [[nodiscard]] inline bool operator < (const DynStringViewT<_C>& str) const noexcept { return compareTo(str) < 0; }
-    [[nodiscard]] inline bool operator > (const DynStringViewT<_C>& str) const noexcept { return compareTo(str) > 0; }
-    [[nodiscard]] inline bool operator <=(const DynStringViewT<_C>& str) const noexcept { return compareTo(str) <= 0; }
-    [[nodiscard]] inline bool operator >=(const DynStringViewT<_C>& str) const noexcept { return compareTo(str) >= 0; }
+    [[nodiscard]] inline bool operator ==(const DynStringViewT<Char>& str) const noexcept { return  equals(str); }
+    [[nodiscard]] inline bool operator !=(const DynStringViewT<Char>& str) const noexcept { return !equals(str); }
+    [[nodiscard]] inline bool operator < (const DynStringViewT<Char>& str) const noexcept { return compareTo(str) < 0; }
+    [[nodiscard]] inline bool operator > (const DynStringViewT<Char>& str) const noexcept { return compareTo(str) > 0; }
+    [[nodiscard]] inline bool operator <=(const DynStringViewT<Char>& str) const noexcept { return compareTo(str) <= 0; }
+    [[nodiscard]] inline bool operator >=(const DynStringViewT<Char>& str) const noexcept { return compareTo(str) >= 0; }
 
-    [[nodiscard]] inline bool operator ==(const _C* str) const noexcept { return  equals(str); }
-    [[nodiscard]] inline bool operator !=(const _C* str) const noexcept { return !equals(str); }
-    [[nodiscard]] inline bool operator < (const _C* str) const noexcept { return compareTo(str) < 0; }
-    [[nodiscard]] inline bool operator > (const _C* str) const noexcept { return compareTo(str) > 0; }
-    [[nodiscard]] inline bool operator <=(const _C* str) const noexcept { return compareTo(str) <= 0; }
-    [[nodiscard]] inline bool operator >=(const _C* str) const noexcept { return compareTo(str) >= 0; }
+    [[nodiscard]] inline bool operator ==(const Char* str) const noexcept { return  equals(str); }
+    [[nodiscard]] inline bool operator !=(const Char* str) const noexcept { return !equals(str); }
+    [[nodiscard]] inline bool operator < (const Char* str) const noexcept { return compareTo(str) < 0; }
+    [[nodiscard]] inline bool operator > (const Char* str) const noexcept { return compareTo(str) > 0; }
+    [[nodiscard]] inline bool operator <=(const Char* str) const noexcept { return compareTo(str) <= 0; }
+    [[nodiscard]] inline bool operator >=(const Char* str) const noexcept { return compareTo(str) >= 0; }
 
-    [[nodiscard]] inline _C operator [](uSys index) const noexcept;
-    [[nodiscard]] inline _C at(uSys index) const noexcept;
+    [[nodiscard]] inline Char operator [](uSys index) const noexcept;
+    [[nodiscard]] inline Char at(uSys index) const noexcept;
 private:
-    [[nodiscard]] DynStringT<_C> _concat(uSys len, const _C* str) noexcept;
+    [[nodiscard]] DynStringT<Char> _concat(uSys len, const Char* str) noexcept;
 private:
-    template<typename _CC>
+    template<typename CharC>
     friend class ConstExprStringT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class DynStringT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class DynStringViewT;
 
-    template<typename _CC>
+    template<typename CharC>
     friend class StringBuilderT;
 };
 
-template<typename _C>
+template<typename Char>
 class StringBuilderT final
 {
 private:
-    _C* _string;
+    Char* _string;
     uSys _length;
     uSys _size;
 public:
     StringBuilderT() noexcept;
     StringBuilderT(uSys initialSize) noexcept;
-    StringBuilderT(const _C* string) noexcept;
+    StringBuilderT(const Char* string) noexcept;
 
     ~StringBuilderT() noexcept;
 
-    StringBuilderT(const StringBuilderT<_C>& copy) noexcept;
-    StringBuilderT(StringBuilderT<_C>&& move) noexcept;
+    StringBuilderT(const StringBuilderT<Char>& copy) noexcept;
+    StringBuilderT(StringBuilderT<Char>&& move) noexcept;
 
-    StringBuilderT<_C>& operator =(const StringBuilderT<_C>& copy) noexcept;
-    StringBuilderT<_C>& operator =(StringBuilderT<_C>&& move) noexcept;
+    StringBuilderT<Char>& operator =(const StringBuilderT<Char>& copy) noexcept;
+    StringBuilderT<Char>& operator =(StringBuilderT<Char>&& move) noexcept;
 
-    [[nodiscard]] const _C* c_str() const noexcept { return _string; }
+    [[nodiscard]] const Char* c_str() const noexcept { return _string; }
     [[nodiscard]] uSys length() const noexcept { return _length; }
     [[nodiscard]] uSys size() const noexcept { return _size; }
 
-    [[nodiscard]] bool equals(const StringBuilderT<_C>& other) const noexcept;
+    [[nodiscard]] bool equals(const StringBuilderT<Char>& other) const noexcept;
 
-    [[nodiscard]] i32 compareTo(const StringBuilderT<_C>& other) const noexcept;
+    [[nodiscard]] i32 compareTo(const StringBuilderT<Char>& other) const noexcept;
 
-    [[nodiscard]] StringIteratorT<_C> begin() const noexcept { return StringIteratorT<_C>(_string, _length, 0); }
-    [[nodiscard]] StringIteratorT<_C>   end() const noexcept { return StringIteratorT<_C>(_string, _length, _length - 1); }
+    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(_string, _length, 0); }
+    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(_string, _length, _length - 1); }
 
-    inline StringBuilderT<_C>& append(const ConstExprStringT<_C>& string) noexcept;
-    inline StringBuilderT<_C>& append(const DynStringT<_C>& string) noexcept;
-    inline StringBuilderT<_C>& append(const DynStringViewT<_C>& string) noexcept;
-    inline StringBuilderT<_C>& append(const StringBuilderT<_C>& string) noexcept;
-    inline StringBuilderT<_C>& append(const _C* string) noexcept;
-    inline StringBuilderT<_C>& append(_C c) noexcept;
-    inline StringBuilderT<_C>& append(c32 c) noexcept;
+    inline StringBuilderT<Char>& append(const ConstExprStringT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& append(const DynStringT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& append(const DynStringViewT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& append(const StringBuilderT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& append(const Char* string) noexcept;
+    inline StringBuilderT<Char>& append(Char c) noexcept;
+    inline StringBuilderT<Char>& append(c32 c) noexcept;
 
-    inline StringBuilderT<_C>& reset() noexcept;
-    inline StringBuilderT<_C>& reset(uSys newSize) noexcept;
-    inline StringBuilderT<_C>& resetIf(uSys maxSize, uSys newSize) noexcept;
+    inline StringBuilderT<Char>& reset() noexcept;
+    inline StringBuilderT<Char>& reset(uSys newSize) noexcept;
+    inline StringBuilderT<Char>& resetIf(uSys maxSize, uSys newSize) noexcept;
 
-    inline StringBuilderT<_C>& backspace() noexcept;
-    inline StringBuilderT<_C>& backspace(uSys count) noexcept;
+    inline StringBuilderT<Char>& backspace() noexcept;
+    inline StringBuilderT<Char>& backspace(uSys count) noexcept;
 
 #if __has_feature(__cpp_impl_three_way_comparison)
-    [[nodiscard]] i32 operator <=> (const StringBuilderT<_C>& other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=> (const StringBuilderT<Char>& other) const noexcept { return compareTo(other); }
 #endif
 
-    [[nodiscard]] inline bool operator ==(const StringBuilderT<_C>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] inline bool operator !=(const StringBuilderT<_C>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] inline bool operator < (const StringBuilderT<_C>& other) const noexcept { return compareTo(other) <  0; }
-    [[nodiscard]] inline bool operator > (const StringBuilderT<_C>& other) const noexcept { return compareTo(other) >  0; }
-    [[nodiscard]] inline bool operator <=(const StringBuilderT<_C>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] inline bool operator >=(const StringBuilderT<_C>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] inline bool operator ==(const StringBuilderT<Char>& other) const noexcept { return  equals(other); }
+    [[nodiscard]] inline bool operator !=(const StringBuilderT<Char>& other) const noexcept { return !equals(other); }
+    [[nodiscard]] inline bool operator < (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <  0; }
+    [[nodiscard]] inline bool operator > (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >  0; }
+    [[nodiscard]] inline bool operator <=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <= 0; }
+    [[nodiscard]] inline bool operator >=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >= 0; }
 
-    [[nodiscard]] inline StringBuilderT<_C>& operator +(const ConstExprStringT<_C>& other) noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<_C>& operator +(const DynStringT<_C>& other)       noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<_C>& operator +(const DynStringViewT<_C>& other)   noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<_C>& operator +(const StringBuilderT<_C>& other)   noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<_C>& operator +(const _C* other)                   noexcept { return append(other); }
+    [[nodiscard]] inline StringBuilderT<Char>& operator +(const ConstExprStringT<Char>& other) noexcept { return append(other); }
+    [[nodiscard]] inline StringBuilderT<Char>& operator +(const DynStringT<Char>& other)       noexcept { return append(other); }
+    [[nodiscard]] inline StringBuilderT<Char>& operator +(const DynStringViewT<Char>& other)   noexcept { return append(other); }
+    [[nodiscard]] inline StringBuilderT<Char>& operator +(const StringBuilderT<Char>& other)   noexcept { return append(other); }
+    [[nodiscard]] inline StringBuilderT<Char>& operator +(const Char* other)                   noexcept { return append(other); }
 
-    inline StringBuilderT<_C>& operator +=(const ConstExprStringT<_C>& other) noexcept { return append(other); }
-    inline StringBuilderT<_C>& operator +=(const DynStringT<_C>& other)       noexcept { return append(other); }
-    inline StringBuilderT<_C>& operator +=(const DynStringViewT<_C>& other)   noexcept { return append(other); }
-    inline StringBuilderT<_C>& operator +=(const StringBuilderT<_C>& other)   noexcept { return append(other); }
-    inline StringBuilderT<_C>& operator +=(const _C* other)                   noexcept { return append(other); }
+    inline StringBuilderT<Char>& operator +=(const ConstExprStringT<Char>& other) noexcept { return append(other); }
+    inline StringBuilderT<Char>& operator +=(const DynStringT<Char>& other)       noexcept { return append(other); }
+    inline StringBuilderT<Char>& operator +=(const DynStringViewT<Char>& other)   noexcept { return append(other); }
+    inline StringBuilderT<Char>& operator +=(const StringBuilderT<Char>& other)   noexcept { return append(other); }
+    inline StringBuilderT<Char>& operator +=(const Char* other)                   noexcept { return append(other); }
 
-    [[nodiscard]] inline DynStringT<_C> toString() const noexcept { return DynStringT<_C>(_string); }
+    [[nodiscard]] inline DynStringT<Char> toString() const noexcept { return DynStringT<Char>(_string); }
 
-    [[nodiscard]] inline _C operator[](uSys index) const noexcept;
-    [[nodiscard]] inline _C at(uSys index) const noexcept;
+    [[nodiscard]] inline Char operator[](uSys index) const noexcept;
+    [[nodiscard]] inline Char at(uSys index) const noexcept;
 private:
-    void append(const _C* string, uSys length) noexcept;
+    void append(const Char* string, uSys length) noexcept;
 };
 
-template<typename _CTo, typename _CFrom>
-DynStringT<_CTo> StringCast(const DynStringT<_CFrom>& string) noexcept;
+template<typename CharTo, typename CharFrom>
+DynStringT<CharTo> StringCast(const DynStringT<CharFrom>& string) noexcept;
 
 #include "String.inl"
 #include "String.utf8.inl"

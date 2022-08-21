@@ -139,6 +139,10 @@ template<>
 struct MaxCharCount<u64> final
 { static constexpr uSys Value = 20; };
 
+template<>
+struct MaxCharCount<bool> final
+{ static constexpr uSys Value = 5; };
+
 template<typename Int, typename Char>
 static inline i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
 {
@@ -838,7 +842,7 @@ static inline i32 XtoAP(const Int val, Char* const buffer, const uSys bufferSize
     return static_cast<i32>(maxCharCount);
 }
 
-template<bool Uppercase, typename Int, typename Char, uSys BufferSize>
+template<bool Uppercase, typename Int, typename Char, Char PadChar, uSys BufferSize>
 static inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
 {
     using UInt = ::std::make_unsigned_t<Int>;
@@ -854,7 +858,7 @@ static inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
     {
         for(uSys i = 0; i < maxCharCount - 1; ++i)
         {
-            buffer[i] = Char{' '};
+            buffer[i] = PadChar;
         }
         buffer[maxCharCount - 1] = Char{'0'};
         buffer[maxCharCount] = Char{'\0'};
@@ -877,7 +881,7 @@ static inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
 
     for(; writeIndex < maxCharCount; ++writeIndex)
     {
-        buffer[writeIndex] = Char{'0'};
+        buffer[writeIndex] = PadChar;
     }
 
     ReverseBuffer<Char, sizeof(UInt) * 2>(buffer);
@@ -885,6 +889,62 @@ static inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
     buffer[maxCharCount] = Char{'\0'};
     
     return static_cast<i32>(maxCharCount);
+}
+
+template<typename Char>
+static inline i32 BtoA(const bool val, Char* const buffer, const uSys bufferSize) noexcept
+{
+    if(val)
+    {
+        if(bufferSize >= 4)
+        {
+            buffer[0] = Char{'t'};
+            buffer[1] = Char{'r'};
+            buffer[2] = Char{'u'};
+            buffer[3] = Char{'e'};
+        }
+        return 4;
+    }
+    else
+    {
+        if(bufferSize >= 5)
+        {
+            buffer[0] = Char { 'f' };
+            buffer[1] = Char { 'a' };
+            buffer[2] = Char { 'l' };
+            buffer[3] = Char { 's' };
+            buffer[4] = Char { 'e' };
+        }
+        return 5;
+    }
+}
+
+template<typename Char, uSys BufferSize>
+static inline i32 BtoA(const bool val, Char(&buffer)[BufferSize]) noexcept
+{
+    if(val)
+    {
+        if constexpr(BufferSize >= 4)
+        {
+            buffer[0] = Char { 't' };
+            buffer[1] = Char { 'r' };
+            buffer[2] = Char { 'u' };
+            buffer[3] = Char { 'e' };
+        }
+        return 4;
+    }
+    else
+    {
+        if constexpr(BufferSize >= 5)
+        {
+            buffer[0] = Char { 'f' };
+            buffer[1] = Char { 'a' };
+            buffer[2] = Char { 'l' };
+            buffer[3] = Char { 's' };
+            buffer[4] = Char { 'e' };
+        }
+        return 5;
+    }
 }
 
 }

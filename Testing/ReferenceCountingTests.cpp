@@ -8,23 +8,23 @@ struct Dummy
 {
     int _x, _y;
 
-    Dummy(int x, int y)
+    Dummy(const int x, const int y)
         : _x(x)
         , _y(y)
     {
-        wcout << "Initialized. (" << x << ", " << y << ")" << endl;
+        ConPrinter::Print(u"Initialized. ({}, {})\n", _x, _y);
     }
 
     ~Dummy()
     {
-        wcout << "Destroyed. (" << _x << ", " << _y << ")" << endl;
+        ConPrinter::Print(u"Destroyed. ({}, {})\n", _x, _y);
     }
 
     Dummy(const Dummy& copy)
         : _x(copy._x)
         , _y(copy._y)
     {
-        ConPrinter::Print("Copied. ({}, {})\n", _x, _y);
+        ConPrinter::Print(u"Copied. ({}, {})\n", _x, _y);
     }
 
     Dummy(Dummy&& move) noexcept
@@ -34,7 +34,7 @@ struct Dummy
         move._x = 0;
         move._y = 0;
 
-        ConPrinter::Print("Moved. ({}, {})\n", _x, _y);
+        ConPrinter::Print(u"Moved. ({}, {})\n", _x, _y);
     }
 
     Dummy& operator=(const Dummy& copy)
@@ -47,7 +47,7 @@ struct Dummy
         _x = copy._x;
         _y = copy._y;
 
-        ConPrinter::Print("Copy Assigned. ({}, {})\n", _x, _y);
+        ConPrinter::Print(u"Copy Assigned. ({}, {})\n", _x, _y);
 
         return *this;
     }
@@ -65,11 +65,245 @@ struct Dummy
         move._x = 0;
         move._y = 0;
 
-        ConPrinter::Print("Move Assigned. ({}, {})\n", _x, _y);
+        ConPrinter::Print(u"Move Assigned. ({}, {})\n", _x, _y);
 
         return *this;
     }
 };
+
+void ReferenceCounterTestCreateDestroy()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateDestroy\n");
+    {
+        ReferenceCounter* pRefCounter;
+
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateDestroy\n");
+}
+
+void ReferenceCounterTestCreateFrom0Destroy()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateFrom0Destroy\n");
+    {
+        ReferenceCounter* pRefCounter;
+        ReferenceCounter::Type* pRefCount = new(::std::nothrow) ReferenceCounter::Type(0);
+
+        {
+            ReferenceCounter refCounter(pRefCount);
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateFrom0Destroy\n");
+}
+
+void ReferenceCounterTestCreateFrom1Destroy()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateFrom1Destroy\n");
+    {
+        ReferenceCounter* pRefCounter;
+        ReferenceCounter::Type* pRefCount = new(::std::nothrow) ReferenceCounter::Type(1);
+
+        {
+            ReferenceCounter refCounter(pRefCount);
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+
+        delete pRefCount;
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateFrom1Destroy\n");
+}
+
+void ReferenceCounterTestCreateFrom2Destroy()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateFrom2Destroy\n");
+    {
+        ReferenceCounter* pRefCounter;
+        ReferenceCounter::Type* pRefCount = new(::std::nothrow) ReferenceCounter::Type(2);
+
+        {
+            ReferenceCounter refCounter(pRefCount);
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+
+        delete pRefCount;
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateFrom2Destroy\n");
+}
+
+void ReferenceCounterTestCreateCopy()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateCopy\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+
+            {
+                const ReferenceCounter copy(refCounter);
+                ConPrinter::Print("RefCount copy PostCopy: {}\n", copy.RefCount());
+                ConPrinter::Print("RefCount PostCopy: {}\n", pRefCounter->RefCount());
+            }
+            ConPrinter::Print("RefCount PostCopyDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateCopy\n");
+}
+
+void ReferenceCounterTestCreateMove()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateMove\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+            ConPrinter::Print("pRefCount PostCreate: 0x{}\n", pRefCounter->RefCountPtr());
+
+            {
+                const ReferenceCounter move(::std::move(refCounter));
+                ConPrinter::Print("RefCount move PostMove: {}\n", move.RefCount());
+                ConPrinter::Print("RefCount PostMove: {}\n", pRefCounter->RefCount());
+                ConPrinter::Print("pRefCount PostMove: 0x{}\n", pRefCounter->RefCountPtr());
+            }
+            ConPrinter::Print("RefCount PostMoveDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+        ConPrinter::Print("pRefCount PostDestroy: 0x{}\n", pRefCounter->RefCountPtr());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateMove\n");
+}
+
+void ReferenceCounterTestCreateCopyAssign()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateCopyAssign\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+
+            {
+                ReferenceCounter copy;
+                ConPrinter::Print("RefCount copy PostCreate: {}\n", copy.RefCount());
+                copy = refCounter;
+                ConPrinter::Print("RefCount copy PostCopy: {}\n", copy.RefCount());
+                ConPrinter::Print("RefCount PostCopy: {}\n", pRefCounter->RefCount());
+            }
+            ConPrinter::Print("RefCount PostCopyDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateCopyAssign\n");
+}
+
+void ReferenceCounterTestCreateMoveAssign()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateMoveAssign\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+            ConPrinter::Print("pRefCount PostCreate: 0x{}\n", pRefCounter->RefCountPtr());
+
+            {
+                ReferenceCounter move;
+                ConPrinter::Print("RefCount move PostCreate: {}\n", move.RefCount());
+                move = ::std::move(refCounter);
+                ConPrinter::Print("RefCount move PostMove: {}\n", move.RefCount());
+                ConPrinter::Print("RefCount PostMove: {}\n", pRefCounter->RefCount());
+                ConPrinter::Print("pRefCount PostMove: 0x{}\n", pRefCounter->RefCountPtr());
+            }
+            ConPrinter::Print("RefCount PostMoveDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+        ConPrinter::Print("pRefCount PostDestroy: 0x{}\n", pRefCounter->RefCountPtr());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateMoveAssign\n");
+}
+
+void ReferenceCounterTestCreateCopyAssignSelf()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateCopyAssignSelf\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+
+            {
+                refCounter = refCounter;
+                ConPrinter::Print("RefCount PostCopy: {}\n", pRefCounter->RefCount());
+            }
+            ConPrinter::Print("RefCount PostCopyDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateCopyAssignSelf\n");
+}
+
+void ReferenceCounterTestCreateMoveAssignSelf()
+{
+    ConPrinter::Print(u"Begin ReferenceCounterTestCreateMoveAssignSelf\n");
+    {
+        ReferenceCounter* pRefCounter;
+        {
+            ReferenceCounter refCounter;
+            pRefCounter = &refCounter;
+
+            ConPrinter::Print("RefCount PostCreate: {}\n", pRefCounter->RefCount());
+            ConPrinter::Print("pRefCount PostCreate: 0x{}\n", pRefCounter->RefCountPtr());
+
+            {
+                refCounter = ::std::move(refCounter);
+                ConPrinter::Print("RefCount PostMove: {}\n", pRefCounter->RefCount());
+                ConPrinter::Print("pRefCount PostMove: 0x{}\n", pRefCounter->RefCountPtr());
+            }
+            ConPrinter::Print("RefCount PostMoveDestroy: {}\n", pRefCounter->RefCount());
+        }
+
+        ConPrinter::Print("RefCount PostDestroy: {}\n", pRefCounter->RefCount());
+        ConPrinter::Print("pRefCount PostDestroy: 0x{}\n", pRefCounter->RefCountPtr());
+    }
+    ConPrinter::Print(u"End ReferenceCounterTestCreateMoveAssignSelf\n");
+}
 
 void RefTest0()
 {
@@ -180,6 +414,26 @@ void StrongWeakRefTest0()
 
 void RefTests()
 {
+    ReferenceCounterTestCreateDestroy();
+    wcout << endl;
+    ReferenceCounterTestCreateFrom0Destroy();
+    wcout << endl;
+    ReferenceCounterTestCreateFrom1Destroy();
+    wcout << endl;
+    ReferenceCounterTestCreateFrom2Destroy();
+    wcout << endl;
+    ReferenceCounterTestCreateCopy();
+    wcout << endl;
+    ReferenceCounterTestCreateMove();
+    wcout << endl;
+    ReferenceCounterTestCreateCopyAssign();
+    wcout << endl;
+    ReferenceCounterTestCreateMoveAssign();
+    wcout << endl;
+    ReferenceCounterTestCreateCopyAssignSelf();
+    wcout << endl;
+    ReferenceCounterTestCreateMoveAssignSelf();
+    wcout << endl;
     RefTest0();
     wcout << endl;
     RefTest1();

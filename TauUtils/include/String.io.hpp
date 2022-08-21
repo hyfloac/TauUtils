@@ -17,18 +17,6 @@ inline ::std::ostream& operator <<(::std::ostream& os, const ConstExprString& st
     return os;
 }
 
-inline ::std::ostream& operator <<(::std::ostream& os, const String& string) noexcept
-{
-    os << string.c_str();
-    return os;
-}
-
-inline ::std::ostream& operator <<(::std::ostream& os, const StringView& string) noexcept
-{
-    fmtStr::writeFormattedLen(os, string.c_str(), string.length());
-    return os;
-}
-
 inline ::std::ostream& operator <<(::std::ostream& os, const DynString& string) noexcept
 {
     os << string.c_str();
@@ -37,7 +25,7 @@ inline ::std::ostream& operator <<(::std::ostream& os, const DynString& string) 
 
 inline ::std::ostream& operator <<(::std::ostream& os, const DynStringView& string) noexcept
 {
-    fmtStr::writeFormattedLen(os, string.c_str(), string.length());
+    fmtStr::writeFormattedLen(os, string.c_str(), static_cast<::std::streamsize>(string.length()));
     return os;
 }
 
@@ -53,18 +41,6 @@ inline ::std::wostream& operator <<(::std::wostream& os, const WConstExprString&
     return os;
 }
 
-inline ::std::wostream& operator <<(::std::wostream& os, const WString& string) noexcept
-{
-    os << string.c_str();
-    return os;
-}
-
-inline ::std::wostream& operator <<(::std::wostream& os, const WStringView& string) noexcept
-{
-    fmtStr::writeFormattedLen(os, string.c_str(), string.length());
-    return os;
-}
-
 inline ::std::wostream& operator <<(::std::wostream& os, const WDynString& string) noexcept
 {
     os << string.c_str();
@@ -73,7 +49,7 @@ inline ::std::wostream& operator <<(::std::wostream& os, const WDynString& strin
 
 inline ::std::wostream& operator <<(::std::wostream& os, const WDynStringView& string) noexcept
 {
-    fmtStr::writeFormattedLen(os, string.c_str(), string.length());
+    fmtStr::writeFormattedLen(os, string.c_str(), static_cast<::std::streamsize>(string.length()));
     return os;
 }
 
@@ -85,7 +61,7 @@ inline ::std::wostream& operator <<(::std::wostream& os, const WStringBuilder& s
 
 inline ::std::ostream& fmtStr::writeFormattedLen(::std::ostream& os, const char* const str, const ::std::streamsize len) noexcept
 {
-    using _Traits = ::std::char_traits<char>;
+    using Traits = ::std::char_traits<char>;
 
     ::std::ios_base::iostate state = ::std::ios_base::goodbit;
     ::std::streamsize pad = os.width() <= 0 || os.width() <= len ? 0 : os.width() - len;
@@ -101,7 +77,7 @@ inline ::std::ostream& fmtStr::writeFormattedLen(::std::ostream& os, const char*
         {
             for(; 0 < pad; --pad) // pad on left
             { 
-                if(_Traits::eq_int_type(_Traits::eof(), os.rdbuf()->sputc(os.fill()))) 
+                if(Traits::eq_int_type(Traits::eof(), os.rdbuf()->sputc(os.fill())))
                 {
                     state |= ::std::ios_base::badbit; // insertion failed, quit
                     break;
@@ -118,7 +94,7 @@ inline ::std::ostream& fmtStr::writeFormattedLen(::std::ostream& os, const char*
         {
             for(; 0 < pad; --pad) // pad on right
             {
-                if(_Traits::eq_int_type(_Traits::eof(), os.rdbuf()->sputc(os.fill()))) 
+                if(Traits::eq_int_type(Traits::eof(), os.rdbuf()->sputc(os.fill())))
                 {
                     state |= ::std::ios_base::badbit; // insertion failed, quit
                     break;
@@ -135,7 +111,7 @@ inline ::std::ostream& fmtStr::writeFormattedLen(::std::ostream& os, const char*
 
 inline ::std::wostream& fmtStr::writeFormattedLen(::std::wostream& os, const wchar_t* const str, const ::std::streamsize len) noexcept
 {
-    using _Traits = ::std::char_traits<char>;
+    using Traits = ::std::char_traits<char>;
 
     ::std::ios_base::iostate state = ::std::ios_base::goodbit;
     ::std::streamsize pad = os.width() <= 0 || os.width() <= len ? 0 : os.width() - len;
@@ -151,7 +127,7 @@ inline ::std::wostream& fmtStr::writeFormattedLen(::std::wostream& os, const wch
         {
             for(; 0 < pad; --pad) // pad on left
             {
-                if(_Traits::eq_int_type(_Traits::eof(), os.rdbuf()->sputc(os.fill())))
+                if(Traits::eq_int_type(Traits::eof(), os.rdbuf()->sputc(os.fill())))
                 {
                     state |= ::std::ios_base::badbit; // insertion failed, quit
                     break;
@@ -168,7 +144,7 @@ inline ::std::wostream& fmtStr::writeFormattedLen(::std::wostream& os, const wch
         {
             for(; 0 < pad; --pad) // pad on right
             {
-                if(_Traits::eq_int_type(_Traits::eof(), os.rdbuf()->sputc(os.fill())))
+                if(Traits::eq_int_type(Traits::eof(), os.rdbuf()->sputc(os.fill())))
                 {
                     state |= ::std::ios_base::badbit; // insertion failed, quit
                     break;

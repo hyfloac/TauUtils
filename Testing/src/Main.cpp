@@ -9,8 +9,8 @@ int main(int argCount, char* args[])
 {
     Console::Create();
     Console::Init();
-    // StringTests();
-    RefTests();
+    StringTests();
+    // RefTests();
     // DragonTests();
     // MathTests();
 

@@ -17,10 +17,10 @@ public:
 
     static void UnregisterEncoding(const char* name);
 public:
-    virtual c32 ToUpper(c32 c) noexcept
+    virtual c32 ToUpper(const c32 c) noexcept
     { return c; }
 
-    virtual c32 ToLower(c32 c) noexcept
+    virtual c32 ToLower(const c32 c) noexcept
     { return c; }
 
     virtual iSys ToUpper(const char* originalString, char* newString, uSys newStringLength) noexcept = 0;

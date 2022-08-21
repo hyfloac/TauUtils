@@ -73,7 +73,7 @@ public:
     static u32 PrintHexPad(const Int d) noexcept
     {
         c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
-        const i32 writeLen = ::tau::XtoAP<Uppercase>(d, buffer);
+        const i32 writeLen = ::tau::XtoAP<Uppercase, Int, c16, u' '>(d, buffer);
         return Console::Write(buffer, writeLen);
     }
 
@@ -86,15 +86,18 @@ public:
     static u32 Print(const u16 d) noexcept { return PrintInt(d); }
     static u32 Print(const u32 d) noexcept { return PrintInt(d); }
     static u32 Print(const u64 d) noexcept { return PrintInt(d); }
+
+    static u32 Print(const          long d) noexcept { return PrintInt(d); }
+    static u32 Print(const unsigned long d) noexcept { return PrintInt(d); }
     
-    static u32 Print(const f32 f, PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
+    static u32 Print(const f32 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
     {
         c16 buffer[192];
         const uSys writeLen = PrintFloat32(buffer, ::std::size(buffer), f, format, precision);
         return Console::Write(buffer, writeLen);
     }
 
-    static u32 Print(const f64 f, PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
+    static u32 Print(const f64 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
     {
         c16 buffer[256];
         const uSys writeLen = PrintFloat64(buffer, ::std::size(buffer), f, format, precision);
@@ -105,7 +108,7 @@ public:
     static u32 Print(const T* const p) noexcept
     {
         c16 buffer[sizeof(uPtr) * 2 + 1];
-        (void) ::tau::XtoAP<true>(reinterpret_cast<uPtr>(p), buffer);
+        (void) ::tau::XtoAP<true, T, c16, u'0'>(reinterpret_cast<uPtr>(p), buffer);
         return Console::Write(buffer, sizeof(uPtr) * 2);
     }
 
@@ -123,9 +126,9 @@ public:
     static u32 Print(const Char* fmt, CurrArg currArg, Args... args) noexcept
     {
         u32 count = 0;
-        i32 blockBegin = 0;
+        iSys blockBegin = 0;
 
-        for(uSys i = 0; fmt[i]; ++i)
+        for(iSys i = 0; fmt[i]; ++i)
         {
             if(fmt[i] == Char{'{'})
             {
@@ -229,4 +232,13 @@ public:
 
         return count;
     }
+
+    template<typename Char, typename... Args>
+    static u32 PrintLn(const Char* fmt, Args... args) noexcept
+    {
+        const u32 ret = PrintLn(fmt, args...);
+        Print(Char { '\n' });
+        return ret + 1;
+    }
+
 };
