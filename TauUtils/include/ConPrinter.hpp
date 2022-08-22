@@ -236,7 +236,7 @@ public:
     template<typename Char, typename... Args>
     static u32 PrintLn(const Char* fmt, Args... args) noexcept
     {
-        const u32 ret = PrintLn(fmt, args...);
+        const u32 ret = Print(fmt, args...);
         Print(Char { '\n' });
         return ret + 1;
     }
