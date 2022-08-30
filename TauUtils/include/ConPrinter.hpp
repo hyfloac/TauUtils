@@ -69,12 +69,18 @@ public:
         return Console::Write(buffer, writeLen);
     }
 
-    template<bool Uppercase, typename Int>
+    template<bool Uppercase, typename Int, c16 PadChar = u' '>
     static u32 PrintHexPad(const Int d) noexcept
     {
         c16 buffer[::tau::MaxCharCount<Int>::Value + 1];
-        const i32 writeLen = ::tau::XtoAP<Uppercase, Int, c16, u' '>(d, buffer);
+        const i32 writeLen = ::tau::XtoAP<Uppercase, Int, c16, PadChar>(d, buffer);
         return Console::Write(buffer, writeLen);
+    }
+
+    template<bool Uppercase, typename Int>
+    static u32 PrintHexPad0(const Int d) noexcept
+    {
+        return PrintHexPad<Uppercase, Int, u'0'>(d);
     }
 
     static u32 Print(const i8  d) noexcept { return PrintInt(d); }
@@ -144,15 +150,30 @@ public:
                 {
                     if(fmt[i + 2] == Char{'p'} || fmt[i + 2] == Char{'P'})
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if(fmt[i + 3] == '0')
                         {
-                            count += PrintHexPad<true>(currArg);
+                            if constexpr(::std::is_integral_v<CurrArg>)
+                            {
+                                count += PrintHexPad0<true>(currArg);
+                            }
+                            else
+                            {
+                                count += Print(currArg);
+                            }
+                            count += Print(fmt + i + 5, args...);
                         }
                         else
                         {
-                            count += Print(currArg);
+                            if constexpr(::std::is_integral_v<CurrArg>)
+                            {
+                                count += PrintHexPad<true>(currArg);
+                            }
+                            else
+                            {
+                                count += Print(currArg);
+                            }
+                            count += Print(fmt + i + 4, args...);
                         }
-                        count += Print(fmt + i + 4, args...);
                         break;   
                     }
                     else
@@ -173,15 +194,30 @@ public:
                 {
                     if(fmt[i + 2] == Char{'p'} || fmt[i + 2] == Char{'P'})
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if(fmt[i + 3] == '0')
                         {
-                            count += PrintHexPad<false>(currArg);
+                            if constexpr(::std::is_integral_v<CurrArg>)
+                            {
+                                count += PrintHexPad0<false>(currArg);
+                            }
+                            else
+                            {
+                                count += Print(currArg);
+                            }
+                            count += Print(fmt + i + 4, args...);
                         }
                         else
                         {
-                            count += Print(currArg);
+                            if constexpr(::std::is_integral_v<CurrArg>)
+                            {
+                                count += PrintHexPad<false>(currArg);
+                            }
+                            else
+                            {
+                                count += Print(currArg);
+                            }
+                            count += Print(fmt + i + 4, args...);
                         }
-                        count += Print(fmt + i + 4, args...);
                         break;   
                     }
                     else
