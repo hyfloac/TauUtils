@@ -40,9 +40,9 @@ private:
 public:
     StreamedAVLTreeAllocator(const uSys maxElements, const uSys allocPages = 4) noexcept
         : _allocPages(nextPowerOf2(allocPages))
-        , _branchReservedPages(_alignTo((maxElements * sizeof(IndexT)) / PageAllocator::PageSize() + 1, _allocPages))
-        , _heightReservedPages(_alignTo((maxElements * sizeof(HeightT)) / PageAllocator::PageSize() + 1, _allocPages))
-        , _valueReservedPages(_alignTo((maxElements * sizeof(T)) / PageAllocator::PageSize() + 1, _allocPages))
+        , _branchReservedPages(AlignTo((maxElements * sizeof(IndexT)) / PageAllocator::PageSize() + 1, _allocPages))
+        , _heightReservedPages(AlignTo((maxElements * sizeof(HeightT)) / PageAllocator::PageSize() + 1, _allocPages))
+        , _valueReservedPages(AlignTo((maxElements * sizeof(T)) / PageAllocator::PageSize() + 1, _allocPages))
         , _branchCommittedPages(0)
         , _heightCommittedPages(0)
         , _valueCommittedPages(0)
@@ -174,8 +174,8 @@ private:
             const uSys branchPageBytes = (_branchCommittedPages - _allocPages) * PageAllocator::PageSize();
             if(branchPageBytes - sizeof(IndexT) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
-                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
+                PageAllocator::DecommitPages(reinterpret_cast<u8*>(_leftTree) + branchPageBytes, _allocPages);
+                PageAllocator::DecommitPages(reinterpret_cast<u8*>(_rightTree) + branchPageBytes, _allocPages);
                 _branchCommittedPages -= _allocPages;
             }
         }
@@ -184,7 +184,7 @@ private:
             const uSys heightPageBytes = (_heightCommittedPages - _allocPages) * PageAllocator::PageSize();
             if(heightPageBytes - sizeof(HeightT) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
+                PageAllocator::DecommitPages(reinterpret_cast<u8*>(_heightTree) + heightPageBytes, _allocPages);
                 _heightCommittedPages -= _allocPages;
             }
         }
@@ -193,7 +193,7 @@ private:
             const uSys valuePageBytes = (_valueCommittedPages - _allocPages) * PageAllocator::PageSize();
             if(valuePageBytes - sizeof(T) <= (PageAllocator::PageSize() * _allocPages))
             {
-                (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
+                PageAllocator::DecommitPages(reinterpret_cast<u8*>(_valueTree) + valuePageBytes, _allocPages);
                 _valueCommittedPages -= _allocPages;
             }
         }
@@ -237,8 +237,8 @@ public:
     [[nodiscard]] const HeightT* heightTree() const noexcept { return _allocator.heightTree(); }
     [[nodiscard]] const T*        valueTree() const noexcept { return _allocator.valueTree();  }
 
-    template<typename _Search>
-    [[nodiscard]] T* find(const _Search& search) noexcept
+    template<typename Search>
+    [[nodiscard]] T* find(const Search& search) noexcept
     {
         const IndexT node = find(_root, search);
         if(node == INVALID_VALUE)
@@ -246,8 +246,8 @@ public:
         return &valueTree()[node];
     }
 
-    template<typename _Search>
-    [[nodiscard]] const T* find(const _Search& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] const T* find(const Search& search) const noexcept
     {
         const IndexT node = find(_root, search);
         if(node == INVALID_VALUE)
@@ -255,8 +255,8 @@ public:
         return &valueTree()[node];
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] T* findClosestMatchAbove(const _SearchT& search) noexcept
+    template<typename Search>
+    [[nodiscard]] T* findClosestMatchAbove(const Search& search) noexcept
     {
         const IndexT node = findClosestMatchAbove(_root, search);
         if(node == INVALID_VALUE)
@@ -264,8 +264,8 @@ public:
         return &valueTree()[node];
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] const T* findClosestMatchAbove(const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] const T* findClosestMatchAbove(const Search& search) const noexcept
     {
         const IndexT node = findClosestMatchAbove(_root, search);
         if(node == INVALID_VALUE)
@@ -273,8 +273,8 @@ public:
         return &valueTree()[node];
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] T* findClosestMatchBelow(const _SearchT& search) noexcept
+    template<typename Search>
+    [[nodiscard]] T* findClosestMatchBelow(const Search& search) noexcept
     {
         const IndexT node = findClosestMatchBelow(_root, search);
         if(node == INVALID_VALUE)
@@ -282,8 +282,8 @@ public:
         return &valueTree()[node];
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] const T* findClosestMatchBelow(const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] const T* findClosestMatchBelow(const Search& search) const noexcept
     {
         const IndexT node = findClosestMatchBelow(_root, search);
         if(node == INVALID_VALUE)
@@ -291,16 +291,16 @@ public:
         return &valueTree()[node];
     }
     
-    template<typename _Search>
-    [[nodiscard]] uSys get(const _Search& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] uSys get(const Search& search) const noexcept
     { return find(_root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] uSys getClosestMatchAbove(const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] uSys getClosestMatchAbove(const Search& search) const noexcept
     { return findClosestMatchAbove(_root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] uSys getClosestMatchBelow(const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] uSys getClosestMatchBelow(const Search& search) const noexcept
     { return findClosestMatchBelow(_root, search); }
 
     void insert(const T& value) noexcept
@@ -347,8 +347,8 @@ public:
         }
     }
     
-    template<typename... _Args>
-    void emplace(_Args&&... args) noexcept
+    template<typename... Args>
+    void emplace(Args&&... args) noexcept
     {
         if(_root == INVALID_VALUE)
         {
@@ -356,7 +356,7 @@ public:
             leftTree()[_root] = INVALID_VALUE;
             rightTree()[_root] = INVALID_VALUE;
             heightTree()[_root] = 0;
-            new(&valueTree()[_root]) T(TauAllocatorUtils::Forward<_Args>(args)...);
+            new(&valueTree()[_root]) T(TauAllocatorUtils::Forward<Args>(args)...);
         }
         else
         {
@@ -364,14 +364,14 @@ public:
             leftTree()[newNode] = INVALID_VALUE;
             rightTree()[newNode] = INVALID_VALUE;
             heightTree()[newNode] = 0;
-            new(&valueTree()[newNode]) T(TauAllocatorUtils::Forward<_Args>(args)...);
+            new(&valueTree()[newNode]) T(TauAllocatorUtils::Forward<Args>(args)...);
 
             _root = insert(_root, newNode);
         }
     }
 
-    template<typename _SearchT>
-    void remove(const _SearchT& search) noexcept
+    template<typename Search>
+    void remove(const Search& search) noexcept
     { _root = remove(&_root, search); }
 
     void remove(const IndexT search) noexcept
@@ -380,8 +380,8 @@ public:
     void disposeTree() noexcept
     { disposeTree(_root); }
 private:
-    template<typename _SearchT>
-    [[nodiscard]] IndexT find(const IndexT tree, const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] IndexT find(const IndexT tree, const Search& search) const noexcept
     {
         IndexT node = tree;
 
@@ -400,8 +400,8 @@ private:
         return INVALID_VALUE;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] IndexT findClosestMatchAbove(const IndexT tree, const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] IndexT findClosestMatchAbove(const IndexT tree, const Search& search) const noexcept
     {
         IndexT contender = tree;
         IndexT node = tree;
@@ -430,8 +430,8 @@ private:
         return contender;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] IndexT findClosestMatchBelow(const IndexT tree, const _SearchT& search) const noexcept
+    template<typename Search>
+    [[nodiscard]] IndexT findClosestMatchBelow(const IndexT tree, const Search& search) const noexcept
     {
         IndexT contender = tree;
         IndexT node = tree;
@@ -587,8 +587,8 @@ private:
         return &leftTree()[parent];
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] IndexT remove(IndexT* rootHolder, const _SearchT& search) noexcept
+    template<typename Search>
+    [[nodiscard]] IndexT remove(IndexT* rootHolder, const Search& search) noexcept
     {
         if(!rootHolder || *rootHolder == INVALID_VALUE)
         { return INVALID_VALUE; }

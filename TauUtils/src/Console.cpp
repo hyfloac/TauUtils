@@ -66,7 +66,7 @@ void Console::ForceClose() noexcept
 }
 
 #ifndef CP_UTF16LE
-#define CP_UTF16LE (1200)
+  #define CP_UTF16LE (1200)
 #endif
 
 #define CONSOLE_IN_DEFAULT_ARGS \

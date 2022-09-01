@@ -8,14 +8,14 @@
 // #include <winnt.h>
 #pragma warning(pop)
 
-template<typename _T>
-_T atomicIncrement(volatile _T* t) noexcept = delete;
+template<typename T>
+T atomicIncrement(volatile T* t) noexcept = delete;
 
-template<typename _T>
-_T atomicDecrement(volatile _T* t) noexcept = delete;
+template<typename T>
+T atomicDecrement(volatile T* t) noexcept = delete;
 
-template<typename _T>
-_T atomicExchange(volatile _T* t, _T value) noexcept = delete;
+template<typename T>
+T atomicExchange(volatile T* t, T value) noexcept = delete;
 
 template<>
 inline i16 atomicIncrement<i16>(volatile i16* const t) noexcept
@@ -98,21 +98,21 @@ inline i64 atomicExchange<i64>(volatile i64* const t, const i64 value) noexcept
 
 template<>
 inline u8 atomicExchange<u8>(volatile u8* const t, const u8 value) noexcept
-{ return _InterlockedExchange8(reinterpret_cast<volatile char*>(t), value); }
+{ return _InterlockedExchange8(reinterpret_cast<volatile char*>(t), static_cast<char>(value)); }
 
 template<>
 inline u16 atomicExchange<u16>(volatile u16* const t, const u16 value) noexcept
-{ return _InterlockedExchange16(reinterpret_cast<volatile i16*>(t), value); }
+{ return _InterlockedExchange16(reinterpret_cast<volatile i16*>(t), static_cast<short>(value)); }
 
 template<>
 inline u32 atomicExchange<u32>(volatile u32* const t, const u32 value) noexcept
 {
     static_assert(sizeof(u32) == sizeof(long), "NumTypes u32 [unsigned int] does not match the size of long.");
-    return _InterlockedExchange(reinterpret_cast<volatile long*>(t), value);
+    return _InterlockedExchange(reinterpret_cast<volatile long*>(t), static_cast<long>(value));
 }
 
 template<>
 inline u64 atomicExchange<u64>(volatile u64* const t, const u64 value) noexcept
-{ return _InterlockedExchange64(reinterpret_cast<volatile i64*>(t), value); }
+{ return _InterlockedExchange64(reinterpret_cast<volatile i64*>(t), static_cast<long long>(value)); }
 
 #endif

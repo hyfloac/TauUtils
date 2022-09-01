@@ -314,7 +314,7 @@ private:
         const uSys pageBytes = (_committedPages - _allocPages) * PageAllocator::PageSize();
         if(pageBytes - _blockSize <= (PageAllocator::PageSize() * _allocPages))
         {
-            (void) PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
+            PageAllocator::DecommitPages(reinterpret_cast<u8*>(_pages) + pageBytes, _allocPages);
             _committedPages -= _allocPages;
         }
     }
@@ -520,7 +520,7 @@ private:
  * consuming the entire potential address space of your
  * program.
  */
-template<AllocationTracking _AllocTracking = AllocationTracking::None>
+template<AllocationTracking AllocTracking = AllocationTracking::None>
 class FixedBlockArenaAllocator final : public TauAllocator
 {
     DELETE_CONSTRUCT(FixedBlockArenaAllocator);

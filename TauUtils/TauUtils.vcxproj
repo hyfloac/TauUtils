@@ -113,6 +113,7 @@
     <ClInclude Include="include\Alignment.h" />
     <ClInclude Include="include\ArrayList.hpp" />
     <ClInclude Include="include\AtomicIntrinsics.hpp" />
+    <ClInclude Include="include\Base64.hpp" />
     <ClInclude Include="include\BitSet.hpp" />
     <ClInclude Include="include\Console.hpp" />
     <ClInclude Include="include\CVersion.hpp" />

@@ -1235,7 +1235,9 @@ static uSys FormatScientific(Char* const outBuffer, const uSys bufferSize, const
             numFractionDigits = maxFractionDigits;
         }
 
-        ::std::memmove(outBuffer + writeIndex + 1, outBuffer + writeIndex, numFractionDigits * sizeof(Char));
+        (void) ::std::memmove(outBuffer + writeIndex + 1, outBuffer + writeIndex, numFractionDigits * sizeof(Char));
+        outBuffer[1] = '.';
+        writeIndex += numFractionDigits + 1;
     }
     
     // Add trailing zeros up to precision length.
@@ -1281,12 +1283,20 @@ static uSys FormatScientific(Char* const outBuffer, const uSys bufferSize, const
         const u32 tensPlace = (printExponent - hundredsPlace * 100) / 10;
         const u32 onesPlace = (printExponent - hundredsPlace * 100 - tensPlace * 10);
 
-        expBuffer[2] = static_cast<Char>(Char{'0'} + hundredsPlace);
-        expBuffer[3] = static_cast<Char>(Char{'0'} + tensPlace);
-        expBuffer[4] = static_cast<Char>(Char{'0'} + onesPlace);
+        u32 expIndex = 2;
+
+        if(hundredsPlace)
+        {
+            expBuffer[expIndex++] = static_cast<Char>(Char{'0'} + hundredsPlace);
+        }
+        if(hundredsPlace || tensPlace)
+        {
+            expBuffer[expIndex++] = static_cast<Char>(Char{'0'} + tensPlace);
+        }
+        expBuffer[expIndex++] = static_cast<Char>(Char{'0'} + onesPlace);
 
         const uSys maxExponentSize = bufferSize - 1;
-        const uSys exponentSize = maxExponentSize > 5 ? 5 : maxExponentSize;
+        const uSys exponentSize = maxExponentSize > expIndex ? expIndex : maxExponentSize;
         ::std::memcpy(outBuffer + writeIndex, expBuffer, exponentSize * sizeof(Char));
 
         writeIndex += exponentSize;

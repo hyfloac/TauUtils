@@ -1,14 +1,12 @@
 #include <String.hpp>
 #include <ConPrinter.hpp>
-#include <Console.hpp>
 #include <Dragon4.hpp>
 #include <bit>
 #include <cmath>
-#include <string>
 
 static void PrintCommonFloats()
 {
-    ConPrinter::Print(u"Begin PrintCommonFloats\n");
+    ConPrinter::PrintLn(u"Begin PrintCommonFloats");
 
     c16 buffer[32];
 
@@ -16,73 +14,101 @@ static void PrintCommonFloats()
         constexpr f32 f = 1.0f;
 
         PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
-        ConPrinter::Print(u"1.0 as float: {}\n", static_cast<const c16*>(buffer));
+        ConPrinter::PrintLn(u"1.0 as float: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f32 f = -1.0f;
 
         PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
-        ConPrinter::Print(u"-1.0 as float: {}\n", static_cast<const c16*>(buffer));
+        ConPrinter::PrintLn(u"-1.0 as float: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f32 f = 3.141592653589794f;
 
         PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
-        ConPrinter::Print(u"Pi as float: {}\n", static_cast<const c16*>(buffer));
+        ConPrinter::PrintLn(u"Pi as float: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f32 f = 2.7182818284590452353602874713526624977572470936999595749669676277f;
 
         PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
-        ConPrinter::Print(u"e as float: {}\n", static_cast<const c16*>(buffer));
+        ConPrinter::PrintLn(u"e as float: {}", static_cast<const c16*>(buffer));
     }
 
-    ConPrinter::Print(u"End PrintCommonFloats\n");
+    {
+        constexpr f32 f = 12.3456789f;
+
+        PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
+        ConPrinter::PrintLn(u"12.3456789 as float: {}", static_cast<const c16*>(buffer));
+    }
+
+    {
+        constexpr f32 f = 0.123456789f;
+
+        PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
+        ConPrinter::PrintLn(u"0.123456789 as float: {}", static_cast<const c16*>(buffer));
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonFloats\n");
 }
 
 static void PrintCommonDoubles()
 {
-    ConPrinter::Print(u"Begin PrintCommonDoubles\n");
+    ConPrinter::PrintLn(u"Begin PrintCommonDoubles");
 
-    wchar_t buffer[64];
+    c16 buffer[64];
 
     {
         constexpr f64 f = 1.0;
 
         PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
-        ConPrinter::Print(u"1.0 as double: {}\n", static_cast<const wchar_t*>(buffer));
+        ConPrinter::PrintLn(u"1.0 as double: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f64 f = -1.0;
 
         PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
-        ConPrinter::Print(u"-1.0 as double: %{}\n", static_cast<const wchar_t*>(buffer));
+        ConPrinter::PrintLn(u"-1.0 as double: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f64 f = 3.1415926535897932384626433832795028841971693993751058209749445923;
 
         PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
-        ConPrinter::Print(u"Pi as double: {}\n", static_cast<const wchar_t*>(buffer));
+        ConPrinter::PrintLn(u"Pi as double: {}", static_cast<const c16*>(buffer));
     }
 
     {
         constexpr f64 f = 2.7182818284590452353602874713526624977572470936999595749669676277;
 
         PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
-        ConPrinter::Print(u"e as double: {}\n", static_cast<const wchar_t*>(buffer));
+        ConPrinter::PrintLn(u"e as double: {}", static_cast<const c16*>(buffer));
     }
 
-    ConPrinter::Print(u"End PrintCommonDoubles\n");
+    {
+        constexpr f64 f = 12.3456789;
+
+        PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
+        ConPrinter::PrintLn(u"12.3456789 as double: {}", static_cast<const c16*>(buffer));
+    }
+
+    {
+        constexpr f64 f = 0.123456789;
+
+        PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
+        ConPrinter::PrintLn(u"0.123456789 as double: {}", static_cast<const c16*>(buffer));
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonDoubles\n");
 }
 
 static void TestAllFloats()
 {
-    ConPrinter::Print(u"Begin TestAllFloats\n");
+    ConPrinter::PrintLn(u"Begin TestAllFloats");
 
     char buffer[192];
 
@@ -103,8 +129,8 @@ static void TestAllFloats()
 
         if(i32Val % 1000000 == 0)
         {
-            ConPrinter::Print(u"Progress: {}\n", i32Val);
-            ConPrinter::Print(u"Successes: {}, Failures: {}, Zero Failures: {}, Inf/NaN: {}, Total: {XP}\n", successCount, failCount, zeroFailCount, infNanCount, successCount + failCount + zeroFailCount + infNanCount);
+            ConPrinter::PrintLn(u"Progress: {}", i32Val);
+            ConPrinter::PrintLn(u"Successes: {}, Failures: {}, Zero Failures: {}, Inf/NaN: {}, Total: {XP}", successCount, failCount, zeroFailCount, infNanCount, successCount + failCount + zeroFailCount + infNanCount);
 
         }
 
@@ -118,7 +144,7 @@ static void TestAllFloats()
 
         const f32 roundTrip = ::std::strtof(buffer, nullptr);
 
-        // ConPrinter::printW(L"FVal: %\n", static_cast<const char*>(buffer));
+        // ConPrinter::printW(L"FVal: %", static_cast<const char*>(buffer));
 
         if(roundTrip != fVal)
         {
@@ -130,7 +156,7 @@ static void TestAllFloats()
 
             ++failCount;
 
-            ConPrinter::Print(u"Round trip conversion of {} failed. Round trip result: {}\n", static_cast<const char*>(buffer), roundTrip);
+            ConPrinter::PrintLn(u"Round trip conversion of {} failed. Round trip result: {}", static_cast<const char*>(buffer), roundTrip);
         }
         else
         {
@@ -138,14 +164,242 @@ static void TestAllFloats()
         }
     }
 
-    ConPrinter::Print(u"Successes: {}, Failures: {}, Zero Failures: {}, Inf/NaN: {}, Total: {XP}\n", successCount, failCount, zeroFailCount, infNanCount, successCount + failCount + zeroFailCount + infNanCount);
+    ConPrinter::PrintLn(u"Successes: {}, Failures: {}, Zero Failures: {}, Inf/NaN: {}, Total: {XP}", successCount, failCount, zeroFailCount, infNanCount, successCount + failCount + zeroFailCount + infNanCount);
 
-    ConPrinter::Print(u"End TestAllFloats\n");
+    ConPrinter::PrintLn(u"End TestAllFloats");
+}
+
+static void PrintCommonFloatsScientific()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientific");
+    
+    {
+        constexpr f32 f = 1.0f;
+        ConPrinter::PrintLn(u"1.0 as scientific float: {e}", f);
+    }
+
+    {
+        constexpr f32 f = -1.0f;
+        ConPrinter::PrintLn(u"-1.0 as scientific float: {e}", f);
+    }
+
+    {
+        constexpr f32 f = 3.141592653589794f;
+        ConPrinter::PrintLn(u"Pi as scientific float: {e}", f);
+    }
+
+    {
+        constexpr f32 f = 2.7182818284590452353602874713526624977572470936999595749669676277f;
+        ConPrinter::PrintLn(u"e as scientific float: {e}", f);
+    }
+
+    {
+        constexpr f32 f = 12.3456789f;
+        ConPrinter::PrintLn(u"12.3456789 as scientific float: {e}", f);
+    }
+
+    {
+        constexpr f32 f = 0.123456789f;
+        ConPrinter::PrintLn(u"0.123456789 as scientific float: {e}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonFloatsScientific\n");
+}
+
+static void PrintCommonDoublesScientific()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientific");
+
+    {
+        constexpr f64 f = 1.0;
+        ConPrinter::PrintLn(u"1.0 as scientific double: {e}", f);
+    }
+
+    {
+        constexpr f64 f = -1.0;
+        ConPrinter::PrintLn(u"-1.0 as scientific double: {e}", f);
+    }
+
+    {
+        constexpr f64 f = 3.1415926535897932384626433832795028841971693993751058209749445923;
+        ConPrinter::PrintLn(u"Pi as scientific double: {e}", f);
+    }
+
+    {
+        constexpr f64 f = 2.7182818284590452353602874713526624977572470936999595749669676277;
+        ConPrinter::PrintLn(u"e as scientific double: {e}", f);
+    }
+
+    {
+        constexpr f64 f = 12.3456789;
+        ConPrinter::PrintLn(u"12.3456789 as scientific double: {e}", f);
+    }
+
+    {
+        constexpr f64 f = 0.123456789;
+        ConPrinter::PrintLn(u"0.123456789 as scientific double: {e}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonDoublesScientific\n");
+}
+
+static void PrintCommonFloatsPrec5()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientificPrec5");
+
+    {
+        constexpr f32 f = 1.0f;
+        ConPrinter::PrintLn(u"1.0 as float: {f5}", f);
+    }
+
+    {
+        constexpr f32 f = -1.0f;
+        ConPrinter::PrintLn(u"-1.0 as float: {f5}", f);
+    }
+
+    {
+        constexpr f32 f = 3.141592653589794f;
+        ConPrinter::PrintLn(u"Pi as float: {f5}", f);
+    }
+
+    {
+        constexpr f32 f = 2.7182818284590452353602874713526624977572470936999595749669676277f;
+        ConPrinter::PrintLn(u"e as float: {f5}", f);
+    }
+
+    {
+        constexpr f32 f = 12.3456789f;
+        ConPrinter::PrintLn(u"12.3456789 as float: {f5}", f);
+    }
+
+    {
+        constexpr f32 f = 0.123456789f;
+        ConPrinter::PrintLn(u"0.123456789 as scientific float: {f5}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonFloatsScientificPrec5\n");
+}
+
+static void PrintCommonDoublesPrec5()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientificPrec5");
+
+    {
+        constexpr f64 f = 1.0;
+        ConPrinter::PrintLn(u"1.0 as double: {f5}", f);
+    }
+
+    {
+        constexpr f64 f = -1.0;
+        ConPrinter::PrintLn(u"-1.0 as double: {f5}", f);
+    }
+
+    {
+        constexpr f64 f = 3.1415926535897932384626433832795028841971693993751058209749445923;
+        ConPrinter::PrintLn(u"Pi as double: {f5}", f);
+    }
+
+    {
+        constexpr f64 f = 2.7182818284590452353602874713526624977572470936999595749669676277;
+        ConPrinter::PrintLn(u"e as double: {f5}", f);
+    }
+
+    {
+        constexpr f64 f = 12.3456789;
+        ConPrinter::PrintLn(u"12.3456789 as double: {f5}", f);
+    }
+
+    {
+        constexpr f64 f = 0.123456789;
+        ConPrinter::PrintLn(u"0.123456789 as scientific double: {f5}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonDoublesScientificPrec5\n");
+}
+
+static void PrintCommonFloatsScientificPrec5()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientificPrec5");
+    
+    {
+        constexpr f32 f = 1.0f;
+        ConPrinter::PrintLn(u"1.0 as scientific float: {e5}", f);
+    }
+
+    {
+        constexpr f32 f = -1.0f;
+        ConPrinter::PrintLn(u"-1.0 as scientific float: {e5}", f);
+    }
+
+    {
+        constexpr f32 f = 3.141592653589794f;
+        ConPrinter::PrintLn(u"Pi as scientific float: {e5}", f);
+    }
+
+    {
+        constexpr f32 f = 2.7182818284590452353602874713526624977572470936999595749669676277f;
+        ConPrinter::PrintLn(u"e as scientific float: {e5}",f);
+    }
+
+    {
+        constexpr f32 f = 12.3456789f;
+        ConPrinter::PrintLn(u"12.3456789 as scientific float: {e5}", f);
+    }
+
+    {
+        constexpr f32 f = 0.123456789f;
+        ConPrinter::PrintLn(u"0.123456789 as scientific float: {e5}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonFloatsScientificPrec5\n");
+}
+
+static void PrintCommonDoublesScientificPrec5()
+{
+    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientificPrec5");
+
+    {
+        constexpr f64 f = 1.0;
+        ConPrinter::PrintLn(u"1.0 as scientific double: {e5}", f);
+    }
+
+    {
+        constexpr f64 f = -1.0;
+        ConPrinter::PrintLn(u"-1.0 as scientific double: {e5}", f);
+    }
+
+    {
+        constexpr f64 f = 3.1415926535897932384626433832795028841971693993751058209749445923;
+        ConPrinter::PrintLn(u"Pi as scientific double: {e5}", f);
+    }
+
+    {
+        constexpr f64 f = 2.7182818284590452353602874713526624977572470936999595749669676277;
+        ConPrinter::PrintLn(u"e as scientific double: {e5}", f);
+    }
+
+    {
+        constexpr f64 f = 12.3456789;
+        ConPrinter::PrintLn(u"12.3456789 as scientific double: {e5}", f);
+    }
+
+    {
+        constexpr f64 f = 0.123456789;
+        ConPrinter::PrintLn(u"0.123456789 as scientific float: {e5}", f);
+    }
+
+    ConPrinter::PrintLn(u"End PrintCommonDoublesScientificPrec5\n");
 }
 
 void DragonTests()
 {
     PrintCommonFloats();
     PrintCommonDoubles();
-    TestAllFloats();
+    PrintCommonFloatsScientific();
+    PrintCommonDoublesScientific();
+    PrintCommonFloatsPrec5();
+    PrintCommonDoublesPrec5();
+    PrintCommonFloatsScientificPrec5();
+    PrintCommonDoublesScientificPrec5();
+//    TestAllFloats();
 }

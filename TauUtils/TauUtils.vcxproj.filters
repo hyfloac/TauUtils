@@ -129,6 +129,9 @@
     <ClInclude Include="include\ToString.hpp">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\Base64.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DefaultTauAllocator.cpp">

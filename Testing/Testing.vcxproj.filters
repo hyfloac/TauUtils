@@ -30,5 +30,8 @@
     <ClCompile Include="ReferenceCountingTests.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="Base64Tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
