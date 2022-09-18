@@ -5,7 +5,6 @@
 #include <memory>
 #pragma warning(pop)
 
-#include "NumTypes.hpp"
 #include "ReferenceCountingPointer.hpp"
 #include "Utils.hpp"
 

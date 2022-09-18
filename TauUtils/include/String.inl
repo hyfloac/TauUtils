@@ -403,7 +403,7 @@ inline uSys strLength<wchar_t>(const wchar_t* const str) noexcept
 { return ::std::wcslen(str); }
 
 template<typename C>
-inline i32 strCompare(const C* const lhs, const C* const rhs) noexcept
+inline i32 strCompare(const C* lhs, const C* rhs) noexcept
 {
     while(*lhs != '\0' && *rhs != '\0')
     {
@@ -1518,7 +1518,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::append(const ConstExprStringT
 template<typename Char>
 inline StringBuilderT<Char>& StringBuilderT<Char>::append(const DynStringT<Char>& string) noexcept
 {
-    append(string.c_str(), string._length);
+    append(string.c_str(), string.length());
     return *this;
 }
 

@@ -263,7 +263,7 @@ inline i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
 
         if(writeIndex < bufferSize)
         {
-            buffer[writeIndex] = GetNumberUpper<Int>(digit);
+            buffer[writeIndex] = GetNumberUpper<Int, Char>(digit);
         }
 
         ++writeIndex;
