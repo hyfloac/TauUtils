@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Base64Tests.cpp" />
+    <ClCompile Include="JsonTests.cpp" />
     <ClCompile Include="ReferenceCountingTests.cpp" />
     <ClCompile Include="src\DragonTests.cpp" />
     <ClCompile Include="src\Main.cpp" />

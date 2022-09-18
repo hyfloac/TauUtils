@@ -13,6 +13,9 @@
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\json">
+      <UniqueIdentifier>{ec907b79-be32-4935-a2a8-b99b48529243}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Alignment.h">
@@ -131,6 +134,12 @@
     </ClInclude>
     <ClInclude Include="include\Base64.hpp">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\json\JsonTypes.hpp">
+      <Filter>include\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\json\JsonWriter.hpp">
+      <Filter>include\json</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
