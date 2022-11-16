@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Base64Tests.cpp" />
-    <ClCompile Include="JsonTests.cpp" />
-    <ClCompile Include="ReferenceCountingTests.cpp" />
+    <ClCompile Include="src\Base64Tests.cpp" />
+    <ClCompile Include="src\JsonTests.cpp" />
+    <ClCompile Include="src\ReferenceCountingTests.cpp" />
     <ClCompile Include="src\DragonTests.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MathTests.cpp" />

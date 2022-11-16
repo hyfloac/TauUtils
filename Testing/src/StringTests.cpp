@@ -1,18 +1,19 @@
-#include <String.hpp>
+﻿#include <String.hpp>
 #include <ConPrinter.hpp>
-#include <Console.hpp>
+#include <ToString.hpp>
+#include <TauUnit.hpp>
 
 static void TestIterateCodeUnits()
 {
-    ConPrinter::Print(u"Begin TestIterateCodeUnits\n");
-    
+    TAU_UNIT_TEST();
+
     {
         const DynStringT<char> utfString("Hello, World! char\n");
         
         ConPrinter::Print(utfString);
         // Console::Write(utfString.c_str(), utfString.length());
 
-        for(DynStringCodeUnitIteratorT<char> iter(utfString.beginUnits()); iter != utfString.endUnits(); ++iter)
+        for(DynStringCodeUnitIteratorT<char> iter(utfString.BeginUnits()); iter != utfString.EndUnits(); ++iter)
         {
             // Console::print(*iter);
         }
@@ -24,7 +25,7 @@ static void TestIterateCodeUnits()
         ConPrinter::Print(utfString);
         // Console::Write(utfString.c_str(), utfString.length());
 
-        for(DynStringCodeUnitIteratorT<wchar_t> iter(utfString.beginUnits()); iter != utfString.endUnits(); ++iter)
+        for(DynStringCodeUnitIteratorT<wchar_t> iter(utfString.BeginUnits()); iter != utfString.EndUnits(); ++iter)
         {
             // Console::print(*iter);
         }
@@ -36,7 +37,7 @@ static void TestIterateCodeUnits()
         ConPrinter::Print(utfString);
         // Console::Write(utfString.c_str(), utfString.length());
 
-        for(DynStringCodeUnitIteratorT<c8> iter(utfString.beginUnits()); iter != utfString.endUnits(); ++iter)
+        for(DynStringCodeUnitIteratorT<c8> iter(utfString.BeginUnits()); iter != utfString.EndUnits(); ++iter)
         {
             // ConPrinter::print(*iter);
         }
@@ -48,7 +49,7 @@ static void TestIterateCodeUnits()
         ConPrinter::Print(utfString);
         // Console::Write(utfString.c_str(), utfString.length());
 
-        for(DynStringCodeUnitIteratorT<c16> iter(utfString.beginUnits()); iter != utfString.endUnits(); ++iter)
+        for(DynStringCodeUnitIteratorT<c16> iter(utfString.BeginUnits()); iter != utfString.EndUnits(); ++iter)
         {
             // Console::print(*iter);
         }
@@ -60,16 +61,72 @@ static void TestIterateCodeUnits()
         ConPrinter::Print(utfString);
         // Console::Write(utfString.c_str(), utfString.length());
 
-        for(DynStringCodeUnitIteratorT<c32> iter(utfString.beginUnits()); iter != utfString.endUnits(); ++iter)
+        for(DynStringCodeUnitIteratorT<c32> iter(utfString.BeginUnits()); iter != utfString.EndUnits(); ++iter)
         {
             // Console::print(*iter);
         }
     }
+}
 
-    ConPrinter::Print(u"End TestIterateCodeUnits\n");
+static void ToStringTests()
+{
+    TAU_UNIT_TEST();
+
+    ConPrinter::PrintLn(tau::ToString<char>(12345));
+    ConPrinter::PrintLn(tau::ToString<wchar_t>(12345));
+    ConPrinter::PrintLn(tau::ToString<c8>(12345));
+    ConPrinter::PrintLn(tau::ToString<c16>(12345));
+    ConPrinter::PrintLn(tau::ToString<c32>(12345));
+
+    ConPrinter::PrintLn(tau::ToString<char>(12345.456789));
+    ConPrinter::PrintLn(tau::ToString<wchar_t>(12345.456789));
+    ConPrinter::PrintLn(tau::ToString<c8>(12345.456789));
+    ConPrinter::PrintLn(tau::ToString<c16>(12345.456789));
+    ConPrinter::PrintLn(tau::ToString<c32>(12345.456789));
+
+    ConPrinter::Print("{} ", tau::ToString<char>('c'));
+    ConPrinter::Print("{} ", tau::ToString<wchar_t>('c'));
+    ConPrinter::Print("{} ", tau::ToString<c8>('c'));
+    ConPrinter::Print("{} ", tau::ToString<c16>('c'));
+    ConPrinter::Print("{} ", tau::ToString<c32>('c'));
+
+    ConPrinter::PrintLn();
+
+    ConPrinter::Print("{} ", tau::ToString<char>(L'w'));
+    ConPrinter::Print("{} ", tau::ToString<wchar_t>(L'w'));
+    ConPrinter::Print("{} ", tau::ToString<c8>(L'w'));
+    ConPrinter::Print("{} ", tau::ToString<c16>(L'w'));
+    ConPrinter::Print("{} ", tau::ToString<c32>(L'w'));
+
+    ConPrinter::PrintLn();
+
+    ConPrinter::Print("{} ", tau::ToString<char>(u8'8'));
+    ConPrinter::Print("{} ", tau::ToString<wchar_t>(u8'8'));
+    ConPrinter::Print("{} ", tau::ToString<c8>(u8'8'));
+    ConPrinter::Print("{} ", tau::ToString<c16>(u8'8'));
+    ConPrinter::Print("{} ", tau::ToString<c32>(u8'8'));
+
+    ConPrinter::PrintLn();
+
+    ConPrinter::Print("{} ", tau::ToString<char>(u'H'));
+    ConPrinter::Print("{} ", tau::ToString<wchar_t>(u'H'));
+    ConPrinter::Print("{} ", tau::ToString<c8>(u'H'));
+    ConPrinter::Print("{} ", tau::ToString<c16>(u'H'));
+    ConPrinter::Print("{} ", tau::ToString<c32>(u'H'));
+
+    ConPrinter::PrintLn();
+
+    ConPrinter::Print("{} ", tau::ToString<char>(U'\U00010330'));
+    ConPrinter::Print("{} ", tau::ToString<wchar_t>(U'\U00010330'));
+    ConPrinter::Print("{} ", tau::ToString<c8>(U'\U00010330'));
+    ConPrinter::Print("{} ", tau::ToString<c16>(U'\U00010330'));
+    ConPrinter::Print("{} ", tau::ToString<c32>(U'\U00010330'));
+
+    ConPrinter::PrintLn();
 }
 
 void StringTests()
 {
     TestIterateCodeUnits();
+    ToStringTests();
 }

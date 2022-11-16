@@ -1,4 +1,5 @@
 #include <Console.hpp>
+#include <TauUnit.hpp>
 
 extern void RefTests();
 extern void StringTests();
@@ -11,12 +12,14 @@ int main(int argCount, char* args[])
 {
     Console::Create();
     Console::Init();
-    // StringTests();
+    StringTests();
     // RefTests();
     // DragonTests();
     // MathTests();
     // Base64Tests();
-    JsonTests();
+    // JsonTests();
+
+    ::tau::TestContainer::Instance().PrintTotals();
 
     return 0;
 }

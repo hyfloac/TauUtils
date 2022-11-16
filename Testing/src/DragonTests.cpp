@@ -1,12 +1,13 @@
 #include <String.hpp>
 #include <ConPrinter.hpp>
 #include <Dragon4.hpp>
+#include <TauUnit.hpp>
 #include <bit>
 #include <cmath>
 
 static void PrintCommonFloats()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonFloats");
+    TAU_UNIT_TEST();
 
     c16 buffer[32];
 
@@ -51,13 +52,11 @@ static void PrintCommonFloats()
         PrintFloat32(buffer, 32, f, PrintFloatFormat::Positional, -31);
         ConPrinter::PrintLn(u"0.123456789 as float: {}", static_cast<const c16*>(buffer));
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonFloats\n");
 }
 
 static void PrintCommonDoubles()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonDoubles");
+    TAU_UNIT_TEST();
 
     c16 buffer[64];
 
@@ -102,19 +101,17 @@ static void PrintCommonDoubles()
         PrintFloat64(buffer, 64, f, PrintFloatFormat::Positional, -63);
         ConPrinter::PrintLn(u"0.123456789 as double: {}", static_cast<const c16*>(buffer));
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonDoubles\n");
 }
 
-static void TestAllFloats()
+[[maybe_unused]] static void TestAllFloats()
 {
-    ConPrinter::PrintLn(u"Begin TestAllFloats");
+    TAU_UNIT_TEST();
 
     char buffer[192];
 
     u32 successCount = 0;
     u32 failCount = 0;
-    u32 zeroFailCount = 0;
+    constexpr u32 zeroFailCount = 0;
     u32 infNanCount = 0;
 
     for(u64 i = 0; i <= 0xFFFFFFFF; ++i)
@@ -165,14 +162,12 @@ static void TestAllFloats()
     }
 
     ConPrinter::PrintLn(u"Successes: {}, Failures: {}, Zero Failures: {}, Inf/NaN: {}, Total: {XP}", successCount, failCount, zeroFailCount, infNanCount, successCount + failCount + zeroFailCount + infNanCount);
-
-    ConPrinter::PrintLn(u"End TestAllFloats");
 }
 
 static void PrintCommonFloatsScientific()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientific");
-    
+    TAU_UNIT_TEST();
+
     {
         constexpr f32 f = 1.0f;
         ConPrinter::PrintLn(u"1.0 as scientific float: {e}", f);
@@ -202,13 +197,11 @@ static void PrintCommonFloatsScientific()
         constexpr f32 f = 0.123456789f;
         ConPrinter::PrintLn(u"0.123456789 as scientific float: {e}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonFloatsScientific\n");
 }
 
 static void PrintCommonDoublesScientific()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientific");
+    TAU_UNIT_TEST();
 
     {
         constexpr f64 f = 1.0;
@@ -239,14 +232,10 @@ static void PrintCommonDoublesScientific()
         constexpr f64 f = 0.123456789;
         ConPrinter::PrintLn(u"0.123456789 as scientific double: {e}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonDoublesScientific\n");
 }
 
 static void PrintCommonFloatsPrec5()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientificPrec5");
-
     {
         constexpr f32 f = 1.0f;
         ConPrinter::PrintLn(u"1.0 as float: {f5}", f);
@@ -276,13 +265,11 @@ static void PrintCommonFloatsPrec5()
         constexpr f32 f = 0.123456789f;
         ConPrinter::PrintLn(u"0.123456789 as scientific float: {f5}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonFloatsScientificPrec5\n");
 }
 
 static void PrintCommonDoublesPrec5()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientificPrec5");
+    TAU_UNIT_TEST();
 
     {
         constexpr f64 f = 1.0;
@@ -313,14 +300,12 @@ static void PrintCommonDoublesPrec5()
         constexpr f64 f = 0.123456789;
         ConPrinter::PrintLn(u"0.123456789 as scientific double: {f5}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonDoublesScientificPrec5\n");
 }
 
 static void PrintCommonFloatsScientificPrec5()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonFloatsScientificPrec5");
-    
+    TAU_UNIT_TEST();
+
     {
         constexpr f32 f = 1.0f;
         ConPrinter::PrintLn(u"1.0 as scientific float: {e5}", f);
@@ -350,13 +335,11 @@ static void PrintCommonFloatsScientificPrec5()
         constexpr f32 f = 0.123456789f;
         ConPrinter::PrintLn(u"0.123456789 as scientific float: {e5}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonFloatsScientificPrec5\n");
 }
 
 static void PrintCommonDoublesScientificPrec5()
 {
-    ConPrinter::PrintLn(u"Begin PrintCommonDoublesScientificPrec5");
+    TAU_UNIT_TEST();
 
     {
         constexpr f64 f = 1.0;
@@ -387,8 +370,6 @@ static void PrintCommonDoublesScientificPrec5()
         constexpr f64 f = 0.123456789;
         ConPrinter::PrintLn(u"0.123456789 as scientific float: {e5}", f);
     }
-
-    ConPrinter::PrintLn(u"End PrintCommonDoublesScientificPrec5\n");
 }
 
 void DragonTests()
