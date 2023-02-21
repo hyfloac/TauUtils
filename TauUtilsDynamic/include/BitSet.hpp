@@ -9,7 +9,6 @@ public:
     class BitRef final
     {
         DEFAULT_DESTRUCT(BitRef);
-        DEFAULT_CM_PU(BitRef);
     private:
         uSys& _word;
         uSys _bitMask;
@@ -18,6 +17,30 @@ public:
             : _word(word)
             , _bitMask(bitMask)
         { }
+
+        BitRef(const BitRef& copy) noexcept
+            : _word(copy._word)
+            , _bitMask(copy._bitMask)
+        { }
+
+        BitRef(BitRef&& move) noexcept
+            : _word(move._word)
+            , _bitMask(move._bitMask)
+        { }
+
+        BitRef& operator=(const BitRef& copy) noexcept
+        {
+            this->operator=(static_cast<bool>(copy));
+
+            return *this;
+        }
+
+        BitRef& operator=(BitRef&& move) noexcept
+        {
+            this->operator=(static_cast<bool>(move));
+
+            return *this;
+        }
 
         [[nodiscard]] operator bool() const noexcept
         { return _word & _bitMask; }
@@ -49,10 +72,10 @@ public:
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
-        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
         const uSys word = _bits[wordIndex];
-        const bool ret = word & (static_cast<uSys>(1) << invBitIndex);
+        const bool ret = word & (static_cast<uSys>(1) << bitIndex);
 
         return ret;
     }
@@ -61,22 +84,22 @@ public:
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
-        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
-        return BitRef(_bits[wordIndex], static_cast<uSys>(1) << invBitIndex);
+        return BitRef(_bits[wordIndex], static_cast<uSys>(1) << bitIndex);
     }
 
     [[nodiscard]] bool at(const uSys index) const noexcept
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
-        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
         if(wordIndex >= _bits.count())
         { return false; }
 
         const uSys word = _bits[wordIndex];
-        const bool ret = word & (static_cast<uSys>(1) << invBitIndex);
+        const bool ret = word & (static_cast<uSys>(1) << bitIndex);
 
         return ret;
     }
@@ -85,29 +108,29 @@ public:
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
-        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        // const uSys invBitIndex = BIT_COUNT - bitIndex;
         
         if(wordIndex >= _bits.count())
         { return; }
         
         if(value)
-        { _bits[wordIndex] |= static_cast<uSys>(1) << invBitIndex; }
+        { _bits[wordIndex] |= static_cast<uSys>(1) << bitIndex; }
         else
-        { _bits[wordIndex] &= ~(static_cast<uSys>(1) << invBitIndex); }
+        { _bits[wordIndex] &= ~(static_cast<uSys>(1) << bitIndex); }
     }
 
     void unset(const uSys index) noexcept
     { set(index, false); }
 
-    void flip(const uSys index)
+    void flip(const uSys index) noexcept
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
-        const uSys invBitIndex = BIT_COUNT - bitIndex;
+        // const uSys invBitIndex = BIT_COUNT - bitIndex;
         
         if(wordIndex >= _bits.count())
         { return; }
         
-        _bits[wordIndex] ^= static_cast<uSys>(1) << invBitIndex;
+        _bits[wordIndex] ^= static_cast<uSys>(1) << bitIndex;
     }
 };

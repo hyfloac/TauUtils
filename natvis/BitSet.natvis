@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <Type Name="BitSet">
+        <DisplayString>{{Bits = {_bitCount}}}</DisplayString>
+        <Expand>
+            <Item Name="[Element Count]">_bitCount</Item>
+            <IndexListItems>
+                <Size>_bitCount</Size>
+                <ValueNode>(bool) (_bits[($i / (sizeof(uSys) * 8))] &amp; (1 &lt;&lt; (($i % (sizeof(uSys) * 8)))))</ValueNode>
+            </IndexListItems>
+        </Expand>
+    </Type>
+
+    <Type Name="BitSet::BitRef">
+        <DisplayString>{{Value = {(bool) (_word &amp; _bitMask)}}}</DisplayString>
+        <Expand>
+            <Item Name="[Word]">_word</Item>
+            <Item Name="[Mask]">_bitMask</Item>
+        </Expand>
+    </Type>
+    
+</AutoVisualizer>

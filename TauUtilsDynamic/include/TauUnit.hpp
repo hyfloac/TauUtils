@@ -124,20 +124,21 @@ private:
     ::tau::TestContainer::Instance().ResetUnit(); \
     ::tau::UnitTest _0_unit_test(reinterpret_cast<const c8*>(__func__))
 
-#define TAU_UNIT_EXP(EXP, ...) \
+#define TAU_UNIT_EXP(VALUE, EXPECTED, EXP, ...) \
     do { \
         ::tau::TestContainer::Instance().BeginTest(); \
         if((EXP)) { \
             ::tau::TestContainer::Instance().PassTest(); \
         } else { \
             ConPrinter::Print(u"\x1B[91m[Error]\x1B[0m: "); \
-            ConPrinter::PrintLn(__VA_ARGS__); \
+            ConPrinter::PrintLn(__VA_ARGS__, #EXP); \
+            ConPrinter::PrintLn(u"    Value: {}, Expected: {}", (VALUE), (EXPECTED)); \
         } \
     } while(0)
 
-#define TAU_UNIT_EQ(VALUE, EXPECTED, ...)  TAU_UNIT_EXP((VALUE) == (EXPECTED), __VA_ARGS__)
-#define TAU_UNIT_NEQ(VALUE, EXPECTED, ...) TAU_UNIT_EXP((VALUE) != (EXPECTED), __VA_ARGS__)
-#define TAU_UNIT_GT(VALUE, EXPECTED, ...)  TAU_UNIT_EXP((VALUE) > (EXPECTED), __VA_ARGS__)
-#define TAU_UNIT_LT(VALUE, EXPECTED, ...)  TAU_UNIT_EXP((VALUE) < (EXPECTED), __VA_ARGS__)
-#define TAU_UNIT_GTE(VALUE, EXPECTED, ...) TAU_UNIT_EXP((VALUE) >= (EXPECTED), __VA_ARGS__)
-#define TAU_UNIT_LTE(VALUE, EXPECTED, ...) TAU_UNIT_EXP((VALUE) <= (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_EQ(VALUE, EXPECTED, ...)  TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) == (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_NEQ(VALUE, EXPECTED, ...) TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) != (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_GT(VALUE, EXPECTED, ...)  TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) > (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_LT(VALUE, EXPECTED, ...)  TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) < (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_GTE(VALUE, EXPECTED, ...) TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) >= (EXPECTED), __VA_ARGS__)
+#define TAU_UNIT_LTE(VALUE, EXPECTED, ...) TAU_UNIT_EXP(VALUE, EXPECTED, (VALUE) <= (EXPECTED), __VA_ARGS__)

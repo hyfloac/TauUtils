@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <Type Name="DynArray&lt;*&gt;">
+        <DisplayString>{{Size = {m_Length}}}</DisplayString>
+        <Expand>
+            <Item Name="[Element Count]">m_Length</Item>
+            <ArrayItems>
+                <Size>m_Length</Size>
+                <ValuePointer>m_Array</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="RefDynArray&lt;*&gt;">
+        <DisplayString>{{Size = {m_Length}}}</DisplayString>
+        <Expand>
+            <Item Name="[Element Count]">m_Length</Item>
+            <Item Name="[Reference Count]">*(m_RefCount->m_RefCount)</Item>
+            <ArrayItems>
+                <Size>m_Length</Size>
+                <ValuePointer>m_Array</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="ArrayList&lt;*&gt;">
+        <DisplayString>{{Size = {_ctrlBlock->elementCount}}}</DisplayString>
+        <Expand>
+            <Item Name="[Element Count]">_ctrlBlock->elementCount</Item>
+            <Item Name="[Reference Count]">_ctrlBlock->refCount</Item>
+            <Item Name="[Reserved Pages]">_ctrlBlock->numReservedPages</Item>
+            <Item Name="[Committed Pages]">_ctrlBlock->committedPages</Item>
+            <Item Name="[Data Size]">_ctrlBlock->dataSize</Item>
+            <ArrayItems>
+                <Size>_ctrlBlock->elementCount</Size>
+                <ValuePointer>_arr</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+</AutoVisualizer>
