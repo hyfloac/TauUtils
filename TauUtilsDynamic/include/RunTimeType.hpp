@@ -87,11 +87,11 @@ class RunTimeType final
     DEFAULT_CM_PU(RunTimeType);
 private:
     void* _uid;
-private:
+public:
     inline RunTimeType() noexcept
         : _uid(this)
     { }
-public:
+
     [[nodiscard]] const char* name() const noexcept { return nullptr; }
     [[nodiscard]] const RunTimeType<T>* parent() const noexcept { return nullptr; }
 
