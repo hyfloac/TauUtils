@@ -345,9 +345,9 @@ class ConstExprStringT final : public StringBaseT<Char>
     DEFAULT_DESTRUCT(ConstExprStringT);
     DEFAULT_CM_PU(ConstExprStringT);
 private:
-    const Char* _string;
-    uSys _length;
-    uSys _hash;
+    const Char* m_String;
+    uSys m_Length;
+    uSys m_Hash;
 public:
     template<uSys Len>
     constexpr ConstExprStringT(const Char (&str)[Len]) noexcept;
@@ -355,12 +355,12 @@ public:
     template<uSys Len>
     constexpr ConstExprStringT<Char>& operator=(const Char (&str)[Len]) noexcept;
 
-    [[nodiscard]] constexpr const Char* String() const noexcept override { return _string; }
-    [[nodiscard]] constexpr uSys Length() const noexcept override { return _length; }
-    [[nodiscard]] constexpr uSys HashCode() const noexcept override { return _hash; }
+    [[nodiscard]] constexpr const Char* String() const noexcept override { return m_String; }
+    [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Length; }
+    [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
     
-    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(_string, _length, 0); }
-    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(_string, _length, _length - 1); }
+    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
+    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
     template<uSys Len>
     [[nodiscard]] constexpr bool equals(const Char (&str)[Len]) const noexcept;

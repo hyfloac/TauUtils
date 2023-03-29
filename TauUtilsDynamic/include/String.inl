@@ -696,18 +696,18 @@ bool DynStringCodePointIteratorT<Char>::operator!=(const DynStringCodePointItera
 template<typename Char>
 template<uSys Len>
 inline constexpr ConstExprStringT<Char>::ConstExprStringT(const Char(&str)[Len]) noexcept
-    : _string(str)
-    , _length(Len - 1)
-    , _hash(cexpr::findHashCode(str))
+    : m_String(str)
+    , m_Length(Len - 1)
+    , m_Hash(cexpr::findHashCode(str))
 { }
 
 template<typename Char>
 template<uSys Len>
 inline constexpr ConstExprStringT<Char>& ConstExprStringT<Char>::operator=(const Char(&str)[Len]) noexcept
 {
-    _string = str;
-    _length = Len - 1;
-    _hash = cexpr::findHashCode(str);
+    m_String = str;
+    m_Length = Len - 1;
+    m_Hash = cexpr::findHashCode(str);
 
     return *this;
 }
@@ -716,82 +716,82 @@ template<typename Char>
 template<uSys Len>
 inline constexpr bool ConstExprStringT<Char>::equals(const Char(&str)[Len]) const noexcept
 {
-    if(_string == str) { return true; }
-    if(_length != Len) { return false; }
-    return strCompare(_string, str) == 0;
+    if(m_String == str) { return true; }
+    if(m_Length != Len) { return false; }
+    return strCompare(m_String, str) == 0;
 }
 
 template<typename Char>
 inline bool ConstExprStringT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
-    if(_string == other.String()) { return true; }
-    if(_length != other.Length()) { return false; }
-    if(_hash != other.HashCode()) { return false; }
-    return strCompare(_string, other.String()) == 0;
+    if(m_String == other.String()) { return true; }
+    if(m_Length != other.Length()) { return false; }
+    if(m_Hash != other.HashCode()) { return false; }
+    return strCompare(m_String, other.String()) == 0;
 }
 
 template<typename Char>
 inline bool ConstExprStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
-    if(_string == other._string) { return true; }
-    if(_length != other._length) { return false; }
-    if(_hash != other._hash) { return false; }
-    return strCompare(_string, other.String()) == 0;
+    if(m_String == other.m_String) { return true; }
+    if(m_Length != other.m_Length) { return false; }
+    if(m_Hash != other.m_Hash) { return false; }
+    return strCompare(m_String, other.String()) == 0;
 }
 
 template<typename Char>
 inline bool ConstExprStringT<Char>::Equals(const DynStringT<Char>& other) const noexcept
 {
-    if(_length != other.Length() || _hash != other.HashCode())
+    if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
-    return strCompare(_string, other.String()) == 0;
+    return strCompare(m_String, other.String()) == 0;
 }
 
 template<typename Char>
 inline bool ConstExprStringT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
 {
-    if(_length != other.Length() || _hash != other.HashCode())
+    if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
-    return strCompare(_string, other.String(), _length) == 0;
+    return strCompare(m_String, other.String(), m_Length) == 0;
 }
 
 template<typename Char>
 inline bool ConstExprStringT<Char>::Equals(const Char* const str) const noexcept
 {
-    if(_string == str) { return true; }
-    return strCompare(_string, str) == 0;
+    if(m_String == str) { return true; }
+    return strCompare(m_String, str) == 0;
 }
 
 template<typename Char>
 inline i32 ConstExprStringT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
-{ return strCompare(_string, other.String()); }
+{ return strCompare(m_String, other.String()); }
 
 template<typename Char>
 inline i32 ConstExprStringT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
-{ return strCompare(_string, other.String()); }
+{ return strCompare(m_String, other.String()); }
 
 template<typename Char>
 inline i32 ConstExprStringT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
-{ return strCompare(_string, other.String()); }
+{ return strCompare(m_String, other.String()); }
 
 template<typename Char>
 inline i32 ConstExprStringT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
-{ return strCompare(_string, other.String(), minT(_length, other.Length())); }
+{ return strCompare(m_String, other.String(), minT(m_Length, other.Length())); }
 
 template<typename Char>
 inline i32 ConstExprStringT<Char>::CompareTo(const Char* const str) const noexcept
-{ return strCompare(_string, str); }
+{ return strCompare(m_String, str); }
 
 template<typename Char>
 inline Char ConstExprStringT<Char>::operator[](const uSys index) const noexcept
-{ return _string[index]; }
+{ return m_String[index]; }
 
 template<typename Char>
 inline Char ConstExprStringT<Char>::at(const uSys index) const noexcept
 {
-    if(index >= _length) { return Char{ '\0' }; }
-    return _string[index];
+    if(index >= m_Length) { return Char{ '\0' }; }
+    return m_String[index];
 }
 
 template<typename Char>
@@ -948,9 +948,9 @@ inline bool DynStringT<Char>::Equals(const StringBaseT<Char>& other) const noexc
 template<typename Char>
 inline bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
-    if(m_Data.Length != other.m_Length ) { return false; }
-    if(m_Hash != other._hash) { return false; }
-    return strCompare(String(), other._string) == 0;
+    if(m_Data.Length != other.Length()) { return false; }
+    if(m_Hash != other.HashChode()) { return false; }
+    return strCompare(String(), other.String()) == 0;
 }
 
 template<typename Char>
