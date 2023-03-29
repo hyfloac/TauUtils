@@ -87,11 +87,11 @@ class RunTimeType final
     DEFAULT_CM_PU(RunTimeType);
 private:
     void* _uid;
-private:
+public:
     inline RunTimeType() noexcept
         : _uid(this)
     { }
-public:
+
     [[nodiscard]] const char* name() const noexcept { return nullptr; }
     [[nodiscard]] const RunTimeType<T>* parent() const noexcept { return nullptr; }
 
@@ -316,7 +316,7 @@ namespace RTT_Utils
     template<typename T> struct remove_reference<T&&> { typedef T type; };
 
     template<typename T>
-    using remove_reference_t = typename remove_reference<T>::Type;
+    using remove_reference_t = typename remove_reference<T>::type;
 
     template<typename T> struct remove_pointer                      { typedef T type; };
     template<typename T> struct remove_pointer<T*>                  { typedef T type; };
@@ -335,7 +335,7 @@ namespace RTT_Utils
     template<typename T> struct remove_pointer<const WeakRef<T>>    { typedef T type; };
 
     template<typename T>
-    using remove_pointer_t = typename remove_pointer<T>::Type;
+    using remove_pointer_t = typename remove_pointer<T>::type;
 }
 
 template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>, TargetType>, int> = 0>
@@ -344,7 +344,7 @@ template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_b
 
 template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>, TargetType>, int> = 0>
 [[nodiscard]] TargetType* rtt_cast(const InputType& in) noexcept
-{ return ::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>::_castRTType(in); }
+{ return ::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>::template _castRTType<TargetType>(in); }
 
 #define RTT_CHECK(VAR, T) (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_isRTType<T>(VAR))
 #define RTT_CAST(VAR, T)  (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_castRTType<T>(VAR))
