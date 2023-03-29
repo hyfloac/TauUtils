@@ -949,7 +949,7 @@ template<typename Char>
 inline bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
     if(m_Data.Length != other.Length()) { return false; }
-    if(m_Hash != other.HashChode()) { return false; }
+    if(m_Hash != other.HashCode()) { return false; }
     return strCompare(String(), other.String()) == 0;
 }
 
