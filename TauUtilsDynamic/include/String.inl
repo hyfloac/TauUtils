@@ -948,7 +948,7 @@ inline bool DynStringT<Char>::Equals(const StringBaseT<Char>& other) const noexc
 template<typename Char>
 inline bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
-    if(m_Data.Length != other._length ) { return false; }
+    if(m_Data.Length != other.m_Length ) { return false; }
     if(m_Hash != other._hash) { return false; }
     return strCompare(String(), other._string) == 0;
 }

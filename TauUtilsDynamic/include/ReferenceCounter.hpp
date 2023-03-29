@@ -67,6 +67,8 @@ public:
 
     [[nodiscard]] Type RefCount() const noexcept { return m_RefCount ? *m_RefCount : 0; }
     [[nodiscard]] const Type* RefCountPtr() const noexcept { return m_RefCount; }
+
+    [[nodiscard]] bool IsAboutToBeDestroyed() const noexcept { return RefCount() == 1; }
 private:
     inline void OnCopy() const noexcept
     {

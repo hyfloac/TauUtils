@@ -18,28 +18,24 @@ class DynArrayIterator final
 {
     DEFAULT_DESTRUCT(DynArrayIterator);
     DEFAULT_CM_PU(DynArrayIterator);
-private:
-    T* m_Array;
-    uSys _length;
-    uSys _index;
 public:
     DynArrayIterator(T* const arr, const uSys length, const uSys index) noexcept
         : m_Array(arr)
-        , _length(length)
-        , _index(index)
+        , m_Length(length)
+        , m_Index(index)
     { }
 
     DynArrayIterator<T>& operator++() noexcept
     {
-        if(_index < _length)
-        { ++_index; }
+        if(m_Index < m_Length)
+        { ++m_Index; }
         return *this;
     }
 
     DynArrayIterator<T>& operator--() noexcept
     {
-        if(_index > 0)
-        { --_index; }
+        if(m_Index > 0)
+        { --m_Index; }
         return *this;
     }
 
@@ -58,15 +54,19 @@ public:
     }
 
     [[nodiscard]] T& operator*() noexcept
-    { return m_Array[_index]; }
+    { return m_Array[m_Index]; }
 
     [[nodiscard]] const T& operator*() const noexcept
-    { return m_Array[_index]; }
+    { return m_Array[m_Index]; }
     
     [[nodiscard]] bool operator ==(const DynArrayIterator<T>& other) const noexcept
-    { return _index == other._index; }
+    { return m_Index == other.m_Index; }
     [[nodiscard]] bool operator !=(const DynArrayIterator<T>& other) const noexcept
-    { return _index != other._index; }
+    { return m_Index != other.m_Index; }
+private:
+    T* m_Array;
+    uSys m_Length;
+    uSys m_Index;
 };
 
 template<typename T>
@@ -74,28 +74,24 @@ class ConstDynArrayIterator final
 {
     DEFAULT_DESTRUCT(ConstDynArrayIterator);
     DEFAULT_CM_PU(ConstDynArrayIterator);
-private:
-    T* m_Array;
-    uSys _length;
-    uSys _index;
 public:
     ConstDynArrayIterator(T* const arr, const uSys length, const uSys index) noexcept
         : m_Array(arr)
-        , _length(length)
-        , _index(index)
+        , m_Length(length)
+        , m_Index(index)
     { }
 
     ConstDynArrayIterator<T>& operator++() noexcept
     {
-        if(_index < _length)
-        { ++_index; }
+        if(m_Index < m_Length)
+        { ++m_Index; }
         return *this;
     }
 
     ConstDynArrayIterator<T>& operator--() noexcept
     {
-        if(_index > 0)
-        { --_index; }
+        if(m_Index > 0)
+        { --m_Index; }
         return *this;
     }
 
@@ -114,22 +110,21 @@ public:
     }
 
     [[nodiscard]] const T& operator*() const noexcept
-    { return m_Array[_index]; }
+    { return m_Array[m_Index]; }
     
     [[nodiscard]] bool operator ==(const ConstDynArrayIterator<T>& other) const noexcept
-    { return _index == other._index; }
+    { return m_Index == other.m_Index; }
     [[nodiscard]] bool operator !=(const ConstDynArrayIterator<T>& other) const noexcept
-    { return _index != other._index; }
+    { return m_Index != other.m_Index; }
+private:
+    T* m_Array;
+    uSys m_Length;
+    uSys m_Index;
 };
 
 template<typename T>
 class RefDynArrayIterator final
 {
-private:
-    T* m_Array;
-    ReferenceCounter m_RefCount;
-    uSys m_Length;
-    uSys m_Index;
 public:
     RefDynArrayIterator(T* const arr, const ReferenceCounter& refCount, const uSys length, const uSys index) noexcept
         : m_Array(arr)
@@ -140,10 +135,7 @@ public:
 
     ~RefDynArrayIterator() noexcept
     {
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
     }
 
     RefDynArrayIterator(const RefDynArrayIterator& copy) noexcept
@@ -167,10 +159,7 @@ public:
         if(this == &copy)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = copy.m_Array;
         m_RefCount = copy.m_RefCount;
@@ -185,10 +174,7 @@ public:
         if(this == &move)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = move.m_Array;
         m_RefCount = ::std::move(move.m_RefCount);
@@ -238,16 +224,25 @@ public:
     { return m_Index == other.m_Index; }
     [[nodiscard]] bool operator !=(const RefDynArrayIterator<T>& other) const noexcept
     { return m_Index != other.m_Index; }
-};
-
-template<typename T>
-class ConstRefDynArrayIterator final
-{
+private:
+    void OnDestroy() noexcept
+    {
+        if(m_RefCount.IsAboutToBeDestroyed())
+        {
+            ::TauUtilsDestructTArr(m_Array, m_Length);
+            ::TauUtilsDeallocate(reinterpret_cast<ReferenceCounter::Type*>(m_Array) - 1);
+        }
+    }
 private:
     T* m_Array;
     ReferenceCounter m_RefCount;
     uSys m_Length;
     uSys m_Index;
+};
+
+template<typename T>
+class ConstRefDynArrayIterator final
+{
 public:
     ConstRefDynArrayIterator(T* const arr, const ReferenceCounter& refCount, const uSys length, const uSys index) noexcept
         : m_Array(arr)
@@ -258,10 +253,7 @@ public:
 
     ~ConstRefDynArrayIterator() noexcept
     {
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
     }
 
     ConstRefDynArrayIterator(const ConstRefDynArrayIterator<T>& copy) noexcept
@@ -285,10 +277,7 @@ public:
         if(this == &copy)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = copy.m_Array;
         m_RefCount = copy.m_RefCount;
@@ -303,10 +292,7 @@ public:
         if(this == &move)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = move.m_Array;
         m_RefCount = ::std::move(move.m_RefCount);
@@ -353,34 +339,45 @@ public:
     { return m_Index == other.m_Index; }
     [[nodiscard]] bool operator !=(const ConstRefDynArrayIterator<T>& other) const noexcept
     { return m_Index != other.m_Index; }
+private:
+    void OnDestroy() noexcept
+    {
+        if(m_RefCount.IsAboutToBeDestroyed())
+        {
+            ::TauUtilsDestructTArr(m_Array, m_Length);
+            ::TauUtilsDeallocate(reinterpret_cast<ReferenceCounter::Type*>(m_Array) - 1);
+        }
+    }
+private:
+    T* m_Array;
+    ReferenceCounter m_RefCount;
+    uSys m_Length;
+    uSys m_Index;
 };
 
 template<typename T>
 class DynArray final
 {
-private:
-    T* m_Array;
-    uSys m_Length;
 public:
-    explicit DynArray(const uSys length = 0)
+    explicit DynArray(const uSys length = 0) noexcept
         : m_Array(TU_NEW_ARR(T, length))
         , m_Length(length)
     { }
 
-    ~DynArray()
+    ~DynArray() noexcept
     { TU_DELETE_T_ARR(m_Array, m_Length); }
 
-    DynArray(const DynArray<T>& copy)
+    DynArray(const DynArray<T>& copy) noexcept
         : m_Array(TU_NEW_ARR(T, copy.m_Length))
         , m_Length(copy.m_Length)
-    { (void) ::std::memcpy(m_Array, copy.m_Array, copy.m_Length * sizeof(T)); }
+    { (void) ::std::copy(copy.m_Array, copy.m_Array + copy.m_Length, m_Array); }
 
     DynArray(DynArray<T>&& move) noexcept
         : m_Array(move.m_Array)
         , m_Length(move.m_Length)
     { move.m_Array = nullptr; }
 
-    DynArray<T>& operator =(const DynArray<T>& copy)
+    DynArray<T>& operator=(const DynArray<T>& copy) noexcept
     {
         if(this == &copy)
         { return *this; }
@@ -390,12 +387,12 @@ public:
         m_Array = TU_NEW_ARR(T, copy.m_Length);
         m_Length = copy.m_Length;
 
-        (void) ::std::memcpy(m_Array, copy.m_Array, copy.m_Length * sizeof(T));
-
+        (void) ::std::copy(copy.m_Array, copy.m_Array + copy.m_Length, m_Array);
+        
         return *this;
     }
 
-    DynArray<T>& operator =(DynArray<T>&& move) noexcept
+    DynArray<T>& operator=(DynArray<T>&& move) noexcept
     {
         if(this == &move)
         { return *this; }
@@ -435,25 +432,24 @@ public:
     [[nodiscard]] ConstDynArrayIterator<T> begin() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, 0);     }
     [[nodiscard]] ConstDynArrayIterator<T>   end() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, m_Length); }
 
-    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, 0);            }
-    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator(end());   }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator(begin()); }
 
-    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, 0);            }
-    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end());   }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+private:
+    T* m_Array;
+    uSys m_Length;
 };
 
 template<typename T>
 class RefDynArray final
 {
-private:
-    T* m_Array;
-    uSys m_Length;
-    ReferenceCounter m_RefCount;
 public:
     explicit RefDynArray(const uSys size = 0) noexcept
         : m_Length(size)
     {
-        void* placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * size);
+        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * size);
         ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
         m_RefCount = ReferenceCounter(refCount);
         m_Array = ::new(refCount + 1) T[size];
@@ -461,10 +457,7 @@ public:
 
     ~RefDynArray() noexcept
     {
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
     }
 
     RefDynArray(const RefDynArray<T>& copy) noexcept
@@ -486,10 +479,7 @@ public:
         if(this == &copy)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = copy.m_Array;
         m_Length = copy.m_Length;
@@ -503,10 +493,7 @@ public:
         if(this == &move)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = move.m_Array;
         m_Length = move.m_Length;
@@ -517,23 +504,49 @@ public:
         return *this;
     }
 
-    [[nodiscard]] operator const T* () const noexcept { return m_Array; }
-    [[nodiscard]] operator       T* ()       noexcept { return m_Array; }
+    [[nodiscard]] operator const T*() const noexcept { return m_Array; }
+    [[nodiscard]] operator       T*()       noexcept { return m_Array; }
 
     [[nodiscard]] const T* arr() const noexcept { return m_Array; }
     [[nodiscard]]       T* arr()       noexcept { return m_Array; }
+
+    [[nodiscard]] const T* Array() const noexcept { return m_Array; }
+    [[nodiscard]]       T* Array()       noexcept { return m_Array; }
 
     [[nodiscard]] uSys size()   const noexcept { return m_Length; }
     [[nodiscard]] uSys length() const noexcept { return m_Length; }
     [[nodiscard]] uSys count()  const noexcept { return m_Length; }
 
+    [[nodiscard]] uSys Size()   const noexcept { return m_Length; }
+    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys Count()  const noexcept { return m_Length; }
+
     [[nodiscard]] operator uSys() const { return m_Length; }
 
     [[nodiscard]] RefDynArrayIterator<T> begin() noexcept { return RefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, 0); }
-    [[nodiscard]] RefDynArrayIterator<T> end() noexcept { return RefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
+    [[nodiscard]] RefDynArrayIterator<T>   end() noexcept { return RefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
 
     [[nodiscard]] ConstRefDynArrayIterator<T> begin() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, 0); }
-    [[nodiscard]] ConstRefDynArrayIterator<T> end() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
+    [[nodiscard]] ConstRefDynArrayIterator<T>   end() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
+
+    [[nodiscard]] ::std::reverse_iterator<RefDynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator(end());   }
+    [[nodiscard]] ::std::reverse_iterator<RefDynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator(begin()); }
+
+    [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end()); }
+    [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+private:
+    void OnDestroy() noexcept
+    {
+        if(m_RefCount.IsAboutToBeDestroyed())
+        {
+            ::TauUtilsDestructTArr(m_Array, m_Length);
+            ::TauUtilsDeallocate(reinterpret_cast<ReferenceCounter::Type*>(m_Array) - 1);
+        }
+    }
+private:
+    T* m_Array;
+    uSys m_Length;
+    ReferenceCounter m_RefCount;
 private:
     friend class ConstRefDynArray<T>;
 };
@@ -541,10 +554,6 @@ private:
 template<typename T>
 class ConstRefDynArray final
 {
-private:
-    T* m_Array;
-    uSys m_Length;
-    ReferenceCounter m_RefCount;
 public:
     ConstRefDynArray(const RefDynArray<T>& copy) noexcept
         : m_Array(copy.m_Array)
@@ -562,10 +571,7 @@ public:
 
     ~ConstRefDynArray() noexcept
     {
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
     }
 
     ConstRefDynArray(const ConstRefDynArray<T>& copy) noexcept
@@ -582,15 +588,12 @@ public:
         move.m_Array = nullptr;
     }
 
-    ConstRefDynArray<T>& operator =(const ConstRefDynArray<T>& copy) noexcept
+    ConstRefDynArray<T>& operator=(const ConstRefDynArray<T>& copy) noexcept
     {
         if(this == &copy)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = copy.m_Array;
         m_Length = copy.m_Length;
@@ -604,10 +607,7 @@ public:
         if(this == &move)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = move.m_Array;
         m_Length = move.m_Length;
@@ -623,10 +623,7 @@ public:
         if(this == &copy)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = copy.m_Array;
         m_Length = copy.m_Length;
@@ -635,15 +632,12 @@ public:
         return *this;
     }
 
-    ConstRefDynArray<T>& operator =(RefDynArray<T>&& move) noexcept
+    ConstRefDynArray<T>& operator=(RefDynArray<T>&& move) noexcept
     {
         if(this == &move)
         { return *this; }
 
-        if(m_RefCount.RefCount() == 1)
-        {
-            ::TauUtilsDestructTArr(m_Array, m_Length);
-        }
+        OnDestroy();
 
         m_Array = move.m_Array;
         m_Length = move.m_Length;
@@ -654,18 +648,40 @@ public:
         return *this;
     }
 
-    [[nodiscard]] operator const T* () const noexcept { return m_Array; }
+    [[nodiscard]] operator const T*() const noexcept { return m_Array; }
 
     [[nodiscard]] const T* arr() const noexcept { return m_Array; }
+
+    [[nodiscard]] const T* Array() const noexcept { return m_Array; }
 
     [[nodiscard]] uSys size()   const noexcept { return m_Length; }
     [[nodiscard]] uSys length() const noexcept { return m_Length; }
     [[nodiscard]] uSys count()  const noexcept { return m_Length; }
 
+    [[nodiscard]] uSys Size()   const noexcept { return m_Length; }
+    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys Count()  const noexcept { return m_Length; }
+
     [[nodiscard]] operator uSys() const { return m_Length; }
 
     [[nodiscard]] ConstRefDynArrayIterator<T> begin() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, 0); }
-    [[nodiscard]] ConstRefDynArrayIterator<T> end() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
+    [[nodiscard]] ConstRefDynArrayIterator<T>   end() const noexcept { return ConstRefDynArrayIterator<T>(m_Array, m_RefCount, m_Length, m_Length); }
+
+    [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end()); }
+    [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+private:
+    void OnDestroy() noexcept
+    {
+        if(m_RefCount.IsAboutToBeDestroyed())
+        {
+            ::TauUtilsDestructTArr(m_Array, m_Length);
+            ::TauUtilsDeallocate(reinterpret_cast<ReferenceCounter::Type*>(m_Array) - 1);
+        }
+    }
+private:
+    T* m_Array;
+    uSys m_Length;
+    ReferenceCounter m_RefCount;
 };
 
 template<typename T>
@@ -700,9 +716,9 @@ public:
     [[nodiscard]] ConstDynArrayIterator<T> begin() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, 0);        }
     [[nodiscard]] ConstDynArrayIterator<T>   end() const noexcept { return ConstDynArrayIterator<T>(m_Array, m_Length, m_Length); }
 
-    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, 0);            }
-    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator<DynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>> rbegin() noexcept { return ::std::reverse_iterator(end());   }
+    [[nodiscard]] ::std::reverse_iterator<DynArrayIterator<T>>   rend() noexcept { return ::std::reverse_iterator(begin()); }
 
-    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, 0);            }
-    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator<ConstDynArrayIterator<T>>(m_Array, m_Length, m_Length - 1); }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end());   }
+    [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
 };
