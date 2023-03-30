@@ -207,7 +207,7 @@ public:
     [[nodiscard]] [[tau::nonnull]] const Char* c_str() const noexcept { return String(); }
     [[nodiscard]] uSys length() const noexcept { return Length(); }
 
-    [[nodiscard]] [[tau::nonnull]] operator const Char* () const noexcept { return c_str(); }
+    [[nodiscard]] [[tau::nonnull]] operator const Char* () const noexcept { return String(); }
     [[nodiscard]] uSys operator()() const noexcept { return HashCode(); }
     [[nodiscard]] uSys hashCode() const noexcept { return HashCode(); }
 
@@ -224,10 +224,11 @@ public:
     [[nodiscard]] i32 compareTo(const Char* other)                   const noexcept { return CompareTo(other); }
 
 #if __has_feature(__cpp_impl_three_way_comparison)
+    [[nodiscard]] i32 operator <=>(const StringBaseT<Char>& other)      const noexcept { return compareTo(other); }
     [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const Char* const other) const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other)       const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other)   const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const Char* const other)             const noexcept { return compareTo(other); }
 #endif
 
     [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  equals(other); }
@@ -257,7 +258,6 @@ public:
     [[nodiscard]] bool operator > (const Char* const other) const noexcept { return compareTo(other) > 0; }
     [[nodiscard]] bool operator <=(const Char* const other) const noexcept { return compareTo(other) <= 0; }
     [[nodiscard]] bool operator >=(const Char* const other) const noexcept { return compareTo(other) >= 0; }
-
 };
 
 template<typename Char>
