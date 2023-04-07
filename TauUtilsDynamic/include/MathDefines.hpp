@@ -5,31 +5,80 @@
  */
 #pragma once
 
-#define T_PI         3.14159265358979323846264338327950 // pi
-#define T_2PI        6.28318530717958647692528676655900 // 2pi | tau
-#define T_PI_2       1.57079632679489661923132169163975 // pi/2
-#define T_PI_3       1.04719755119659774615421446109316 // pi/3
-#define T_PI_4       0.78539816339744830961566084581987 // pi/4
-#define T_PI_6       0.52359877559829887307710723054658 // pi/6
-#define T_PI_8       0.39269908169872415480783042290993 // pi/8
-#define T_PI_9       0.34906585039886591538473815369772 // pi/9
-#define T_PI_12      0.26179938779914943653855361527329 // pi/12
-#define T_2_PI_3     2.09439510239319549230842892218633 // 2pi/3
-#define T_3_PI_4     2.35619449019234492884698253745962 // 3pi/4
-#define T_4_PI_3     4.18879020478639098461685784437267 // 4pi/3
-#define T_3_PI_2     4.71238898038468985769396507491925 // 3pi/2
-#define T_5_PI_3     5.23598775598298873077107230546583 // 5pi/3
-#define T_11_PI_6    5.75958653158128760384817953601242 // 11pi/6
-#define T_1_PI       0.31830988618379067153776752674502 // 1/pi
-#define T_2_PI       0.63661977236758134307553505349005 // 2/pi
-#define T_PI__2      9.86960440108935861883449099987615 // pi**2
-#define T_PI__3      31.0062766802998201754763150671013 // pi**3
-#define T_SQRT_PI    1.77245385090551602729816748334114 // sqrt(pi)
-#define T_CBRT_PI    1.46459188756152326302014252726379 // cbrt(pi)
-#define T_1_SQRT_PI  0.56418958354775628694807945156077 // 1/sqrt(pi)
-#define T_2_SQRT_PI  1.12837916709551257389615890312154 // 2/sqrt(pi)
-#define T_1_SQRT_2PI 0.39894228040143267793994605993438 // 1/sqrt(2pi)
-#define T_2_SQRT_2PI 0.79788456080286535587989211986876 // 2/sqrt(2pi)
+template<typename T>
+inline constexpr T T_PI         = 3.14159265358979323846264338327950; // pi
+
+template<typename T>
+inline constexpr T T_2PI        = 6.28318530717958647692528676655900; // 2pi | tau
+
+template<typename T>
+inline constexpr T T_PI_2       = 1.57079632679489661923132169163975; // pi/2
+
+template<typename T>
+inline constexpr T T_PI_3       = 1.04719755119659774615421446109316; // pi/3
+
+template<typename T>
+inline constexpr T T_PI_4       = 0.78539816339744830961566084581987; // pi/4
+
+template<typename T>
+inline constexpr T T_PI_6       = 0.52359877559829887307710723054658; // pi/6
+
+template<typename T>
+inline constexpr T T_PI_8       = 0.39269908169872415480783042290993; // pi/8
+
+template<typename T>
+inline constexpr T T_PI_9       = 0.34906585039886591538473815369772; // pi/9
+
+template<typename T>
+inline constexpr T T_PI_12      = 0.26179938779914943653855361527329; // pi/12
+
+template<typename T>
+inline constexpr T T_2_PI_3     = 2.09439510239319549230842892218633; // 2pi/3
+
+template<typename T>
+inline constexpr T T_3_PI_4     = 2.35619449019234492884698253745962; // 3pi/4
+
+template<typename T>
+inline constexpr T T_4_PI_3     = 4.18879020478639098461685784437267; // 4pi/3
+
+template<typename T>
+inline constexpr T T_3_PI_2     = 4.71238898038468985769396507491925; // 3pi/2
+
+template<typename T>
+inline constexpr T T_5_PI_3     = 5.23598775598298873077107230546583; // 5pi/3
+
+template<typename T>
+inline constexpr T T_11_PI_6    = 5.75958653158128760384817953601242; // 11pi/6
+
+template<typename T>
+inline constexpr T T_1_PI       = 0.31830988618379067153776752674502; // 1/pi
+
+template<typename T>
+inline constexpr T T_2_PI       = 0.63661977236758134307553505349005; // 2/pi
+
+template<typename T>
+inline constexpr T T_PI__2      = 9.86960440108935861883449099987615; // pi**2
+
+template<typename T>
+inline constexpr T T_PI__3      = 31.0062766802998201754763150671013; // pi**3
+
+template<typename T>
+inline constexpr T T_SQRT_PI    = 1.77245385090551602729816748334114; // sqrt(pi)
+
+template<typename T>
+inline constexpr T T_CBRT_PI    = 1.46459188756152326302014252726379; // cbrt(pi)
+
+template<typename T>
+inline constexpr T T_1_SQRT_PI  = 0.56418958354775628694807945156077; // 1/sqrt(pi)
+
+template<typename T>
+inline constexpr T T_2_SQRT_PI  = 1.12837916709551257389615890312154; // 2/sqrt(pi)
+
+template<typename T>
+inline constexpr T T_1_SQRT_2PI = 0.39894228040143267793994605993438; // 1/sqrt(2pi)
+
+template<typename T>
+inline constexpr T T_2_SQRT_2PI = 0.79788456080286535587989211986876; // 2/sqrt(2pi)
 
 #define T_PI_E       8.53973422267356706546355086954657 // pi*e
 #define T_PI__E      22.4591577183610454734271522045437 // pi**e
@@ -69,3 +118,15 @@
 #define T_2SQRT_2    2.82842712474619009760337744841939 // 2sqrt(2)
 #define T_SQRT_3     1.73205080756887729352744634150587 // sqrt(3) | 3/sqrt(3)
 #define T_1_SQRT_3   0.57735026918962576450914878050195 // sqrt(3)/3 | 1/sqrt(3) | 1/3 * sqrt(3)
+
+/**
+ * Equal to pi/180.
+ */
+template<typename T>
+inline constexpr T RADIANS_TO_DEGREES_CONVERTER_VAL = 57.29577951308232087679815481410517;
+/**
+* Equal to 180/pi
+*/
+template<typename T>
+inline constexpr T DEGREES_TO_RADIANS_CONVERTER_VAL = 0.017453292519943295769236907684886;
+

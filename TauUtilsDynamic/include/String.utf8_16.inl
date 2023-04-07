@@ -6,7 +6,7 @@
 
 namespace tau::string::utf8_16 {
 
-[[nodiscard]] inline iSys CalculateCodeUnits(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
+[[nodiscard]] inline iSys CalculateCodeUnits(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0, const bool skipBom = false) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
@@ -23,7 +23,7 @@ namespace tau::string::utf8_16 {
         }
     }
 
-    iSys outCodeUnits = priorCodeUnits + 1; // Prior code points, plus BOM
+    iSys outCodeUnits = priorCodeUnits + (skipBom ? 0 : 1); // Prior code points, plus BOM
     for(iSys i = startingIndex; i < inCodeUnits;)
     {
         if((inString[i] & 0x80) == 0) // 1 Byte
@@ -65,7 +65,7 @@ namespace tau::string::utf8_16 {
     return outCodeUnits;
 }
 
-[[nodiscard]] inline iSys CalculateCodeUnits(const c16* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
+[[nodiscard]] inline iSys CalculateCodeUnits(const c16* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0, const bool skipBom = false) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
@@ -85,7 +85,7 @@ namespace tau::string::utf8_16 {
         }
     }
 
-    iSys outCodeUnits = priorCodeUnits + 3; // Prior code points
+    iSys outCodeUnits = priorCodeUnits + (skipBom ? 0 : 3); // Prior code points
     for(iSys i = startingIndex; i < inCodeUnits;)
     {
         if(!flipEndian)
@@ -143,7 +143,7 @@ namespace tau::string::utf8_16 {
     return outCodeUnits;
 }
     
-inline iSys Transform(const c8* const inString, c16* const outString, const iSys inCodeUnits, const iSys outCodeUnits, const bool flipEndian = false) noexcept
+inline iSys Transform(const c8* const inString, c16* const outString, const iSys inCodeUnits, const iSys outCodeUnits, const bool flipEndian = false, const bool skipBom = false) noexcept
 {
     using namespace tau::string::utf8;
     using namespace tau::string::utf16;
@@ -151,19 +151,22 @@ inline iSys Transform(const c8* const inString, c16* const outString, const iSys
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 
-    if(!outString || outCodeUnits <= 0 || outCodeUnits < inCodeUnits * 2) // Just count if the outString is null or too short.
+    if(!outString || outCodeUnits <= 0 || outCodeUnits < inCodeUnits) // Just count if the outString is null or too short.
     {
         return utf8_16::CalculateCodeUnits(inString, inCodeUnits);
     }
     else
     {
-        if(flipEndian)
+        if(!skipBom)
         {
-            outString[0] = 0xFFFE;
-        }
-        else
-        {
-            outString[0] = 0xFEFF;
+            if(flipEndian)
+            {
+                outString[0] = 0xFFFE;
+            }
+            else
+            {
+                outString[0] = 0xFEFF;
+            }
         }
 
         iSys startingIndex = 0;
@@ -177,7 +180,7 @@ inline iSys Transform(const c8* const inString, c16* const outString, const iSys
             }
         }
 
-        iSys outCodeUnit = 1;
+        iSys outCodeUnit = skipBom ? 0 : 1;
         for(iSys i = startingIndex; i < inCodeUnits; ++i)
         {
             const c32 c = DecodeCodePointForwardUnsafe(inString, i, inCodeUnits);
@@ -195,7 +198,7 @@ inline iSys Transform(const c8* const inString, c16* const outString, const iSys
     }
 }
 
-inline iSys Transform(const c16* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+inline iSys Transform(const c16* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits, const bool skipBom = false) noexcept
 {
     using namespace tau::string::utf8;
     using namespace tau::string::utf16;
@@ -225,11 +228,14 @@ inline iSys Transform(const c16* const inString, c8* const outString, const iSys
             }
         }
 
-        outString[0] = 0xEF;
-        outString[1] = 0xBB;
-        outString[2] = 0xBF;
+        if(!skipBom)
+        {
+            outString[0] = 0xEF;
+            outString[1] = 0xBB;
+            outString[2] = 0xBF;
+        }
 
-        iSys outCodeUnit = 3;
+        iSys outCodeUnit = skipBom ? 0 : 3;
         for(iSys i = startingIndex; i < inCodeUnits; ++i)
         {
             const c32 c = DecodeCodePointForwardUnsafe(inString, i, inCodeUnits, flipEndian);
@@ -247,134 +253,4 @@ inline iSys Transform(const c16* const inString, c8* const outString, const iSys
     }
 }
     
-}
-
-template<>
-inline DynStringT<c8> StringCast(const DynStringT<c16>& string) noexcept
-{
-    const c16* const rawStr = string.String();
-
-    const iSys len = tau::string::utf8_16::CalculateCodeUnits(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c8>();
-    }
-
-    if(len < 16)
-    {
-        c8 newStr[16];
-        newStr[len] = U'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len) <= 0)
-        {
-            return DynStringT<c8>();
-        }
-
-        return DynStringT(static_cast<const c8*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c8));
-
-        if(!placement)
-        {
-            return DynStringT<c8>();
-        }
-
-        ReferenceCounter::Type* const refCount = ::new(placement) ReferenceCounter::Type(1);
-        c8* const newStr = ::new(refCount + 1) c8[len + 1];
-        newStr[len] = U'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c8>();
-        }
-
-        return DynStringT<c8>::passControl(refCount, newStr, len, [](const c8* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
-}
-
-template<>
-inline DynStringT<c16> StringCast(const DynStringT<c8>& string) noexcept
-{
-    const c8* const rawStr = string.String();
-
-    const iSys len = tau::string::utf8_16::CalculateCodeUnits(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c16>();
-    }
-
-    if(len < 16)
-    {
-        c16 newStr[16];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16) <= 0)
-        {
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>(static_cast<const c16*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c16));
-
-        ReferenceCounter::Type* const refCount = ::new(placement) ReferenceCounter::Type(1);
-        c16* const newStr = ::new(refCount + 1) c16[len + 1];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>::passControl(refCount, newStr, len, [](const c16* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
-}
-
-inline DynStringT<c16> StringCastFlipEndian(const DynStringT<c8>& string) noexcept
-{
-    const c8* const rawStr = string.String();
-
-    const iSys len = tau::string::utf8_16::CalculateCodeUnits(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c16>();
-    }
-
-    if(len < 16)
-    {
-        c16 newStr[16];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16, true) <= 0)
-        {
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>(static_cast<const c16*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c16));
-
-        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
-        c16* const newStr = new(refCount + 1) c16[len + 1];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf8_16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len, true) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>::passControl(refCount, newStr, len, [](const c16* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
 }

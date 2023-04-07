@@ -4,8 +4,6 @@
 #include "String.hpp"
 #endif
 
-#include "allocator/TauAllocator.hpp"
-
 namespace tau::string::utf16 {
 
 [[nodiscard]] inline c32 DecodeCodePointForwardUnsafe(const c16* const str, iSys& index, const iSys inCodeUnits, const bool flipEndian = false) noexcept
@@ -103,88 +101,6 @@ inline iSys EncodeCodePoint(const c32 c, c16* const outString, iSys& outCodeUnit
     return 0;
 }
 
-[[nodiscard]] inline c32 DecodeCodePointForward(const StringData<c16>& string, uSys& index, const bool flipEndian = false) noexcept
-{
-    if(index >= string.Length)
-    { return U'\0'; }
-
-    const c16* const str = string.String();
-    const c32 ret = DecodeCodePointForwardUnsafe(str, reinterpret_cast<iSys&>(index), static_cast<iSys>(string.Length), flipEndian);
-    return ret == static_cast<c32>(-1) ? U'\0' : ret;
-}
-
-[[nodiscard]] inline c32 DecodeCodePointBackward(const StringData<c16>& string, uSys& index, const bool flipEndian = false) noexcept
-{
-    if(index >= string.Length)
-    { return U'\0'; }
-
-    const c16* const str = string.String();
-
-    if(!flipEndian)
-    {
-        if(str[index] <= 0xD7FF || str[index] >= 0xE000)
-        {
-            const c32 ret = static_cast<c32>(str[index]);
-            if(index != 0)
-            { --index; }
-
-            return ret;
-        }
-        else
-        {
-            if(index == 0)
-            { return U'\0'; }
-            
-            const c32 lowBits = str[index--] - 0xDC00;
-            const c32 highBits = (str[index] - 0xD800) << 10;
-
-            if(index == 0)
-            {
-                ++index; // Reset pos
-            }
-            else
-            {
-                --index;
-            }
-
-            return (highBits | lowBits) + 0x10000;
-        }
-    }
-    else
-    {
-        const c8* const byteStream = reinterpret_cast<const c8*>(str);
-
-        const c16 codeUnit = (static_cast<c16>(byteStream[index * 2]) << 8) | byteStream[index * 2 + 1];
-
-        if(codeUnit <= 0xD7FF || (codeUnit >= 0xE000 && codeUnit <= 0xFFFF))
-        {
-            if(index != 0)
-            { --index; }
-            return static_cast<c32>(codeUnit);
-        }
-        else
-        {
-            if(index == 0)
-            { return U'\0'; }
-
-            --index;
-
-            const c32 highBits = (static_cast<c16>(byteStream[index * 2]) << 8) | byteStream[index * 2 + 1];
-
-            if(index == 0)
-            {
-                ++index; // Reset pos
-            }
-            else
-            {
-                --index;
-            }
-
-            return ((highBits << 10) | static_cast<c32>(codeUnit)) + 0x10000;
-        }
-    }
-}
-
 [[nodiscard]] inline iSys CalculateCodePoints(const c16* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodePoints = 0) noexcept
 {
     if(!inString || inCodeUnits <= 0)
@@ -236,12 +152,12 @@ inline iSys EncodeCodePoint(const c32 c, c16* const outString, iSys& outCodeUnit
     return outCodePoints;
 }
 
-[[nodiscard]] inline iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
+[[nodiscard]] inline iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0, const bool skipBom = false) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 
-    iSys outCodeUnits = priorCodeUnits + 1;
+    iSys outCodeUnits = priorCodeUnits + (skipBom ? 0 : 1);
     for(iSys i = startCodeUnit; i < inCodeUnits; ++i)
     {
         if(inString[i] <= 0xD7FF || (inString[i] >= 0xE000 && inString[i] <= 0xFFFF)) // 1 Short
@@ -304,27 +220,30 @@ inline iSys Transform(const c16* const inString, c32* const outString, const iSy
     }
 }
     
-inline iSys Transform(const c32* const inString, c16* const outString, const iSys inCodeUnits, const iSys outCodeUnits, const bool flipEndian = false) noexcept
+inline iSys Transform(const c32* const inString, c16* const outString, const iSys inCodeUnits, const iSys outCodeUnits, const bool flipEndian = false, const bool skipBom = false) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 
-    if(!outString || outCodeUnits <= 0 || outCodeUnits < inCodeUnits + 1) // Just count if the outString is null or too short.
+    if(!outString || outCodeUnits <= 0 || outCodeUnits < inCodeUnits) // Just count if the outString is null or too short.
     {
         return CalculateCodeUnits(inString, inCodeUnits);
     }
     else
     {
-        if(flipEndian)
+        if(!skipBom)
         {
-            outString[0] = 0xFFFE;
-        }
-        else
-        {
-            outString[0] = 0xFEFF;
+            if(flipEndian)
+            {
+                outString[0] = 0xFFFE;
+            }
+            else
+            {
+                outString[0] = 0xFEFF;
+            }
         }
 
-        iSys outCodeUnit = 1;
+        iSys outCodeUnit = skipBom ? 0 : 1;
         for(iSys i = 0; i < inCodeUnits; ++i)
         {
             const iSys priorCodeUnitsModifier = EncodeCodePoint(inString[i], outString, outCodeUnit, outCodeUnits, flipEndian);
@@ -338,180 +257,4 @@ inline iSys Transform(const c32* const inString, c16* const outString, const iSy
     }
 }
 
-}
-
-#define C16_INDEX_FLIP_BIT (uSys{1} << ((sizeof(uSys) * CHAR_BIT) - 1))
-
-template<>
-inline DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
-    : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
-{
-    if(index == 0 && string.String()[0] == 0xFFFE)
-    {
-        m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(string, m_Index);
-        m_Index |= C16_INDEX_FLIP_BIT;
-    }
-    else
-    {
-        m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(string, m_Index);
-    }
-}
-
-template<>
-inline DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator++() noexcept
-{
-    ++m_Index;
-    uSys index = m_Index & ~C16_INDEX_FLIP_BIT;
-    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(m_String, index);
-    m_Index = index | C16_INDEX_FLIP_BIT;
-    return *this;
-}
-
-template<>
-inline DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator--() noexcept
-{
-    uSys index = m_Index & ~C16_INDEX_FLIP_BIT;
-    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointBackward(m_String, index);
-    m_Index = index | C16_INDEX_FLIP_BIT;
-    return *this;
-}
-
-template<>
-inline bool DynStringCodePointIteratorT<c16>::operator==(const DynStringCodePointIteratorT<c16>& other) const noexcept
-{ return (m_Index & ~C16_INDEX_FLIP_BIT) == (other.m_Index & ~C16_INDEX_FLIP_BIT); }
-
-template<>
-inline bool DynStringCodePointIteratorT<c16>::operator!=(const DynStringCodePointIteratorT<c16>& other) const noexcept
-{ return (m_Index & ~C16_INDEX_FLIP_BIT) != (other.m_Index & ~C16_INDEX_FLIP_BIT); }
-
-template<>
-inline DynStringT<c32> StringCast(const DynStringT<c16>& string) noexcept
-{
-    const c16* const rawStr = string.String();
-
-    const iSys len = tau::string::utf16::CalculateCodePoints(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c32>();
-    }
-
-    if(len < 16)
-    {
-        c32 newStr[16];
-        newStr[len] = U'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len) <= 0)
-        {
-            return DynStringT<c32>();
-        }
-
-        return DynStringT(static_cast<const c32*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c32));
-
-        if(!placement)
-        {
-            return DynStringT<c32>();
-        }
-
-        ReferenceCounter::Type* const refCount = ::new(placement) ReferenceCounter::Type(1);
-        c32* const newStr = ::new(refCount + 1) c32[len + 1];
-        newStr[len] = U'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c32>();
-        }
-
-        return DynStringT<c32>::passControl(refCount, newStr, len, [](const c32* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
-}
-
-template<>
-inline DynStringT<c16> StringCast(const DynStringT<c32>& string) noexcept
-{
-    const c32* const rawStr = string.String();
-
-    const iSys len = tau::string::utf16::CalculateCodeUnits(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c16>();
-    }
-
-    if(len < 16)
-    {
-        c16 newStr[16];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16) <= 0)
-        {
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>(static_cast<const c16*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c16));
-
-        ReferenceCounter::Type* const refCount = ::new(placement) ReferenceCounter::Type(1);
-        c16* const newStr = ::new(refCount + 1) c16[len + 1];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>::passControl(refCount, newStr, len, [](const c16* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
-}
-
-inline DynStringT<c16> StringCastFlipEndian(const DynStringT<c32>& string) noexcept
-{
-    const c32* const rawStr = string.String();
-
-    const iSys len = tau::string::utf16::CalculateCodeUnits(rawStr, static_cast<iSys>(string.Length()));
-
-    if(len < 0)
-    {
-        return DynStringT<c16>();
-    }
-
-    if(len < 16)
-    {
-        c16 newStr[16];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16, true) <= 0)
-        {
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>(static_cast<const c16*>(newStr));
-    }
-    else
-    {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + (len + 1) * sizeof(c16));
-
-        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
-        c16* const newStr = new(refCount + 1) c16[len + 1];
-        newStr[len] = u'\0';
-
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len, true) <= 0)
-        {
-            ::TauUtilsDeallocate(placement);
-            return DynStringT<c16>();
-        }
-
-        return DynStringT<c16>::passControl(refCount, newStr, len, [](const c16* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
-    }
 }

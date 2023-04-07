@@ -8,8 +8,8 @@ target_include_directories(Testing PUBLIC include)
 # Set the source directory.
 target_include_directories(Testing PRIVATE src)
 
-# Include TauUtilsStatic
-target_link_libraries(Testing PUBLIC TauUtilsStatic)
+# # Include TauUtilsStatic
+# target_link_libraries(Testing PUBLIC TauUtilsStatic)
 # Include TauUtilsDynamic
 #target_link_libraries(Testing PUBLIC TauUtilsDynamicStatic)
 # Include TauUtilsDynamic

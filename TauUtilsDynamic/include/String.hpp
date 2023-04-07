@@ -588,10 +588,6 @@ private:
 template<typename Char>
 class StringBuilderT final
 {
-private:
-    Char* _string;
-    uSys _length;
-    uSys _size;
 public:
     StringBuilderT() noexcept;
     StringBuilderT(uSys initialSize) noexcept;
@@ -605,19 +601,19 @@ public:
     StringBuilderT<Char>& operator =(const StringBuilderT<Char>& copy) noexcept;
     StringBuilderT<Char>& operator =(StringBuilderT<Char>&& move) noexcept;
 
-    [[nodiscard]] const Char* String() const noexcept { return _string; }
-    [[nodiscard]] const Char* c_str() const noexcept { return _string; }
-    [[nodiscard]] uSys Length() const noexcept { return _length; }
-    [[nodiscard]] uSys length() const noexcept { return _length; }
-    [[nodiscard]] uSys Size() const noexcept { return _size; }
-    [[nodiscard]] uSys size() const noexcept { return _size; }
+    [[nodiscard]] const Char* String() const noexcept { return m_String; }
+    [[nodiscard]] const Char* c_str() const noexcept { return m_String; }
+    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys length() const noexcept { return m_Length; }
+    [[nodiscard]] uSys Size() const noexcept { return m_Size; }
+    [[nodiscard]] uSys size() const noexcept { return m_Size; }
 
     [[nodiscard]] bool equals(const StringBuilderT<Char>& other) const noexcept;
 
     [[nodiscard]] i32 compareTo(const StringBuilderT<Char>& other) const noexcept;
 
-    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(_string, _length, 0); }
-    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(_string, _length, _length - 1); }
+    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
+    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
     inline StringBuilderT<Char>& append(const StringBaseT<Char>& string) noexcept;
     inline StringBuilderT<Char>& append(const ConstExprStringT<Char>& string) noexcept;
@@ -628,6 +624,19 @@ public:
     template<typename CharDeduced = Char>
     inline StringBuilderT<Char>& append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept;
     inline StringBuilderT<Char>& append(c32 c) noexcept;
+
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const StringBaseT<CharFrom>& string) noexcept;
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const ConstExprStringT<CharFrom>& string) noexcept;
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const DynStringT<CharFrom>& string) noexcept;
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const DynStringViewT<CharFrom>& string) noexcept;
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const StringBuilderT<CharFrom>& string) noexcept;
+    template<typename CharFrom>
+    inline StringBuilderT<Char>& append(const CharFrom* string) noexcept;
 
     inline StringBuilderT<Char>& reset() noexcept;
     inline StringBuilderT<Char>& reset(uSys newSize) noexcept;
@@ -659,12 +668,25 @@ public:
     inline StringBuilderT<Char>& operator +=(const StringBuilderT<Char>& other)   noexcept { return append(other); }
     inline StringBuilderT<Char>& operator +=(const Char* other)                   noexcept { return append(other); }
 
-    [[nodiscard]] inline DynStringT<Char> toString() const noexcept { return DynStringT<Char>(_string); }
+    [[nodiscard]] inline DynStringT<Char> toString() const noexcept { return DynStringT<Char>(m_String); }
 
     [[nodiscard]] inline Char operator[](uSys index) const noexcept;
     [[nodiscard]] inline Char at(uSys index) const noexcept;
 private:
-    void append(const Char* string, uSys length) noexcept;
+    void AssertSize(uSys newLength) noexcept;
+
+    void Append(const Char* string, uSys length) noexcept;
+
+    template<typename CharFrom>
+    void Append(const CharFrom* string, uSys length) noexcept;
+
+    void append(const Char* const string, const uSys length) noexcept { Append(string, length); }
+    template<typename CharFrom>
+    void append(const CharFrom* const string, const uSys length) noexcept { Append(string, length); }
+private:
+    Char* m_String;
+    uSys m_Length;
+    uSys m_Size;
 };
 
 template<typename CharTo, typename CharFrom>
@@ -706,8 +728,10 @@ using C8StringBuilder = StringBuilderT<c8>;
 using C16StringBuilder = StringBuilderT<c16>;
 using C32StringBuilder = StringBuilderT<c32>;
 
-#include "String.inl"
 #include "String.utf8.inl"
 #include "String.utf16.inl"
 #include "String.utf8_16.inl"
+#include "String.inl"
+#include "String.UnicodeIterator.inl"
+#include "String.Cast.inl"
 #include "String.Unicode.inl"

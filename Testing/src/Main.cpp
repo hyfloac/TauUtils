@@ -14,10 +14,10 @@ extern void JsonTests();
 int main(int argCount, char* args[]){
     Console::Create();
     Console::Init();
-    // StringTests();
+    StringTests();
     // RefTests();
     // DragonTests();
-    MathTests();
+    // MathTests();
     // Base64Tests();
     // JsonTests();
 

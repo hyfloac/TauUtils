@@ -125,8 +125,39 @@ static void ToStringTests()
     ConPrinter::PrintLn();
 }
 
+template<typename Char>
+static void TestStringBuilderT(const Char* const helloWorld)
+{
+    StringBuilderT<Char> builder;
+    builder.append(u8"Hello");
+    builder.append(u",");
+    builder.append(U" ");
+    builder.append("World");
+    builder.append(L"!");
+
+    const DynStringT<Char> str = builder.toString();
+
+    TAU_UNIT_EQ(str, helloWorld, "Appended string did not match a raw string literal.");
+
+    ConPrinter::PrintLn("{}", str);
+}
+
+static void TestStringBuilder()
+{
+    TAU_UNIT_TEST();
+
+    {
+        TestStringBuilderT<c8>(u8"Hello, World!");
+        TestStringBuilderT<c16>(u"Hello, World!");
+        TestStringBuilderT<c32>(U"Hello, World!");
+        TestStringBuilderT<char>("Hello, World!");
+        TestStringBuilderT<wchar_t>(L"Hello, World!");
+    }
+}
+
 void StringTests()
 {
     TestIterateCodeUnits();
     ToStringTests();
+    TestStringBuilder();
 }

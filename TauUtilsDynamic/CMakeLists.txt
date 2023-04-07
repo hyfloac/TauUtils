@@ -27,9 +27,9 @@ target_include_directories(TauUtilsDynamicStatic PUBLIC include)
 target_include_directories(TauUtilsDynamicShared PRIVATE src)
 target_include_directories(TauUtilsDynamicStatic PRIVATE src)
 
-# Include TauUtilsStatic
-target_link_libraries(TauUtilsDynamicShared PUBLIC TauUtilsStatic)
-target_link_libraries(TauUtilsDynamicStatic PUBLIC TauUtilsStatic)
+# # Include TauUtilsStatic
+# target_link_libraries(TauUtilsDynamicShared PUBLIC TauUtilsStatic)
+# target_link_libraries(TauUtilsDynamicStatic PUBLIC TauUtilsStatic)
 
 # Set C++20
 target_compile_features(TauUtilsDynamicShared PUBLIC cxx_std_20)
