@@ -142,6 +142,19 @@ template<>
 struct MaxCharCount<bool> final
 { static constexpr uSys Value = 5; };
 
+template<>
+struct MaxCharCount<c8> final
+{ static constexpr uSys Value = MaxCharCount<u8>::Value; };
+
+template<>
+struct MaxCharCount<c16> final
+{ static constexpr uSys Value = MaxCharCount<u16>::Value; };
+
+template<>
+struct MaxCharCount<c32> final
+{ static constexpr uSys Value = MaxCharCount<u32>::Value; };
+
+
 template<typename Int, typename Char>
 inline i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
 {
