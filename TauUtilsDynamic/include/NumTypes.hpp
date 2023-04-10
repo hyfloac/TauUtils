@@ -148,3 +148,24 @@ struct IntMaxMin<u64> final
     static constexpr u64 Min = 0;
     static constexpr u64 Max = UINT64_MAX;
 };
+
+template<>
+struct IntMaxMin<c8> final
+{
+    static constexpr c8 Min = 0;
+    static constexpr c8 Max = UINT8_MAX;
+};
+
+template<>
+struct IntMaxMin<c16> final
+{
+    static constexpr c16 Min = 0;
+    static constexpr c16 Max = UINT16_MAX;
+};
+
+template<>
+struct IntMaxMin<c32> final
+{
+    static constexpr c32 Min = 0;
+    static constexpr c32 Max = UINT32_MAX;
+};
