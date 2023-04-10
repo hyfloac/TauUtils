@@ -15,7 +15,7 @@ template<typename... Args>
 inline ReferenceCountDataObject<T>::ReferenceCountDataObject(TauAllocator& allocator, Args&&... args) noexcept
     : m_RefCount(1)
     , m_Allocator(allocator)
-{ (void) new(this + 1) Type(TauAllocatorUtils::Forward<Args>(args)...); }
+{ (void) ::new(this + 1) Type(TauAllocatorUtils::Forward<Args>(args)...); }
 
 template<typename T>
 inline constexpr ReferenceCountDataObject<T>::ReferenceCountDataObject(nullptr_t) noexcept
@@ -42,7 +42,7 @@ inline SWReferenceCount<T>::SWReferenceCount(TauAllocator& allocator, Args&&... 
     : m_StrongRefCount(1)
     , m_WeakRefCount(0)
     , m_Allocator(allocator)
-{ (void) new(this + 1) T(TauAllocatorUtils::Forward<Args>(args)...); }
+{ (void) ::new(this + 1) T(TauAllocatorUtils::Forward<Args>(args)...); }
 
 template<typename T>
 inline constexpr SWReferenceCount<T>::SWReferenceCount(nullptr_t) noexcept
@@ -107,7 +107,7 @@ ReferenceCountingPointer<T>::ReferenceCountingPointer(Allocator& allocator, Args
     : _rcdo(nullptr)
 {
     void* const raw = allocator.Allocate(AllocSize());
-    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
+    _rcdo = ::new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -116,7 +116,7 @@ ReferenceCountingPointer<T>::ReferenceCountingPointer(Arg0&& arg0, Args&&... arg
     : _rcdo(nullptr)
 {
     void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
-    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
+    _rcdo = ::new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -278,7 +278,7 @@ inline void ReferenceCountingPointer<T>::Reset(Allocator& allocator, Args&&... a
     { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     void* const raw = allocator.Allocate(AllocSize());
-    _rcdo = new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
+    _rcdo = ::new(raw) RCDO<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -289,7 +289,7 @@ inline void ReferenceCountingPointer<T>::Reset(Arg0&& arg0, Args&&... args) noex
     { _rcdo->m_Allocator.DeallocateT(_rcdo); }
 
     void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
-    _rcdo = new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
+    _rcdo = ::new(raw) RCDO<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -322,7 +322,7 @@ StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(Allocator& all
     : _swrc(nullptr)
 {
     void* const raw = allocator.Allocate(AllocSize());
-    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
+    _swrc = ::new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -331,7 +331,7 @@ StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(Arg0&& arg0, A
     : _swrc(nullptr)
 {
     void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
-    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
+    _swrc = ::new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -601,7 +601,7 @@ inline void StrongReferenceCountingPointer<T>::Reset(Allocator& allocator, Args&
     { _swrc->ReleaseStrong(); }
 
     void* const raw = allocator.Allocate(AllocSize());
-    _swrc = new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
+    _swrc = ::new(raw) SWRC<T>(allocator, TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
@@ -619,7 +619,7 @@ inline void StrongReferenceCountingPointer<T>::Reset(Arg0&& arg0, Args&&... args
     { _swrc->ReleaseStrong(); }
 
     void* const raw = DefaultTauAllocator::Instance().Allocate(AllocSize());
-    _swrc = new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
+    _swrc = ::new(raw) SWRC<T>(DefaultTauAllocator::Instance(), TauAllocatorUtils::Forward<Arg0>(arg0), TauAllocatorUtils::Forward<Args>(args)...);
 }
 
 template<typename T>
