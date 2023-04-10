@@ -36,51 +36,51 @@ private:
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
 
-        m_Builder.append(u8'\"');
-        m_Builder.append(root->String());
-        m_Builder.append(u8'\"');
+        m_Builder.Append(u8'\"');
+        m_Builder.Append(root->String());
+        m_Builder.Append(u8'\"');
     }
 
     void Write(const StrongRef<JInteger>& root) noexcept
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
 
         c8 buffer[::tau::MaxCharCount<i64>::Value];
         ::tau::ItoA(root->I64(), buffer, ::tau::MaxCharCount<i64>::Value);
 
-        m_Builder.append(buffer);
+        m_Builder.Append(buffer);
     }
 
     void Write(const StrongRef<JReal>& root) noexcept
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
 
         c8 buffer[256];
         (void) PrintFloat64(buffer, ::std::size(buffer), root->Double(), PrintFloatFormat::Positional, 17);
-        m_Builder.append(buffer);
+        m_Builder.Append(buffer);
     }
 
     void Write(const StrongRef<JObject>& root) noexcept
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
 
-        m_Builder.append(u8'{');
+        m_Builder.Append(u8'{');
 
         bool hadPrevious = false;
 
@@ -88,13 +88,13 @@ private:
         {
             if(hadPrevious)
             {
-                m_Builder.append(u8',');
+                m_Builder.Append(u8',');
             }
 
-            m_Builder.append(u8'\"');
-            m_Builder.append(pair.first);
-            m_Builder.append(u8'\"');
-            m_Builder.append(u8':');
+            m_Builder.Append(u8'\"');
+            m_Builder.Append(pair.first);
+            m_Builder.Append(u8'\"');
+            m_Builder.Append(u8':');
 
             switch(pair.second->Type())
             {
@@ -111,18 +111,18 @@ private:
             hadPrevious = true;
         }
 
-        m_Builder.append(u8'}');
+        m_Builder.Append(u8'}');
     }
 
     void Write(const StrongRef<JArray>& root) noexcept
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
 
-        m_Builder.append(u8'[');
+        m_Builder.Append(u8'[');
 
         bool hadPrevious = false;
 
@@ -130,7 +130,7 @@ private:
         {
             if(hadPrevious)
             {
-                m_Builder.append(u8',');
+                m_Builder.Append(u8',');
             }
 
             switch(value->Type())
@@ -148,30 +148,30 @@ private:
             hadPrevious = true;
         }
 
-        m_Builder.append(u8']');
+        m_Builder.Append(u8']');
     }
 
     void Write(const StrongRef<JBool>& root) noexcept
     {
         if(!root)
         {
-            m_Builder.append(u8"null");
+            m_Builder.Append(u8"null");
             return;
         }
         
         if(root->Bool())
         {
-            m_Builder.append(u8"true");
+            m_Builder.Append(u8"true");
         }
         else
         {
-            m_Builder.append(u8"false");
+            m_Builder.Append(u8"false");
         }
     }
 
     void Write(const StrongRef<JNull>& root) noexcept
     {
-        m_Builder.append(u8"null");
+        m_Builder.Append(u8"null");
     }
 private:
     C8StringBuilder m_Builder;

@@ -128,12 +128,14 @@ static void ToStringTests()
 template<typename Char>
 static void TestStringBuilderT(const Char* const helloWorld)
 {
+    TAU_UNIT_TEST();
+
     StringBuilderT<Char> builder;
-    builder.append(u8"Hello");
-    builder.append(u",");
-    builder.append(U" ");
-    builder.append("World");
-    builder.append(L"!");
+    builder.Append(u8"Hello");
+    builder.Append(u",");
+    builder.Append(U" ");
+    builder.Append("World");
+    builder.Append(L"!");
 
     const DynStringT<Char> str = builder.toString();
 
@@ -144,14 +146,33 @@ static void TestStringBuilderT(const Char* const helloWorld)
 
 static void TestStringBuilder()
 {
+    TestStringBuilderT<c8>(u8"Hello, World!");
+    TestStringBuilderT<c16>(u"Hello, World!");
+    TestStringBuilderT<c32>(U"Hello, World!");
+    TestStringBuilderT<char>("Hello, World!");
+    TestStringBuilderT<wchar_t>(L"Hello, World!");
+}
+
+template<typename Char>
+static void TestStringFormatT(const Char* const helloWorld)
+{
+    const DynStringT<Char> str = Format<Char>("{}{}{}{}{}{}", u8"Hello", u",", U" ", "World", 0, L"!");
+
+    TAU_UNIT_EQ(str, helloWorld, "Appended string did not match a raw string literal.");
+
+    ConPrinter::PrintLn("{}", str);
+}
+
+static void TestStringFormat()
+{
     TAU_UNIT_TEST();
 
     {
-        TestStringBuilderT<c8>(u8"Hello, World!");
-        TestStringBuilderT<c16>(u"Hello, World!");
-        TestStringBuilderT<c32>(U"Hello, World!");
-        TestStringBuilderT<char>("Hello, World!");
-        TestStringBuilderT<wchar_t>(L"Hello, World!");
+        TestStringFormatT<c8>(u8"Hello, World0!");
+        TestStringFormatT<c16>(u"Hello, World0!");
+        TestStringFormatT<c32>(U"Hello, World0!");
+        TestStringFormatT<char>("Hello, World0!");
+        TestStringFormatT<wchar_t>(L"Hello, World0!");
     }
 }
 
@@ -160,4 +181,5 @@ void StringTests()
     TestIterateCodeUnits();
     ToStringTests();
     TestStringBuilder();
+    TestStringFormat();
 }

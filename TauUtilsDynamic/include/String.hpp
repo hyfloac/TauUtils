@@ -615,35 +615,40 @@ public:
     [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
     [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
-    inline StringBuilderT<Char>& append(const StringBaseT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& append(const ConstExprStringT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& append(const DynStringT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& append(const DynStringViewT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& append(const StringBuilderT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& append(const Char* string) noexcept;
+    inline StringBuilderT<Char>& Append(const StringBaseT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const ConstExprStringT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const DynStringT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const DynStringViewT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const StringBuilderT<Char>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const Char* string) noexcept;
     template<typename CharDeduced = Char>
-    inline StringBuilderT<Char>& append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept;
-    inline StringBuilderT<Char>& append(c32 c) noexcept;
+    inline StringBuilderT<Char>& Append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept;
+    inline StringBuilderT<Char>& Append(c32 c) noexcept;
 
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const StringBaseT<CharFrom>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const StringBaseT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const ConstExprStringT<CharFrom>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const ConstExprStringT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const DynStringT<CharFrom>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const DynStringT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const DynStringViewT<CharFrom>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const DynStringViewT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const StringBuilderT<CharFrom>& string) noexcept;
+    inline StringBuilderT<Char>& Append(const StringBuilderT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& append(const CharFrom* string) noexcept;
+    inline StringBuilderT<Char>& Append(const CharFrom* string) noexcept;
 
-    inline StringBuilderT<Char>& reset() noexcept;
-    inline StringBuilderT<Char>& reset(uSys newSize) noexcept;
-    inline StringBuilderT<Char>& resetIf(uSys maxSize, uSys newSize) noexcept;
+    inline StringBuilderT<Char>& Reset() noexcept;
+    inline StringBuilderT<Char>& Reset(uSys newSize) noexcept;
+    inline StringBuilderT<Char>& ResetIf(uSys maxSize, uSys newSize) noexcept;
+    inline StringBuilderT<Char>& reset() noexcept { return Reset(); }
+    inline StringBuilderT<Char>& reset(const uSys newSize) noexcept { return Reset(newSize); }
+    inline StringBuilderT<Char>& resetIf(const uSys maxSize, const uSys newSize) noexcept { return ResetIf(maxSize, newSize); }
 
-    inline StringBuilderT<Char>& backspace() noexcept;
-    inline StringBuilderT<Char>& backspace(uSys count) noexcept;
+    inline StringBuilderT<Char>& Backspace() noexcept;
+    inline StringBuilderT<Char>& Backspace(uSys count) noexcept;
+    inline StringBuilderT<Char>& backspace() noexcept { return Backspace(); }
+    inline StringBuilderT<Char>& backspace(const uSys count) noexcept { return Backspace(count); }
 
 #if __has_feature(__cpp_impl_three_way_comparison)
     [[nodiscard]] i32 operator <=> (const StringBuilderT<Char>& other) const noexcept { return compareTo(other); }
@@ -668,13 +673,15 @@ public:
     inline StringBuilderT<Char>& operator +=(const StringBuilderT<Char>& other)   noexcept { return append(other); }
     inline StringBuilderT<Char>& operator +=(const Char* other)                   noexcept { return append(other); }
 
+    [[nodiscard]] inline DynStringT<Char> ToString() const noexcept { return DynStringT<Char>(m_String); }
     [[nodiscard]] inline DynStringT<Char> toString() const noexcept { return DynStringT<Char>(m_String); }
 
     [[nodiscard]] inline Char operator[](uSys index) const noexcept;
-    [[nodiscard]] inline Char at(uSys index) const noexcept;
+    [[nodiscard]] inline Char At(uSys index) const noexcept;
+    [[nodiscard]] inline Char at(const uSys index) const noexcept { return At(index); }
 private:
     void AssertSize(uSys newLength) noexcept;
-
+public:
     void Append(const Char* string, uSys length) noexcept;
 
     template<typename CharFrom>

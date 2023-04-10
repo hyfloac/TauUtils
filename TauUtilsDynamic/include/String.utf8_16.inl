@@ -8,10 +8,12 @@ namespace tau::string::utf8_16 {
 
 [[nodiscard]] inline iSys CalculateCodeUnits(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0, const bool skipBom = false) noexcept
 {
-    if(!inString || inCodeUnits <= 0)
+    if(inCodeUnits == 0)
+    { return 0; }
+
+    if(!inString || inCodeUnits < 0)
     { return -1; }
 
-    
     iSys startingIndex = startCodeUnit;
     if(startingIndex == 0 && inCodeUnits >= 3)
     {
@@ -67,6 +69,9 @@ namespace tau::string::utf8_16 {
 
 [[nodiscard]] inline iSys CalculateCodeUnits(const c16* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0, const bool skipBom = false) noexcept
 {
+    if(inCodeUnits == 0)
+    { return 0; }
+
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 

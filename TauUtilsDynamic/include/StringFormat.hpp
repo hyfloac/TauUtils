@@ -344,7 +344,7 @@ inline u32 InternalFormat0(Context& context, const Char* fmt, CurrArg currArg, c
 }
 
 template<typename Context, typename Char, typename CurrArg, typename... Args>
-inline u32 InternalFormat0(Context& context, const StringBase& fmt, CurrArg currArg, const Args&... args) noexcept
+inline u32 InternalFormat0(Context& context, const StringBaseT<Char>& fmt, CurrArg currArg, const Args&... args) noexcept
 {
     return InternalFormat(context, fmt.String(), fmt.Length(), currArg, args...);
 }
@@ -385,3 +385,197 @@ struct NoOpFormatContext final
     u32 Handler(const f64 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
     { return 0; }
 };
+
+template<typename CharOut>
+struct StringFormatContext final
+{
+    template<typename Char>
+    u32 HandlerLength(const Char* const str, const uSys length) noexcept
+    {
+        Builder.Append(str, length);
+        return length;
+    }
+
+    u32 Handler(const char c) noexcept
+    {
+        Builder.Append(c);
+        return 1;
+    }
+
+    u32 Handler(const wchar_t c) noexcept
+    {
+        Builder.Append(c);
+        return 1;
+    }
+
+    u32 Handler(const c8 c) noexcept
+    {
+        Builder.Append(c);
+        return 1;
+    }
+
+    u32 Handler(const c16 c) noexcept
+    {
+        Builder.Append(c);
+        return 1;
+    }
+
+    u32 Handler(const c32 c) noexcept
+    {
+        Builder.Append(c);
+        return 1;
+    }
+
+    u32 Handler(const char* const str) noexcept
+    {
+        Builder.Append(str);
+        return strLength(str);
+    }
+
+    u32 Handler(const wchar_t* const str) noexcept
+    {
+        Builder.Append(str);
+        return strLength(str);
+    }
+
+    u32 Handler(const c8* const str) noexcept
+    {
+        Builder.Append(str);
+        return strLength(str);
+    }
+
+    u32 Handler(const c16* const str) noexcept
+    {
+        Builder.Append(str);
+        return strLength(str);
+    }
+
+    u32 Handler(const c32* const str) noexcept
+    {
+        Builder.Append(str);
+        return strLength(str);
+    }
+
+    u32 Handler(const bool b) noexcept
+    {
+        if(b)
+        {
+            constexpr c8 str[] = u8"true";
+            Builder.Append(str);
+            return cexpr::strlen(str);
+        }
+        else
+        {
+            constexpr c8 str[] = u8"false";
+            Builder.Append(str);
+            return cexpr::strlen(str);
+        }
+    }
+
+    template<typename Int>
+    inline u32 HandlerInt(const Int d) noexcept
+    {
+        CharOut buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::ItoA(d, buffer);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    template<typename T>
+    u32 Handler(const T* const p) noexcept
+    {
+        CharOut buffer[sizeof(uPtr) * 2 + 1];
+        (void) ::tau::XtoAP<true, T, CharOut, '0'>(reinterpret_cast<uPtr>(p), buffer);
+        Builder.Append(buffer, sizeof(uPtr) * 2);
+        return sizeof(uPtr) * 2;
+    }
+
+    template<typename Int>
+    u32 HandlerIntPad0(const Int d) noexcept
+    {
+        CharOut buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::ItoAP0(d, buffer);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    template<typename Int>
+    u32 HandlerIntPadS(const Int d) noexcept
+    {
+        CharOut buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::ItoAPS(d, buffer);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    template<bool Uppercase, typename Int>
+    u32 HandlerHex(const Int d) noexcept
+    {
+        CharOut buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::XtoA<Uppercase>(d, buffer);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    template<bool Uppercase, typename Int, CharOut PadChar = ' '>
+    u32 HandlerHexPad(const Int d) noexcept
+    {
+        CharOut buffer[::tau::MaxCharCount<Int>::Value + 1];
+        const i32 writeLen = ::tau::XtoAP<Uppercase, Int, CharOut, PadChar>(d, buffer);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    template<bool Uppercase, typename Int>
+    u32 HandlerHexPad0(const Int d) noexcept
+    {
+        return HandlerHexPad<Uppercase, Int, '0'>(d);
+    }
+
+    u32 Handler(const i8  d) noexcept { return HandlerInt(d); }
+    u32 Handler(const i16 d) noexcept { return HandlerInt(d); }
+    u32 Handler(const i32 d) noexcept { return HandlerInt(d); }
+    u32 Handler(const i64 d) noexcept { return HandlerInt(d); }
+
+    u32 Handler(const u8  d) noexcept { return HandlerInt(d); }
+    u32 Handler(const u16 d) noexcept { return HandlerInt(d); }
+    u32 Handler(const u32 d) noexcept { return HandlerInt(d); }
+    u32 Handler(const u64 d) noexcept { return HandlerInt(d); }
+
+    u32 Handler(const          long d) noexcept { return HandlerInt(d); }
+    u32 Handler(const unsigned long d) noexcept { return HandlerInt(d); }
+
+    u32 Handler(const f32 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
+    {
+        CharOut buffer[192];
+        const uSys writeLen = PrintFloat32(buffer, ::std::size(buffer), f, format, precision);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    u32 Handler(const f64 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
+    {
+        CharOut buffer[256];
+        const uSys writeLen = PrintFloat64(buffer, ::std::size(buffer), f, format, precision);
+        Builder.Append(buffer);
+        return writeLen;
+    }
+
+    StringBuilderT<CharOut> Builder;
+};
+
+template<typename CharOut, typename CharIn, typename CurrArg, typename... Args>
+inline DynStringT<CharOut> Format(const CharIn* fmt, CurrArg currArg, const Args&... args) noexcept
+{
+    StringFormatContext<CharOut> context;
+    InternalFormat0(context, fmt, currArg, args...);
+    return context.Builder.ToString();
+}
+
+template<typename CharOut, typename CharIn, typename CurrArg, typename... Args>
+inline DynStringT<CharOut> Format(const StringBaseT<CharIn>& fmt, CurrArg currArg, const Args&... args) noexcept
+{
+    StringFormatContext<CharOut> context;
+    InternalFormat0(context, fmt, currArg, args...);
+    return context.Builder.ToString();
+}

@@ -119,10 +119,12 @@ inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit,
 
 [[nodiscard]] inline iSys CalculateCodePoints(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodePoints = 0) noexcept
 {
+    if(inCodeUnits == 0)
+    { return 0; }
+
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 
-    
     iSys startingIndex = startCodeUnit;
     if(startingIndex == 0 && inCodeUnits >= 3)
     {
@@ -164,6 +166,9 @@ inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit,
 
 [[nodiscard]] inline iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
 {
+    if(inCodeUnits == 0)
+    { return 0; }
+
     if(!inString || inCodeUnits <= 0)
     { return -1; }
 
