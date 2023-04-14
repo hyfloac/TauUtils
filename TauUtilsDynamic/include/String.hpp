@@ -434,6 +434,7 @@ public:
     DynStringT<Char>& operator=(const Char* string) noexcept;
     DynStringT<Char>& operator=(const ConstExprStringT<Char>& string) noexcept;
     DynStringT<Char>& operator=(const DynStringViewT<Char>& string) noexcept;
+    DynStringT<Char>& operator=(const StringBaseT<Char>& string) noexcept;
 
     [[nodiscard]] [[tau::nonnull]] const Char* String() const noexcept override { return m_Data.String(); }
     [[nodiscard]] uSys Length() const noexcept override { return m_Data.Length; }

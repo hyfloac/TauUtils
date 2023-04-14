@@ -883,20 +883,20 @@ inline DynStringT<Char>::DynStringT(const uSys length, const Char* string) noexc
 
 template<typename Char>
 inline DynStringT<Char>::DynStringT(const ConstExprStringT<Char>& string) noexcept
-    : m_Data(string.String())
+    : m_Data(string.String(), string.Length())
     , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
 inline DynStringT<Char>::DynStringT(const DynStringViewT<Char>& string) noexcept
     : m_Data(string.String(), string.Length())
-    , m_Hash(findHashCode(string.String(), string.Length()))
+    , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
 inline DynStringT<Char>::DynStringT(const StringBaseT<Char>&string) noexcept
     : m_Data(string.String(), string.Length())
-    , m_Hash(findHashCode(string.String(), string.Length()))
+    , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
@@ -924,7 +924,7 @@ template<typename Char>
 inline DynStringT<Char>& DynStringT<Char>::operator=(const ConstExprStringT<Char>& string) noexcept
 {
     m_Data.Reset(string, string.Length());
-    m_Hash = findHashCode(string);
+    m_Hash = string.HashCode();
 
     return *this;
 }
@@ -933,7 +933,16 @@ template<typename Char>
 inline DynStringT<Char>& DynStringT<Char>::operator=(const DynStringViewT<Char>& string) noexcept
 {
     m_Data.Reset(string, string.Length());
-    m_Hash = findHashCode(string, string.Length());
+    m_Hash = string.HashCode();
+
+    return *this;
+}
+
+template<typename Char>
+inline DynStringT<Char>& DynStringT<Char>::operator=(const StringBaseT<Char>& string) noexcept
+{
+    m_Data.Reset(string, string.Length());
+    m_Hash = string.HashCode();
 
     return *this;
 }
