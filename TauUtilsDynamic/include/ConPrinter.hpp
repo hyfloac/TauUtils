@@ -119,7 +119,7 @@ template<typename T>
 inline u32 Print(const T* const p) noexcept
 {
     c16 buffer[sizeof(uPtr) * 2 + 1];
-    (void) ::tau::XtoAP<true, T, c16, u'0'>(reinterpret_cast<uPtr>(p), buffer);
+    (void) ::tau::XtoAP<true, uPtr, c16, u'0'>(reinterpret_cast<uPtr>(p), buffer);
     return Console::Write(buffer, sizeof(uPtr) * 2);
 }
 
