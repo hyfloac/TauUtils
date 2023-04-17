@@ -485,7 +485,7 @@ struct StringFormatContext final
     u32 Handler(const T* const p) noexcept
     {
         CharOut buffer[sizeof(uPtr) * 2 + 1];
-        (void) ::tau::XtoAP<true, T, CharOut, '0'>(reinterpret_cast<uPtr>(p), buffer);
+        (void) ::tau::XtoAP<true, uPtr, CharOut, '0'>(reinterpret_cast<uPtr>(p), buffer);
         Builder.Append(buffer, sizeof(uPtr) * 2);
         return sizeof(uPtr) * 2;
     }
