@@ -148,19 +148,20 @@ inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs)
     return *lhs == '\0' && *rhs == '\0';
 }
 
-namespace cexpr
-{
-    template<typename Char, uSys Len>
-    constexpr inline uSys strlen(const Char(&str)[Len]) noexcept;
+namespace cexpr {
 
-    template<typename Char, uSys Len>
-    constexpr inline bool streq(const Char(&lhs)[Len], const Char(&rhs)[Len]);
+template<typename Char, uSys Len>
+constexpr inline uSys strlen(const Char(&str)[Len]) noexcept;
 
-    template<typename Char, uSys Len>
-    constexpr inline bool streqIgnoreCase(const Char(&lhs)[Len], const Char(&rhs)[Len]);
+template<typename Char, uSys Len>
+constexpr inline bool streq(const Char(&lhs)[Len], const Char(&rhs)[Len]);
 
-    template<typename Char, uSys Len>
-    constexpr inline uSys findHashCode(const Char(&str)[Len]) noexcept;
+template<typename Char, uSys Len>
+constexpr inline bool streqIgnoreCase(const Char(&lhs)[Len], const Char(&rhs)[Len]);
+
+template<typename Char, uSys Len>
+constexpr inline uSys findHashCode(const Char(&str)[Len]) noexcept;
+
 }
 
 template<typename Char>
