@@ -139,6 +139,52 @@ template<typename Tv, typename Ta, Ta Alignment>
     return (val + alignment) & ~(alignment - 1);
 }
 
+template<typename T>
+[[nodiscard]] constexpr inline T AlignToAny(const T val, const T alignment) noexcept
+{
+    const T mod = val % alignment;
+    if(alignment == 1 || mod == 0)
+    { return val; }
+    return val + (alignment - mod);
+}
+
+template<typename Tv, typename Ta>
+[[nodiscard]] constexpr inline Tv AlignToAny(const Tv val, const Ta alignment) noexcept
+{
+    const Tv alignmentTv = static_cast<Tv>(alignment);
+    const Tv mod = val % alignmentTv;
+
+    if(alignmentTv == 1 || mod == 0)
+    { return val; }
+    return val + (alignmentTv - mod);
+}
+
+template<typename T, T Alignment>
+[[nodiscard]] constexpr inline T AlignToAny(const T val) noexcept
+{
+    if constexpr(Alignment == 1)
+    { return val; }
+    const T mod = val % Alignment;
+    if(mod == 0)
+    { return val; }
+
+    return val + (Alignment - mod);
+}
+
+template<typename Tv, typename Ta, Ta Alignment>
+[[nodiscard]] constexpr inline Tv AlignToAny(const Tv val) noexcept
+{
+    constexpr Tv alignment = static_cast<Tv>(Alignment);
+
+    if constexpr(alignment == 1)
+    { return val; }
+    const Tv mod = val % alignment;
+    if(val % alignment == 0)
+    { return val; }
+
+    return val + (alignment - mod);
+}
+
 constexpr u8  DeBruijnConstant8  = 0x17;
 constexpr u16 DeBruijnConstant16 = 0x09AF;
 constexpr u32 DeBruijnConstant32 = 0x04653ADFu;

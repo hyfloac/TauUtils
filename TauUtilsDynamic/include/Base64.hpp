@@ -183,10 +183,10 @@ public:
             const u8 sex0 = byte0 >> 2;
 
             // Padding time.
-            if(i + 3 > byteStreamLength)
+            if(i + 2 >= byteStreamLength)
             {
                 // Two '=' required
-                if(i + 2 > byteStreamLength)
+                if(i + 1 >= byteStreamLength)
                 {
                     const u8 sex1 = (byte0 & 0x3) << 4;
 
@@ -200,7 +200,7 @@ public:
                     }
                 }
                 // One '=' required
-                else // i + 3 > byteStreamLength
+                else // i + 2 >= byteStreamLength
                 {
                     const u8 byte1 = byteStream[i + 1];
 

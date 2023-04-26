@@ -14,11 +14,11 @@ extern void JsonTests();
 int main(int argCount, char* args[]){
     Console::Create();
     Console::Init();
-    StringTests();
+    // StringTests();
     // RefTests();
     // DragonTests();
     // MathTests();
-    // Base64Tests();
+    Base64Tests();
     // JsonTests();
 
     ::tau::TestContainer::Instance().PrintTotals();

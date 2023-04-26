@@ -10,6 +10,19 @@
 #include <Windows.h>
 #pragma warning(pop)
 
+inline void PageAllocator::Init() noexcept
+{
+    if(!m_Initialized)
+    {
+        SYSTEM_INFO sysInfo;
+        GetSystemInfo(&sysInfo);
+
+        m_PageSize = sysInfo.dwPageSize;
+
+        m_Initialized = true;
+    }
+}
+
 inline void* PageAllocator::Reserve(const uSys numPages) noexcept
 {
     return VirtualAlloc(nullptr, numPages * PageSize(), MEM_RESERVE, PAGE_NOACCESS);
@@ -22,12 +35,12 @@ inline void* PageAllocator::Alloc(const uSys numPages) noexcept
 
 inline void* PageAllocator::CommitPage(void* const page) noexcept
 {
-    return VirtualAlloc(page, _pageSize, MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(page, m_PageSize, MEM_COMMIT, PAGE_READWRITE);
 }
 
 inline void* PageAllocator::CommitPages(void* const page, const uSys pageCount) noexcept
 {
-    return VirtualAlloc(page, pageCount * _pageSize, MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(page, pageCount * m_PageSize, MEM_COMMIT, PAGE_READWRITE);
 }
 
 inline void PageAllocator::DecommitPage(void* const page) noexcept
@@ -37,7 +50,7 @@ inline void PageAllocator::DecommitPage(void* const page) noexcept
 
 inline void PageAllocator::DecommitPages(void* const page, const uSys pageCount) noexcept
 {
-    VirtualFree(page, pageCount * _pageSize, MEM_DECOMMIT);
+    VirtualFree(page, pageCount * m_PageSize, MEM_DECOMMIT);
 }
 
 inline void PageAllocator::Free(void* const page) noexcept
@@ -48,19 +61,19 @@ inline void PageAllocator::Free(void* const page) noexcept
 inline void PageAllocator::SetReadWrite(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * _pageSize, PAGE_READWRITE, &oldProtect);
+    VirtualProtect(page, pageCount * m_PageSize, PAGE_READWRITE, &oldProtect);
 }
 
 inline void PageAllocator::SetReadOnly(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * _pageSize, PAGE_READONLY, &oldProtect);
+    VirtualProtect(page, pageCount * m_PageSize, PAGE_READONLY, &oldProtect);
 }
 
 inline void PageAllocator::SetExecute(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * _pageSize, PAGE_EXECUTE_READ, &oldProtect);
+    VirtualProtect(page, pageCount * m_PageSize, PAGE_EXECUTE_READ, &oldProtect);
 }
 
 #endif

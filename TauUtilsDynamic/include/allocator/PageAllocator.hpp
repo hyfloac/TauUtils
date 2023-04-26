@@ -6,11 +6,8 @@
 class PageAllocator final
 {
     DELETE_CONSTRUCT(PageAllocator);
-    DELETE_CM(PageAllocator);
     DELETE_DESTRUCT(PageAllocator);
-private:
-    static uSys _pageSize;
-    static bool _initialized;
+    DELETE_CM(PageAllocator);
 public:
     static void Init() noexcept;
 
@@ -33,7 +30,14 @@ public:
     static void SetReadOnly(void* page, uSys pageCount = 1) noexcept;
     static void SetExecute(void* page, uSys pageCount = 1) noexcept;
 
-    [[nodiscard]] static uSys PageSize() noexcept;
+    [[nodiscard]] static uSys PageSize() noexcept
+    {
+        /*   Screw it, I'm tired of dealing with problems of this value
+           not being initialized. */
+        if(!m_Initialized)
+        { Init(); }
+        return m_PageSize;
+    }
 
     static void init() noexcept { Init(); }
     
@@ -57,6 +61,9 @@ public:
     static void setExecute(void* const page, const uSys pageCount = 1) noexcept { SetExecute(page, pageCount); }
     
     [[nodiscard]] static uSys pageSize() noexcept { return PageSize(); }
+private:
+    static uSys m_PageSize;
+    static bool m_Initialized;
 };
 
 #include "PageAllocator.win32.inl"

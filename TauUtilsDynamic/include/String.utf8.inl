@@ -12,7 +12,7 @@ static_assert(sizeof(c32) == 4, "char32_t was not 4 bytes.");
 
 namespace tau::string::utf8 {
 
-[[nodiscard]] inline c32 DecodeCodePointForwardUnsafe(const c8* const str, iSys& index, const iSys inCodeUnits) noexcept
+[[nodiscard]] inline constexpr c32 DecodeCodePointForwardUnsafe(const c8* const str, iSys& index, const iSys inCodeUnits) noexcept
 {
     if((str[index] & 0x80) == 0) // U+0000 - U+007F
     {
@@ -63,7 +63,7 @@ namespace tau::string::utf8 {
     }
 }
 
-inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit, const iSys outCodeUnits) noexcept
+inline constexpr iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit, const iSys outCodeUnits) noexcept
 {
     if(c <= 0x7F) // 1 Byte
     {
@@ -117,7 +117,7 @@ inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit,
     return 0;
 }
 
-[[nodiscard]] inline iSys CalculateCodePoints(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodePoints = 0) noexcept
+[[nodiscard]] inline constexpr iSys CalculateCodePoints(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodePoints = 0) noexcept
 {
     if(inCodeUnits == 0)
     { return 0; }
@@ -164,7 +164,7 @@ inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit,
     return outCodePoints;
 }
 
-[[nodiscard]] inline iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
+[[nodiscard]] inline constexpr iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
 {
     if(inCodeUnits == 0)
     { return 0; }
@@ -199,7 +199,7 @@ inline iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit,
     return outCodeUnits;
 }
 
-inline iSys Transform(const c8* const inString, c32* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+inline constexpr iSys Transform(const c8* const inString, c32* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
@@ -239,7 +239,7 @@ inline iSys Transform(const c8* const inString, c32* const outString, const iSys
     }
 }
 
-inline iSys Transform(const c32* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+inline constexpr iSys Transform(const c32* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
