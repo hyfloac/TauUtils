@@ -437,6 +437,63 @@ public:
 
     [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end());   }
     [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+
+    void Zero() noexcept
+    {
+        (void) ::std::memset(m_Array, 0, sizeof(T) * m_Length);
+    }
+
+    void DestructCount(const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i].~T();
+        }
+    }
+
+    void DestructAll() noexcept
+    {
+        DestructCount(m_Length);
+    }
+
+    void MemCpyCount(const T& t, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            (void) ::std::memcpy(&m_Array[i], &t, sizeof(t));
+        }
+    }
+
+    void MemCpyAll(const T& t) noexcept
+    {
+        MemCpyCount(t, m_Length);
+    }
+
+    void SetCount(const T& t, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i] = t;
+        }
+    }
+
+    void SetAll(const T& t) noexcept
+    {
+        SetCount(t, m_Length);
+    }
+public:
+    static DynArray<T> MakeRaw(const uSys length) noexcept
+    {
+        return DynArray(::TauUtilsAllocate(sizeof(T) * length), length);
+    }
+private:
+    DynArray(T* const array, const uSys length) noexcept
+        : m_Array(array)
+        , m_Length(length)
+    { }
 private:
     T* m_Array;
     uSys m_Length;
