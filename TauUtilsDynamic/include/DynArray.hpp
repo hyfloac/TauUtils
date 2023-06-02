@@ -359,7 +359,12 @@ template<typename T>
 class DynArray final
 {
 public:
-    explicit DynArray(const uSys length = 0) noexcept
+    DynArray() noexcept
+        : m_Array(nullptr)
+        , m_Length(0)
+    { }
+
+    explicit DynArray(const uSys length) noexcept
         : m_Array(TU_NEW_ARR(T, length))
         , m_Length(length)
     { }
@@ -503,7 +508,13 @@ template<typename T>
 class RefDynArray final
 {
 public:
-    explicit RefDynArray(const uSys size = 0) noexcept
+    RefDynArray() noexcept
+        : m_Array(0)
+        , m_Length(0)
+        , m_RefCount(nullptr)
+    { }
+
+    explicit RefDynArray(const uSys size) noexcept
         : m_Length(size)
     {
         void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * size);

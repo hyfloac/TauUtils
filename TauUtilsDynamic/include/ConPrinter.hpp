@@ -16,12 +16,6 @@ inline u32 Print(const c8 c)      noexcept { return Console::Write(c); }
 inline u32 Print(const c16 c)     noexcept { return Console::Write(c); }
 inline u32 Print(const c32 c)     noexcept { return Console::Write(c); }
 
-inline u32 Print(const char* const str)    noexcept { return Console::Write(str, strLength(str)); }
-inline u32 Print(const wchar_t* const str) noexcept { return Console::Write(str, strLength(str)); }
-inline u32 Print(const c8* const str)      noexcept { return Console::Write(str, strLength(str)); }
-inline u32 Print(const c16* const str)     noexcept { return Console::Write(str, strLength(str)); }
-inline u32 Print(const c32* const str)     noexcept { return Console::Write(str, strLength(str)); }
-
 inline u32 PrintLength(const char* const str, const uSys length)    noexcept { return Console::Write(str, length); }
 inline u32 PrintLength(const wchar_t* const str, const uSys length) noexcept { return Console::Write(str, length); }
 inline u32 PrintLength(const c8* const str, const uSys length)      noexcept { return Console::Write(str, length); }
@@ -121,6 +115,51 @@ inline u32 Print(const T* const p) noexcept
     c16 buffer[sizeof(uPtr) * 2 + 1];
     (void) ::tau::XtoAP<true, uPtr, c16, u'0'>(reinterpret_cast<uPtr>(p), buffer);
     return Console::Write(buffer, sizeof(uPtr) * 2);
+}
+
+inline u32 Print(const char* const str)    noexcept
+{
+    if(!str)
+    {
+        return Print(reinterpret_cast<const void*>(str));
+    }
+    return Console::Write(str, strLength(str));
+}
+
+inline u32 Print(const wchar_t* const str) noexcept
+{
+    if(!str)
+    {
+        return Print(reinterpret_cast<const void*>(str));
+    }
+    return Console::Write(str, strLength(str));
+}
+
+inline u32 Print(const c8* const str)      noexcept
+{
+    if(!str)
+    {
+        return Print(reinterpret_cast<const void*>(str));
+    }
+    return Console::Write(str, strLength(str));
+}
+
+inline u32 Print(const c16* const str)     noexcept
+{
+    if(!str)
+    {
+        return Print(reinterpret_cast<const void*>(str));
+    }
+    return Console::Write(str, strLength(str));
+}
+
+inline u32 Print(const c32* const str)     noexcept
+{
+    if(!str)
+    {
+        return Print(reinterpret_cast<const void*>(str));
+    }
+    return Console::Write(str, strLength(str));
 }
 
 template<typename Char>
