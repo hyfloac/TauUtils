@@ -457,10 +457,7 @@ public:
         }
     }
 
-    void DestructAll() noexcept
-    {
-        DestructCount(m_Length);
-    }
+    void DestructAll() noexcept { DestructCount(m_Length); }
 
     void MemCpyCount(const T& t, const uSys count) noexcept
     {
@@ -471,10 +468,21 @@ public:
         }
     }
 
-    void MemCpyAll(const T& t) noexcept
+    void MemCpyCount(T* const buffer, const uSys count) const noexcept
     {
-        MemCpyCount(t, m_Length);
+        const uSys trueCount = minT(count, m_Length);
+        (void) ::std::memcpy(buffer, m_Array, trueCount * sizeof(T));
     }
+
+    void MemCpyCount(const T* const buffer, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        (void) ::std::memcpy(m_Array, buffer, trueCount * sizeof(T));
+    }
+
+    void MemCpyAll(const T& t) noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(T* const buffer) const noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(const T* const buffer) noexcept { MemCpyCount(t, m_Length); }
 
     void SetCount(const T& t, const uSys count) noexcept
     {
@@ -485,10 +493,27 @@ public:
         }
     }
 
-    void SetAll(const T& t) noexcept
+    void SetCount(T* const buffer, const uSys count) const noexcept
     {
-        SetCount(t, m_Length);
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            buffer[i] = m_Array[i];
+        }
     }
+
+    void SetCount(T* const buffer, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i] = buffer[i];
+        }
+    }
+
+    void SetAll(const T& t) noexcept { SetCount(t, m_Length); }
+    void SetAll(T* const buffer) const noexcept { SetCount(t, m_Length); }
+    void SetAll(const T* const buffer) noexcept { SetCount(t, m_Length); }
 public:
     static DynArray<T> MakeRaw(const uSys length) noexcept
     {
@@ -602,6 +627,94 @@ public:
 
     [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end()); }
     [[nodiscard]] ::std::reverse_iterator<ConstRefDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+
+    void Zero() noexcept
+    {
+        (void) ::std::memset(m_Array, 0, sizeof(T) * m_Length);
+    }
+
+    void DestructCount(const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i].~T();
+        }
+    }
+
+    void DestructAll() noexcept { DestructCount(m_Length); }
+
+    void MemCpyCount(const T& t, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            (void) ::std::memcpy(&m_Array[i], &t, sizeof(t));
+        }
+    }
+
+    void MemCpyCount(T* const buffer, const uSys count) const noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        (void) ::std::memcpy(buffer, m_Array, trueCount * sizeof(T));
+    }
+
+    void MemCpyCount(const T* const buffer, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        (void) ::std::memcpy(m_Array, buffer, trueCount * sizeof(T));
+    }
+
+    void MemCpyAll(const T& t) noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(T* const buffer) const noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(const T* const buffer) noexcept { MemCpyCount(t, m_Length); }
+
+    void SetCount(const T& t, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i] = t;
+        }
+    }
+
+    void SetCount(T* const buffer, const uSys count) const noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            buffer[i] = m_Array[i];
+        }
+    }
+
+    void SetCount(T* const buffer, const uSys count) noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            m_Array[i] = buffer[i];
+        }
+    }
+
+    void SetAll(const T& t) noexcept { SetCount(t, m_Length); }
+    void SetAll(T* const buffer) const noexcept { SetCount(t, m_Length); }
+    void SetAll(const T* const buffer) noexcept { SetCount(t, m_Length); }
+public:
+    static RefDynArray<T> MakeRaw(const uSys length) noexcept
+    {
+        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * size);
+        ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
+        m_RefCount = ReferenceCounter(refCount);
+        m_Array = static_cast<T*>(refCount + 1);
+
+        return RefDynArray(m_Array, length, m_RefCount);
+    }
+private:
+    RefDynArray(T* const array, const uSys length, ReferenceCounter::Type* const refCount) noexcept
+        : m_Array(array)
+        , m_Length(length)
+        , m_RefCount(refCount)
+    { }
 private:
     void OnDestroy() noexcept
     {
@@ -789,4 +902,23 @@ public:
 
     [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>> rbegin() const noexcept { return ::std::reverse_iterator(end());   }
     [[nodiscard]] ::std::reverse_iterator<ConstDynArrayIterator<T>>   rend() const noexcept { return ::std::reverse_iterator(begin()); }
+
+    void MemCpyCount(T* const buffer, const uSys count) const noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        (void) ::std::memcpy(buffer, m_Array, trueCount * sizeof(T));
+    }
+
+    void MemCpyAll(T* const buffer) const noexcept { MemCpyCount(t, m_Length); }
+
+    void SetCount(T* const buffer, const uSys count) const noexcept
+    {
+        const uSys trueCount = minT(count, m_Length);
+        for(uSys i = 0; i < trueCount; ++i)
+        {
+            buffer[i] = m_Array[i];
+        }
+    }
+
+    void SetAll(T* const buffer) const noexcept { SetCount(t, m_Length); }
 };
