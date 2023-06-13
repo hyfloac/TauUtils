@@ -80,6 +80,14 @@ template<typename T0, typename T1, typename T2, typename T3>
 [[nodiscard]] inline constexpr T0 maxT(const T0 a, const T1 b, const T2 c, const T3 d) noexcept
 { return maxT(maxT(a, b), maxT(c, d)); }
 
+template<typename T>
+[[nodiscard]] inline constexpr T ClampT(const T value, const T min, const T max)
+{ return minT(maxT(value, min), max); }
+
+template<typename T0, typename T1, typename T2>
+[[nodiscard]] inline constexpr T0 ClampT(const T0 value, const T1 min, const T2 max)
+{ return minT(maxT(value, min), max); }
+
 /**
  * Relative epsilon equals function.
  */
