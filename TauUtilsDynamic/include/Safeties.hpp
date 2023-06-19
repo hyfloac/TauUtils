@@ -59,6 +59,12 @@ template<typename T>
 using CPPWeakRef = std::weak_ptr<T>;
 
 template<typename T>
+using AnyRef = TReferenceCountingPointerBase<T>;
+
+template<typename T>
+using NullableAnyRef = AnyRef<T>;
+
+template<typename T>
 using Ref = ReferenceCountingPointer<T>;
 
 template<typename T>

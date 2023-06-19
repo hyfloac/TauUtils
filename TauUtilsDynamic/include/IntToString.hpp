@@ -94,6 +94,34 @@ inline Char GetNumberLower(Int val) noexcept
     }
 }
 
+template<typename Char, typename Enable = void>
+struct MatchingCharSizeType final
+{ using Int = Char; };
+
+template<>
+struct MatchingCharSizeType<char> final
+{ using Int = u8; };
+
+template<typename Char>
+struct MatchingCharSizeType<Char, ::std::enable_if_t<::std::is_same_v<Char, wchar_t> && sizeof(wchar_t) == sizeof(u16)>> final
+{ using Int = u16; };
+
+template<typename Char>
+struct MatchingCharSizeType<Char, ::std::enable_if_t<::std::is_same_v<Char, wchar_t> && sizeof(wchar_t) == sizeof(u32)>> final
+{ using Int = u32; };
+
+template<>
+struct MatchingCharSizeType<c8> final
+{ using Int = u8; };
+
+template<>
+struct MatchingCharSizeType<c16> final
+{ using Int = u16; };
+
+template<>
+struct MatchingCharSizeType<c32> final
+{ using Int = u32; };
+
 template<typename Int>
 struct MaxCharCount final
 { static constexpr uSys Value = 0; };
@@ -143,16 +171,24 @@ struct MaxCharCount<bool> final
 { static constexpr uSys Value = 5; };
 
 template<>
+struct MaxCharCount<char> final
+{ static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<char>::Int>::Value; };
+
+template<>
+struct MaxCharCount<wchar_t> final
+{ static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<wchar_t>::Int>::Value; };
+
+template<>
 struct MaxCharCount<c8> final
-{ static constexpr uSys Value = MaxCharCount<u8>::Value; };
+{ static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<c8>::Int>::Value; };
 
 template<>
 struct MaxCharCount<c16> final
-{ static constexpr uSys Value = MaxCharCount<u16>::Value; };
+{ static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<c16>::Int>::Value; };
 
 template<>
 struct MaxCharCount<c32> final
-{ static constexpr uSys Value = MaxCharCount<u32>::Value; };
+{ static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<c32>::Int>::Value; };
 
 
 template<typename Int, typename Char>

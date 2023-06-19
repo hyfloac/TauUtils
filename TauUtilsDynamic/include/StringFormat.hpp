@@ -3,6 +3,7 @@
 #include "NumTypes.hpp"
 #include "String.hpp"
 #include "Dragon4.hpp"
+#include "IntToString.hpp"
 
 template<typename Context, typename Char>
 inline u32 InternalFormat(Context& context, const Char* fmt, const iSys length) noexcept
