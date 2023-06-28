@@ -230,7 +230,7 @@ inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(Refer
 
     _rcdo = move._rcdo;
 
-    move._rcdo = nullptr;
+    move._rcdo = RCDO<T>::Null();
 
     return *this;
 }
