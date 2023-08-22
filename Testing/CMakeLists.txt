@@ -62,13 +62,13 @@ check_c_compiler_flag(/wd4251 HAS_DLL_INTERFACE_WARNING)
 check_c_compiler_flag(/wd4068 HAS_CLANG_PRAGMA_WARNING)
 
 if(HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
-    target_compile_options(TauUtilsDynamicShared PRIVATE /wd5030)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd5030)
 endif()
 
 if(HAS_DLL_INTERFACE_WARNING)
-    target_compile_options(TauUtilsDynamicShared PRIVATE /wd4251)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd4251)
 endif()
 
 if(HAS_CLANG_PRAGMA_WARNING)
-    target_compile_options(TauUtilsDynamicShared PRIVATE /wd4068)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd4068)
 endif()
