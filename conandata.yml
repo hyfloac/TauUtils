@@ -1,0 +1,9 @@
+sources:
+  repos:
+    "1.0.0": "https://github.com/hyfloac/TauUtils.git"
+
+  "1.1.1":
+    url: "1.0.0"
+    latest: true
+
+latest: "1.1.1"

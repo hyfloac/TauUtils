@@ -1,12 +1,16 @@
-cmake_minimum_required(VERSION 3.15)
-project(Testing VERSION 1.0.0 LANGUAGES CXX C)
+cmake_minimum_required(VERSION 3.23)
+project(PackageTest LANGUAGES CXX C)
 
 include(CheckCCompilerFlag)
 
+
+find_package(tauutils CONFIG REQUIRED)
+
 file(GLOB SOURCES "src/*.cpp")
 
-# Setup the testing executable with the source files.
+# Setup the ${PROJECT_NAME} executable with the source files.
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} tauutils::TauUtilsDynamicShared)
 
 # Set the include directory.
 target_include_directories(${PROJECT_NAME} PUBLIC include)
@@ -18,7 +22,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE src)
 # Include TauUtilsDynamic
 #target_link_libraries(${PROJECT_NAME} PUBLIC TauUtilsDynamicStatic)
 # Include TauUtilsDynamic
-target_link_libraries(${PROJECT_NAME} PUBLIC TauUtilsDynamicShared)
+# target_link_libraries(${PROJECT_NAME} PUBLIC TauUtilsDynamicShared)
 
 # Set C++20
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)

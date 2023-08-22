@@ -1,7 +1,7 @@
 #pragma once
 
 #include <climits>
-#include <DynArray.hpp>
+#include "DynArray.hpp"
 
 class BitSet final
 {
@@ -10,23 +10,16 @@ public:
     {
         DEFAULT_DESTRUCT(BitRef);
     private:
-        uSys& _word;
-        uSys _bitMask;
+        uSys& m_Word;
+        uSys m_BitMask;
     public:
         BitRef(uSys& word, const uSys bitMask) noexcept
-            : _word(word)
-            , _bitMask(bitMask)
+            : m_Word(word)
+            , m_BitMask(bitMask)
         { }
 
-        BitRef(const BitRef& copy) noexcept
-            : _word(copy._word)
-            , _bitMask(copy._bitMask)
-        { }
-
-        BitRef(BitRef&& move) noexcept
-            : _word(move._word)
-            , _bitMask(move._bitMask)
-        { }
+        BitRef(const BitRef& copy) noexcept = default;
+        BitRef(BitRef&& move) noexcept = default;
 
         BitRef& operator=(const BitRef& copy) noexcept
         {
@@ -43,14 +36,14 @@ public:
         }
 
         [[nodiscard]] operator bool() const noexcept
-        { return _word & _bitMask; }
+        { return m_Word & m_BitMask; }
 
         BitRef& operator=(const bool val) noexcept
         {
             if(val)
-            { _word |= _bitMask; }
+            { m_Word |= m_BitMask; }
             else
-            { _word &= ~_bitMask; }
+            { m_Word &= ~m_BitMask; }
 
             return *this;
         }
@@ -58,15 +51,16 @@ public:
 public:
     static constexpr uSys BIT_COUNT = sizeof(uSys) * CHAR_BIT;
 private:
-    uSys _bitCount;
-    DynArray<uSys> _bits;
+    uSys m_BitCount;
+    DynArray<uSys> m_Bits;
 public:
     BitSet(const uSys bitCount, const bool initialValue = false) noexcept
-        : _bitCount(bitCount)
-        , _bits((bitCount / BIT_COUNT) + 1)
-    { ::std::memset(_bits.arr(), initialValue ? 0xFF : 0x00, _bits.count() * sizeof(uSys)); }
+        : m_BitCount(bitCount)
+        , m_Bits((bitCount / BIT_COUNT) + 1)
+    { ::std::memset(m_Bits.arr(), initialValue ? 0xFF : 0x00, m_Bits.count() * sizeof(uSys)); }
 
-    [[nodiscard]] uSys bitCount() const noexcept { return _bitCount; }
+    [[nodiscard]] uSys BitCount() const noexcept { return m_BitCount; }
+    [[nodiscard]] uSys bitCount() const noexcept { return BitCount(); }
 
     [[nodiscard]] bool operator[](const uSys index) const noexcept
     {
@@ -74,7 +68,7 @@ public:
         const uSys bitIndex = index % BIT_COUNT;
         // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
-        const uSys word = _bits[wordIndex];
+        const uSys word = m_Bits[wordIndex];
         const bool ret = word & (static_cast<uSys>(1) << bitIndex);
 
         return ret;
@@ -86,51 +80,56 @@ public:
         const uSys bitIndex = index % BIT_COUNT;
         // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
-        return BitRef(_bits[wordIndex], static_cast<uSys>(1) << bitIndex);
+        return BitRef(m_Bits[wordIndex], static_cast<uSys>(1) << bitIndex);
     }
 
-    [[nodiscard]] bool at(const uSys index) const noexcept
+    [[nodiscard]] bool At(const uSys index) const noexcept
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
         // const uSys invBitIndex = BIT_COUNT - bitIndex;
 
-        if(wordIndex >= _bits.count())
+        if(wordIndex >= m_Bits.count())
         { return false; }
 
-        const uSys word = _bits[wordIndex];
+        const uSys word = m_Bits[wordIndex];
         const bool ret = word & (static_cast<uSys>(1) << bitIndex);
 
         return ret;
     }
 
-    void set(const uSys index, bool value = true) noexcept
+    void Set(const uSys index, bool value = true) noexcept
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
         // const uSys invBitIndex = BIT_COUNT - bitIndex;
         
-        if(wordIndex >= _bits.count())
+        if(wordIndex >= m_Bits.count())
         { return; }
         
         if(value)
-        { _bits[wordIndex] |= static_cast<uSys>(1) << bitIndex; }
+        { m_Bits[wordIndex] |= static_cast<uSys>(1) << bitIndex; }
         else
-        { _bits[wordIndex] &= ~(static_cast<uSys>(1) << bitIndex); }
+        { m_Bits[wordIndex] &= ~(static_cast<uSys>(1) << bitIndex); }
     }
 
-    void unset(const uSys index) noexcept
+    void Unset(const uSys index) noexcept
     { set(index, false); }
 
-    void flip(const uSys index) noexcept
+    void Flip(const uSys index) noexcept
     {
         const uSys wordIndex = index / BIT_COUNT;
         const uSys bitIndex = index % BIT_COUNT;
         // const uSys invBitIndex = BIT_COUNT - bitIndex;
         
-        if(wordIndex >= _bits.count())
+        if(wordIndex >= m_Bits.count())
         { return; }
         
-        _bits[wordIndex] ^= static_cast<uSys>(1) << bitIndex;
+        m_Bits[wordIndex] ^= static_cast<uSys>(1) << bitIndex;
     }
+    
+    [[nodiscard]] bool at(const uSys index) const noexcept { return At(index); }
+    void set(const uSys index, bool value = true) noexcept { Set(index, value); }
+    void unset(const uSys index) noexcept { Unset(index); }
+    void flip(const uSys index) noexcept { Flip(index);  }
 };
