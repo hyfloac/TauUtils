@@ -2,7 +2,7 @@
 // ReSharper disable CppClangTidyClangDiagnosticUnusedFunction
 
 // ReSharper disable once CppInconsistentNaming
-#define __STDC_WANT_LIB_EXT1__ 1  // NOLINT(clang-diagnostic-reserved-id-macro, clang-diagnostic-reserved-macro-identifier)
+#define __STDC_WANT_LIB_EXT1__ 1  // NOLINT(clang-diagnostic-reserved-id-macro, clang-diagnostic-reserved-macro-identifier, modernize-macro-to-enum)
 #pragma warning(push, 0)
 #include <cctype>
 #include <functional>
@@ -12,6 +12,10 @@
 #include "NumTypes.hpp"
 #include "TauMacros.hpp"
 #include "ReferenceCounter.hpp"
+
+#ifndef __has_feature
+  #define __has_feature(X) 0
+#endif
 
 #define STR_SWITCH(PARAM, BLOCK, DEFAULT_BLOCK) \
 { \

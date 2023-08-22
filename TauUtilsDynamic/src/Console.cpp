@@ -181,7 +181,7 @@ u32 Console::Write(const wchar_t* const str, const uSys length) noexcept
     else if(length > 0 && str[0] == 0xFFFE)
     {
         constexpr wchar_t errorMessage[] = L"[[Attempted to print Big Endian wchar_t string.]]\n";
-        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, cexpr::strlen(errorMessage), &numberOfCharsWritten, nullptr);
+        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, static_cast<DWORD>(cexpr::strlen(errorMessage)), &numberOfCharsWritten, nullptr);
     }
     else
     {
@@ -210,7 +210,7 @@ u32 Console::Write(const c16* const str, const uSys length) noexcept
     else if(length > 0 && str[0] == 0xFFFE)
     {
         constexpr wchar_t errorMessage[] = L"[[Attempted to print Big Endian UTF16 string.]]\n";
-        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, cexpr::strlen(errorMessage), &numberOfCharsWritten, nullptr);
+        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, static_cast<DWORD>(cexpr::strlen(errorMessage)), &numberOfCharsWritten, nullptr);
     }
     else
     {

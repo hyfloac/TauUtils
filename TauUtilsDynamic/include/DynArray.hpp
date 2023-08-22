@@ -491,10 +491,10 @@ public:
     }
 
     void MemCpyAll(const T& t) noexcept { MemCpyCount(t, m_Length); }
-    void MemCpyAll(T* const buffer) const noexcept { MemCpyCountTo(t, m_Length); }
-    void MemCpyAll(const T* const buffer) noexcept { MemCpyCountFrom(t, m_Length); }
-    void MemCpyAllTo(T* const buffer) const noexcept { MemCpyCountTo(t, m_Length); }
-    void MemCpyAllFrom(const T* const buffer) noexcept { MemCpyCountFrom(t, m_Length); }
+    void MemCpyAll(T* const t) const noexcept { MemCpyCountTo(t, m_Length); }
+    void MemCpyAll(const T* const t) noexcept { MemCpyCountFrom(t, m_Length); }
+    void MemCpyAllTo(T* const t) const noexcept { MemCpyCountTo(t, m_Length); }
+    void MemCpyAllFrom(const T* const t) noexcept { MemCpyCountFrom(t, m_Length); }
 
     void SetCount(const T& t, const uSys count) noexcept
     {
@@ -534,10 +534,10 @@ public:
     }
 
     void SetAll(const T& t) noexcept { SetCount(t, m_Length); }
-    void SetAll(T* const buffer) const noexcept { SetCountTo(t, m_Length); }
-    void SetAll(const T* const buffer) noexcept { SetCountFrom(t, m_Length); }
-    void SetAllTo(T* const buffer) const noexcept { SetCountTo(t, m_Length); }
-    void SetAllFrom(const T* const buffer) noexcept { SetCountFrom(t, m_Length); }
+    void SetAll(T* const t) const noexcept { SetCountTo(t, m_Length); }
+    void SetAll(const T* const t) noexcept { SetCountFrom(t, m_Length); }
+    void SetAllTo(T* const t) const noexcept { SetCountTo(t, m_Length); }
+    void SetAllFrom(const T* const t) noexcept { SetCountFrom(t, m_Length); }
 public:
     static DynArray<T> MakeRaw(const uSys length) noexcept
     {
@@ -690,8 +690,8 @@ public:
     }
 
     void MemCpyAll(const T& t) noexcept { MemCpyCount(t, m_Length); }
-    void MemCpyAll(T* const buffer) const noexcept { MemCpyCount(t, m_Length); }
-    void MemCpyAll(const T* const buffer) noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(T* const t) const noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(const T* const t) noexcept { MemCpyCount(t, m_Length); }
 
     void SetCount(const T& t, const uSys count) noexcept
     {
@@ -721,8 +721,8 @@ public:
     }
 
     void SetAll(const T& t) noexcept { SetCount(t, m_Length); }
-    void SetAll(T* const buffer) const noexcept { SetCount(t, m_Length); }
-    void SetAll(const T* const buffer) noexcept { SetCount(t, m_Length); }
+    void SetAll(T* const t) const noexcept { SetCount(t, m_Length); }
+    void SetAll(const T* const t) noexcept { SetCount(t, m_Length); }
 public:
     static RefDynArray<T> MakeRaw(const uSys length) noexcept
     {
@@ -933,7 +933,7 @@ public:
         (void) ::std::memcpy(buffer, m_Array, trueCount * sizeof(T));
     }
 
-    void MemCpyAll(T* const buffer) const noexcept { MemCpyCount(t, m_Length); }
+    void MemCpyAll(T* const t) const noexcept { MemCpyCount(t, m_Length); }
 
     void SetCount(T* const buffer, const uSys count) const noexcept
     {
@@ -944,5 +944,5 @@ public:
         }
     }
 
-    void SetAll(T* const buffer) const noexcept { SetCount(t, m_Length); }
+    void SetAll(T* const t) const noexcept { SetCount(t, m_Length); }
 };

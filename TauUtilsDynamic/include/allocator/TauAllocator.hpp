@@ -148,7 +148,7 @@ inline void TauUtilsDeallocateTArr(T* const obj, const uSys elementCount) noexce
 #define TU_DELETE_ARR(PTR) ::TauUtilsDeallocate(PTR)
 #define TU_DELETE_T_ARR(PTR, COUNT) ::TauUtilsDeallocateTArr(PTR, COUNT)
 
-class TauAllocator
+class TAU_LIB TauAllocator
 {
     DEFAULT_CONSTRUCT_PO(TauAllocator);
     DEFAULT_DESTRUCT_VI(TauAllocator);

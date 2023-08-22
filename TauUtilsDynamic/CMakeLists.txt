@@ -1,3 +1,5 @@
+include(CheckCCompilerFlag)
+
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h" "include/*.inl")
 file(GLOB HEADERS_BASE "include/*.hpp" "include/*.inl")
@@ -72,4 +74,15 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
 
     set_target_properties(TauUtilsDynamicShared PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set_target_properties(TauUtilsDynamicStatic PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+check_c_compiler_flag(/wd5030 HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
+check_c_compiler_flag(/wd4251 HAS_DLL_INTERFACE_WARNING)
+
+if(HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
+    target_compile_options(TauUtilsDynamicShared PRIVATE /wd5030)
+endif()
+
+if(HAS_DLL_INTERFACE_WARNING)
+    target_compile_options(TauUtilsDynamicShared PRIVATE /wd4251)
 endif()
