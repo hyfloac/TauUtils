@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
-project(PackageTest LANGUAGES CXX C)
+project(TauUtilsTest LANGUAGES CXX C)
 
 include(CheckCCompilerFlag)
-
 
 find_package(tauutils CONFIG REQUIRED)
 
@@ -28,12 +27,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 # Enable PIC
-set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Attempt to enable Link Time Optimization
-set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
+# set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")

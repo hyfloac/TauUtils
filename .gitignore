@@ -589,3 +589,4 @@ FodyWeavers.xsd
 build/
 
 !premake5.exe
+CMakeUserPresets.json

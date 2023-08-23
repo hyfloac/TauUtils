@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.23)
+
 include(CheckCCompilerFlag)
 
 file(GLOB SOURCES "src/*.cpp")
@@ -22,6 +24,12 @@ endforeach()
 
 source_group("src" FILES ${SOURCES})
 
+target_sources(TauUtilsDynamicShared PUBLIC ${SOURCES})
+target_sources(TauUtilsDynamicStatic PUBLIC ${SOURCES})
+
+target_sources(TauUtilsDynamicShared PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
+target_sources(TauUtilsDynamicStatic PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
+
 # Set the include directory.
 target_include_directories(TauUtilsDynamicShared PUBLIC include)
 target_include_directories(TauUtilsDynamicStatic PUBLIC include)
@@ -37,13 +45,6 @@ target_include_directories(TauUtilsDynamicStatic PRIVATE src)
 target_compile_features(TauUtilsDynamicShared PUBLIC cxx_std_20)
 target_compile_features(TauUtilsDynamicStatic PUBLIC cxx_std_20)
 
-# Enable PIC
-set_target_properties(TauUtilsDynamicShared PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(TauUtilsDynamicStatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-# Attempt to enable Link Time Optimization
-set_target_properties(TauUtilsDynamicShared PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
-set_target_properties(TauUtilsDynamicStatic PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -61,6 +62,14 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         # Disable RTTI and exceptions
         target_compile_options(TauUtilsDynamicShared PRIVATE -fno-rtti -fno-exceptions)
         target_compile_options(TauUtilsDynamicStatic PRIVATE -fno-rtti -fno-exceptions)
+
+        # Enable PIC
+        set_target_properties(TauUtilsDynamicShared PROPERTIES POSITION_INDEPENDENT_CODE ON)
+        set_target_properties(TauUtilsDynamicStatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+        # Attempt to enable Link Time Optimization
+        set_target_properties(TauUtilsDynamicShared PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
+        set_target_properties(TauUtilsDynamicStatic PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
     endif()
 endif()
 
@@ -86,3 +95,11 @@ endif()
 if(HAS_DLL_INTERFACE_WARNING)
     target_compile_options(TauUtilsDynamicShared PRIVATE /wd4251)
 endif()
+
+install(
+    TARGETS TauUtilsDynamicShared TauUtilsDynamicStatic
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    FILE_SET HEADERS
+)

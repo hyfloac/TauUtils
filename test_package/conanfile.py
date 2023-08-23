@@ -22,5 +22,5 @@ class TauCOMTestConan(ConanFile):
 
     def test(self):
         if can_run(self):
-            cmd = os.path.join(self.cpp.build.bindir, "Testing")
+            cmd = os.path.join(self.cpp.build.bindir, "TauUtilsTest")
             self.run(cmd, env="conanrun")
