@@ -5,6 +5,8 @@
 #include "TUConfig.hpp"
 #include <atomic>
 #include <cassert>
+#include <memory>
+#include <bit>
 
 namespace TauAllocatorUtils {
 
@@ -100,23 +102,11 @@ enum class AllocationTracking
     DoubleDeleteCount
 };
 
-extern "C" TAU_LIB void* TauUtilsAllocate(uSys size) noexcept;
-extern "C" TAU_LIB void TauUtilsDeallocate(void* obj) noexcept;
+extern "C" TAU_LIB void* TauUtilsAllocateNonConst(uSys size) noexcept;
+extern "C" TAU_LIB void TauUtilsDeallocateNonConst(void* obj) noexcept;
 
 template<typename T>
-inline void TauUtilsDeallocateT(T* const obj) noexcept
-{
-    if(!obj)
-    {
-        return;
-    }
-
-    obj->~T();
-    TauUtilsDeallocate(obj);
-}
-
-template<typename T>
-inline void TauUtilsDestructTArr(T* const obj, const uSys elementCount) noexcept
+inline constexpr void TauUtilsDestructTArr(T* const obj, const uSys elementCount) noexcept
 {
     if(!obj)
     {
@@ -129,21 +119,96 @@ inline void TauUtilsDestructTArr(T* const obj, const uSys elementCount) noexcept
     }
 }
 
+template<typename T, typename... Args>
+constexpr T* TauUtilsAllocateT(Args&&... args) noexcept
+{
+    if(std::is_constant_evaluated())
+    {
+        return new T(TauAllocatorUtils::Forward<Args>(args)...);
+    }
+    else
+    {
+        return ::new(TauUtilsAllocateNonConst(sizeof(T))) T(TauAllocatorUtils::Forward<Args>(args)...);
+    }
+}
+
 template<typename T>
-inline void TauUtilsDeallocateTArr(T* const obj, const uSys elementCount) noexcept
+constexpr void TauUtilsDeallocateT(T* obj) noexcept
 {
     if(!obj)
     {
         return;
     }
 
-    TauUtilsDestructTArr(obj, elementCount);
-    
-    TauUtilsDeallocate(obj);
+    if(::std::is_constant_evaluated())
+    {
+        delete obj;
+    }
+    else
+    {
+        obj->~T();
+        TauUtilsDeallocateNonConst(obj);
+    }
+}
+
+template<typename T>
+constexpr T* TauUtilsAllocateTArr(const uSys elementCount) noexcept
+{
+    if(std::is_constant_evaluated())
+    {
+        return new T[elementCount];
+    }
+    else
+    {
+        return ::new(TauUtilsAllocateNonConst(sizeof(T) * elementCount)) T[elementCount];
+    }
+}
+
+template<typename T>
+constexpr void TauUtilsDeallocateTArr(T* obj, const uSys elementCount) noexcept
+{
+    if(!obj)
+    {
+        return;
+    }
+
+    if(::std::is_constant_evaluated())
+    {
+        delete[] obj;
+    }
+    else
+    {
+        TauUtilsDestructTArr(obj, elementCount);
+        TauUtilsDeallocateNonConst(obj);
+    }
+}
+constexpr void* TauUtilsAllocate(uSys size) noexcept
+{
+    if(std::is_constant_evaluated())
+    {
+        return new u8[size];
+    }
+    else
+    {
+        return TauUtilsAllocateNonConst(size);
+    }
+}
+
+constexpr void TauUtilsDeallocate(void* obj) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        delete ::std::bit_cast<u8*>(obj);
+    }
+    else
+    {
+        TauUtilsDeallocateNonConst(obj);
+    }
 }
 
 #define TU_NEW(TYPE, ...) ::new(::TauUtilsAllocate(sizeof(TYPE))) TYPE(__VA_ARGS__)
 #define TU_NEW_ARR(TYPE, COUNT) ::new(::TauUtilsAllocate(sizeof(TYPE) * COUNT)) TYPE[COUNT]
+#define TU_NEW_C(TYPE, ...) ::TauUtilsAllocateT<TYPE>(__VA_ARGS__)
 #define TU_DELETE(PTR) ::TauUtilsDeallocateT(PTR)
 #define TU_DELETE_ARR(PTR) ::TauUtilsDeallocate(PTR)
 #define TU_DELETE_T_ARR(PTR, COUNT) ::TauUtilsDeallocateTArr(PTR, COUNT)

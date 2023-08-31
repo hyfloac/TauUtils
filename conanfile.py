@@ -20,7 +20,7 @@ class TauCOMRecipe(ConanFile):
     default_options = { "shared": True }
 
     # Sources are located in the same place as this recipe, copy them to the recipe
-    exports_sources = "CMakeLists.txt", "TauUtilsDynamic/*"
+    exports_sources = "CMakeLists.txt", "TauUtilsDynamic/*", "TauUtilsTest/*"
 
     def set_version(self):
         self.version = self.conan_data["latest"];

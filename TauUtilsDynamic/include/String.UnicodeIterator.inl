@@ -1,3 +1,5 @@
+#pragma once
+
 #if defined(STRING_IN_DEV) || 0
 #include "String.hpp"
 #endif
@@ -6,19 +8,19 @@ namespace tau::string {
 
 namespace utf8 {
 
-[[nodiscard]] inline c32 DecodeCodePointForward(const StringData<c8>& string, uSys& index) noexcept
+[[nodiscard]] inline constexpr c32 DecodeCodePointForward(const StringData<c8>& string, iSys& index) noexcept
 {
-    if(index >= string.Length)
+    if(index >= static_cast<iSys>(string.Length))
     { return U'\0'; }
 
     const c8* const str = string.String();
-    const c32 ret = DecodeCodePointForwardUnsafe(str, reinterpret_cast<iSys&>(index), static_cast<iSys>(string.Length));
+    const c32 ret = DecodeCodePointForwardUnsafe(str, index, static_cast<iSys>(string.Length));
     return ret == static_cast<c32>(-1) ? U'\0' : ret;
 }
 
-[[nodiscard]] inline c32 DecodeCodePointBackward(const StringData<c8>& string, uSys& index) noexcept
+[[nodiscard]] inline constexpr c32 DecodeCodePointBackward(const StringData<c8>& string, iSys& index) noexcept
 {
-    if(index >= string.Length)
+    if(index >= static_cast<iSys>(string.Length))
     {
         return U'\0';
     }
@@ -123,19 +125,19 @@ namespace utf8 {
 
 namespace utf16 {
 
-[[nodiscard]] inline c32 DecodeCodePointForward(const StringData<c16>& string, uSys& index, const bool flipEndian = false) noexcept
+[[nodiscard]] inline constexpr c32 DecodeCodePointForward(const StringData<c16>& string, iSys& index, const bool flipEndian = false) noexcept
 {
-    if(index >= string.Length)
+    if(index >= static_cast<iSys>(string.Length))
     { return U'\0'; }
 
     const c16* const str = string.String();
-    const c32 ret = DecodeCodePointForwardUnsafe(str, reinterpret_cast<iSys&>(index), static_cast<iSys>(string.Length), flipEndian);
+    const c32 ret = DecodeCodePointForwardUnsafe(str, index, static_cast<iSys>(string.Length), flipEndian);
     return ret == static_cast<c32>(-1) ? U'\0' : ret;
 }
 
-[[nodiscard]] inline c32 DecodeCodePointBackward(const StringData<c16>& string, uSys& index, const bool flipEndian = false) noexcept
+[[nodiscard]] inline constexpr c32 DecodeCodePointBackward(const StringData<c16>& string, iSys& index, const bool flipEndian = false) noexcept
 {
-    if(index >= string.Length)
+    if(index >= static_cast<iSys>(string.Length))
     { return U'\0'; }
 
     const c16* const str = string.String();
@@ -174,9 +176,9 @@ namespace utf16 {
     {
         const c8* const byteStream = reinterpret_cast<const c8*>(str);
 
-        const c16 codeUnit = (static_cast<c16>(byteStream[index * 2]) << 8) | byteStream[index * 2 + 1];
+        const c16 codeUnit = static_cast<c16>((static_cast<c16>(byteStream[index * 2]) << 8) | byteStream[index * 2 + 1]);
 
-        if(codeUnit <= 0xD7FF || (codeUnit >= 0xE000 && codeUnit <= 0xFFFF))
+        if(codeUnit <= 0xD7FF || (codeUnit >= 0xE000/* && codeUnit <= 0xFFFF */))
         {
             if(index != 0)
             { --index; }
@@ -210,7 +212,7 @@ namespace utf16 {
 }
 
 template<>
-inline DynStringCodePointIteratorT<c8>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+inline constexpr DynStringCodePointIteratorT<c8>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
     , m_Start(start)
     , m_Index(index)
@@ -218,7 +220,7 @@ inline DynStringCodePointIteratorT<c8>::DynStringCodePointIteratorT(const String
 { }
 
 template<>
-inline DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operator++() noexcept
+inline constexpr DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operator++() noexcept
 {
     ++m_Index;
     m_CurrentCodePoint = tau::string::utf8::DecodeCodePointForward(m_String, m_Index);
@@ -226,7 +228,7 @@ inline DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operato
 }
 
 template<>
-inline DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operator--() noexcept
+inline constexpr DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operator--() noexcept
 {
     m_CurrentCodePoint = tau::string::utf8::DecodeCodePointBackward(m_String, m_Index);
     return *this;
@@ -235,7 +237,7 @@ inline DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operato
 static inline constexpr uSys C16_INDEX_FLIP_BIT = uSys{1} << ((sizeof(uSys) * CHAR_BIT) - 1);
 
 template<>
-inline DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+inline constexpr DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
     , m_Start(start)
     , m_Index(index)
@@ -243,7 +245,7 @@ inline DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const Strin
     if(index == 0 && string.String()[0] == 0xFFFE)
     {
         m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(string, m_Index);
-        m_Index |= C16_INDEX_FLIP_BIT;
+        m_Index = static_cast<iSys>(static_cast<uSys>(index) | C16_INDEX_FLIP_BIT);
     }
     else
     {
@@ -251,29 +253,30 @@ inline DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const Strin
     }
 }
 
+
 template<>
-inline DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator++() noexcept
+inline constexpr DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator++() noexcept
 {
     ++m_Index;
-    uSys index = m_Index & ~C16_INDEX_FLIP_BIT;
+    iSys index = static_cast<iSys>(m_Index & ~C16_INDEX_FLIP_BIT);
     m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(m_String, index);
-    m_Index = index | C16_INDEX_FLIP_BIT;
+    m_Index = static_cast<iSys>(static_cast<uSys>(index) | C16_INDEX_FLIP_BIT);
     return *this;
 }
 
 template<>
-inline DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator--() noexcept
+inline constexpr DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator--() noexcept
 {
-    uSys index = m_Index & ~C16_INDEX_FLIP_BIT;
+    iSys index = static_cast<iSys>(m_Index & ~C16_INDEX_FLIP_BIT);
     m_CurrentCodePoint = tau::string::utf16::DecodeCodePointBackward(m_String, index);
-    m_Index = index | C16_INDEX_FLIP_BIT;
+    m_Index = static_cast<iSys>(static_cast<uSys>(index) | C16_INDEX_FLIP_BIT);
     return *this;
 }
 
 template<>
-inline bool DynStringCodePointIteratorT<c16>::operator==(const DynStringCodePointIteratorT<c16>& other) const noexcept
-{ return (m_Index & ~C16_INDEX_FLIP_BIT) == (other.m_Index & ~C16_INDEX_FLIP_BIT); }
+inline constexpr bool DynStringCodePointIteratorT<c16>::operator==(const DynStringCodePointIteratorT<c16>& other) const noexcept
+{ return (static_cast<uSys>(m_Index) & ~C16_INDEX_FLIP_BIT) == (static_cast<uSys>(other.m_Index) & ~C16_INDEX_FLIP_BIT); }
 
 template<>
-inline bool DynStringCodePointIteratorT<c16>::operator!=(const DynStringCodePointIteratorT<c16>& other) const noexcept
-{ return (m_Index & ~C16_INDEX_FLIP_BIT) != (other.m_Index & ~C16_INDEX_FLIP_BIT); }
+inline constexpr bool DynStringCodePointIteratorT<c16>::operator!=(const DynStringCodePointIteratorT<c16>& other) const noexcept
+{ return (static_cast<uSys>(m_Index) & ~C16_INDEX_FLIP_BIT) != (static_cast<uSys>(other.m_Index) & ~C16_INDEX_FLIP_BIT); }

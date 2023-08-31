@@ -6,7 +6,7 @@
 namespace tau {
 
 template<typename T, typename SizeT>
-inline void ReverseBuffer(T* const buffer, const SizeT bufferSize) noexcept
+inline constexpr void ReverseBuffer(T* const buffer, const SizeT bufferSize) noexcept
 {
     const SizeT sizeM1 = bufferSize - 1;
 
@@ -19,7 +19,7 @@ inline void ReverseBuffer(T* const buffer, const SizeT bufferSize) noexcept
 }
 
 template<typename T, uSys BufferSize>
-inline void ReverseBuffer(T* const buffer) noexcept
+inline constexpr void ReverseBuffer(T* const buffer) noexcept
 {
     constexpr uSys sizeM1 = BufferSize - 1;
 
@@ -32,7 +32,7 @@ inline void ReverseBuffer(T* const buffer) noexcept
 }
 
 template<typename T, uSys BufferSize>
-inline void ReverseBuffer(T(&buffer)[BufferSize]) noexcept
+inline constexpr void ReverseBuffer(T(&buffer)[BufferSize]) noexcept
 {
     const uSys sizeM1 = BufferSize - 1;
     
@@ -45,7 +45,7 @@ inline void ReverseBuffer(T(&buffer)[BufferSize]) noexcept
 }
 
 template<typename Int, typename Char>
-inline Char GetNumberUpper(Int val) noexcept
+inline constexpr Char GetNumberUpper(Int val) noexcept
 {
     switch(val)
     {
@@ -70,7 +70,7 @@ inline Char GetNumberUpper(Int val) noexcept
 }
 
 template<typename Int, typename Char>
-inline Char GetNumberLower(Int val) noexcept
+inline constexpr Char GetNumberLower(Int val) noexcept
 {
     switch(val)
     {
@@ -192,7 +192,7 @@ struct MaxCharCount<c32> final
 
 
 template<typename Int, typename Char>
-inline i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
+inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
 {
     if(val == 0)
     {
@@ -338,7 +338,7 @@ inline i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline i32 ItoA(Int val, Char(&buffer)[BufferSize])
+inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
 {
     if(val == 0)
     {
@@ -484,7 +484,7 @@ inline i32 ItoA(Int val, Char(&buffer)[BufferSize])
 }
 
 template<bool Uppercase, typename Int, typename Char>
-inline i32 XtoA(const Int val, Char* const buffer, const uSys bufferSize)
+inline constexpr i32 XtoA(const Int val, Char* const buffer, const uSys bufferSize)
 {
     using UInt = ::std::make_unsigned_t<Int>;
 
@@ -529,7 +529,7 @@ inline i32 XtoA(const Int val, Char* const buffer, const uSys bufferSize)
 }
 
 template<bool Uppercase, typename Int, typename Char, uSys BufferSize>
-inline i32 XtoA(const Int val, Char(&buffer)[BufferSize])
+inline constexpr i32 XtoA(const Int val, Char(&buffer)[BufferSize])
 {
     using UInt = ::std::make_unsigned_t<Int>;
 
@@ -574,7 +574,7 @@ inline i32 XtoA(const Int val, Char(&buffer)[BufferSize])
 }
 
 template<typename Int, typename Char, Char PadChar>
-inline i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
+inline constexpr i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
 {
     constexpr uSys maxCharCount = MaxCharCount<Int>::Value;
 
@@ -708,7 +708,7 @@ inline i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
 }
 
 template<typename Int, typename Char, Char PadChar, uSys BufferSize>
-inline i32 ItoAP(Int val, Char(&buffer)[BufferSize])
+inline constexpr i32 ItoAP(Int val, Char(&buffer)[BufferSize])
 {
     constexpr uSys maxCharCount = MaxCharCount<Int>::Value;
 
@@ -842,31 +842,31 @@ inline i32 ItoAP(Int val, Char(&buffer)[BufferSize])
 }
 
 template<typename Int, typename Char>
-inline i32 ItoAP0(const Int val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 ItoAP0(const Int val, Char* const buffer, const uSys bufferSize) noexcept
 {
     return ItoAP<Int, Char, '0'>(val, buffer, bufferSize);
 }
 
 template<typename Int, typename Char>
-inline i32 ItoAPS(const Int val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 ItoAPS(const Int val, Char* const buffer, const uSys bufferSize) noexcept
 {
     return ItoAP<Int, Char, ' '>(val, buffer, bufferSize);
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline i32 ItoAP0(Int val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 ItoAP0(Int val, Char(&buffer)[BufferSize]) noexcept
 {
     return ItoAP<Int, Char, '0', BufferSize>(val, buffer);
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline i32 ItoAPS(Int val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 ItoAPS(Int val, Char(&buffer)[BufferSize]) noexcept
 {
     return ItoAP<Int, Char, ' ', BufferSize>(val, buffer);
 }
 
 template<bool Uppercase, typename Int, typename Char, Char PadChar = '0'>
-inline i32 XtoAP(const Int val, Char* const buffer, const uSys bufferSize)
+inline constexpr i32 XtoAP(const Int val, Char* const buffer, const uSys bufferSize)
 {
     using UInt = ::std::make_unsigned_t<Int>;
 
@@ -915,7 +915,7 @@ inline i32 XtoAP(const Int val, Char* const buffer, const uSys bufferSize)
 }
 
 template<bool Uppercase, typename Int, typename Char, Char PadChar, uSys BufferSize>
-inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
+inline constexpr i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
 {
     using UInt = ::std::make_unsigned_t<Int>;
 
@@ -964,31 +964,31 @@ inline i32 XtoAP(const Int val, Char(&buffer)[BufferSize])
 }
 
 template<typename Int, typename Char>
-inline i32 XtoAP0(const Int val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 XtoAP0(const Int val, Char* const buffer, const uSys bufferSize) noexcept
 {
     return XtoAP<Int, Char, '0'>(val, buffer, bufferSize);
 }
 
 template<typename Int, typename Char>
-inline i32 XtoAPS(const Int val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 XtoAPS(const Int val, Char* const buffer, const uSys bufferSize) noexcept
 {
     return XtoAP<Int, Char, ' '>(val, buffer, bufferSize);
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline i32 XtoAP0(Int val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 XtoAP0(Int val, Char(&buffer)[BufferSize]) noexcept
 {
     return XtoAP<Int, Char, '0', BufferSize>(val, buffer);
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline i32 XtoAPS(Int val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 XtoAPS(Int val, Char(&buffer)[BufferSize]) noexcept
 {
     return XtoAP<Int, Char, ' ', BufferSize>(val, buffer);
 }
 
 template<typename Char>
-inline i32 BtoA(const bool val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 BtoA(const bool val, Char* const buffer, const uSys bufferSize) noexcept
 {
     if(val)
     {
@@ -1016,7 +1016,7 @@ inline i32 BtoA(const bool val, Char* const buffer, const uSys bufferSize) noexc
 }
 
 template<typename Char, uSys BufferSize>
-inline i32 BtoA(const bool val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 BtoA(const bool val, Char(&buffer)[BufferSize]) noexcept
 {
     if(val)
     {
@@ -1044,7 +1044,7 @@ inline i32 BtoA(const bool val, Char(&buffer)[BufferSize]) noexcept
 }
 
 template<typename Char>
-inline i32 BtoAP(const bool val, Char* const buffer, const uSys bufferSize) noexcept
+inline constexpr i32 BtoAP(const bool val, Char* const buffer, const uSys bufferSize) noexcept
 {
     if(val)
     {
@@ -1073,7 +1073,7 @@ inline i32 BtoAP(const bool val, Char* const buffer, const uSys bufferSize) noex
 }
 
 template<typename Char, uSys BufferSize>
-inline i32 BtoAP(const bool val, Char(&buffer)[BufferSize]) noexcept
+inline constexpr i32 BtoAP(const bool val, Char(&buffer)[BufferSize]) noexcept
 {
     if(val)
     {

@@ -10,30 +10,30 @@ public:
 private:
     Type* m_RefCount;
 public:
-    ReferenceCounter() noexcept
-        : m_RefCount(TU_NEW(Type, 1))
+    constexpr ReferenceCounter() noexcept
+        : m_RefCount(TU_NEW_C(Type, 1))
     { }
 
-    explicit ReferenceCounter(Type* const refCount) noexcept
+    explicit constexpr ReferenceCounter(Type* const refCount) noexcept
         : m_RefCount(refCount)
     { ++(*m_RefCount); }
 
-    ReferenceCounter(nullptr_t) noexcept
+    constexpr ReferenceCounter(nullptr_t) noexcept
         : m_RefCount(nullptr)
     { }
 
-    ~ReferenceCounter() noexcept
+    constexpr ~ReferenceCounter() noexcept
     { OnDestroy(); }
 
-    ReferenceCounter(const ReferenceCounter& copy) noexcept
+    constexpr ReferenceCounter(const ReferenceCounter& copy) noexcept
         : m_RefCount(copy.m_RefCount)
     { OnCopy(); }
 
-    ReferenceCounter(ReferenceCounter&& move) noexcept
+    constexpr ReferenceCounter(ReferenceCounter&& move) noexcept
         : m_RefCount(move.m_RefCount)
     { move.m_RefCount = nullptr; }
 
-    ReferenceCounter& operator=(const ReferenceCounter& copy) noexcept
+    constexpr ReferenceCounter& operator=(const ReferenceCounter& copy) noexcept
     {
         if(this == &copy)
         {
@@ -49,7 +49,7 @@ public:
         return *this;
     }
 
-    ReferenceCounter& operator=(ReferenceCounter&& move) noexcept
+    constexpr ReferenceCounter& operator=(ReferenceCounter&& move) noexcept
     {
         if(this == &move)
         {
@@ -65,12 +65,12 @@ public:
         return *this;
     }
 
-    [[nodiscard]] Type RefCount() const noexcept { return m_RefCount ? *m_RefCount : 0; }
-    [[nodiscard]] const Type* RefCountPtr() const noexcept { return m_RefCount; }
+    [[nodiscard]] constexpr Type RefCount() const noexcept { return m_RefCount ? *m_RefCount : 0; }
+    [[nodiscard]] constexpr const Type* RefCountPtr() const noexcept { return m_RefCount; }
 
-    [[nodiscard]] bool IsAboutToBeDestroyed() const noexcept { return RefCount() == 1; }
+    [[nodiscard]] constexpr bool IsAboutToBeDestroyed() const noexcept { return RefCount() == 1; }
 private:
-    inline void OnCopy() const noexcept
+    inline constexpr void OnCopy() const noexcept
     {
         if(m_RefCount)
         {
@@ -78,7 +78,7 @@ private:
         }
     }
 
-    inline void OnDestroy() const noexcept
+    inline constexpr void OnDestroy() const noexcept
     {
         if(m_RefCount && --(*m_RefCount) <= 0)
         {

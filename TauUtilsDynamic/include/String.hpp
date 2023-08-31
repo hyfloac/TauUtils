@@ -12,6 +12,7 @@
 #include "NumTypes.hpp"
 #include "TauMacros.hpp"
 #include "ReferenceCounter.hpp"
+#include "TUMaths.hpp"
 
 #ifndef __has_feature
   #define __has_feature(X) 0
@@ -47,10 +48,10 @@ public:
     template<uSys Len>
     constexpr LargeString(const Char (&str)[Len]) noexcept;
 
-    LargeString(const Char* buffer, uSys codeUnits) noexcept;
-    LargeString(ReferenceCounter::Type* refCount, const Char* buffer) noexcept;
+    constexpr LargeString(const Char* buffer, uSys codeUnits) noexcept;
+    constexpr LargeString(ReferenceCounter::Type* refCount, const Char* buffer) noexcept;
 
-    ~LargeString() noexcept;
+    constexpr ~LargeString() noexcept;
 };
 
 template<typename Char>
@@ -61,8 +62,17 @@ union SmallLargeString final
     u8 LargeString[sizeof(LargeString_t)];
     Char StackString[16];
 
-    [[nodiscard]]       LargeString_t& AsLargeString()       noexcept { return *reinterpret_cast<LargeString_t*>(LargeString); }
-    [[nodiscard]] const LargeString_t& AsLargeString() const noexcept { return *reinterpret_cast<const LargeString_t*>(LargeString); }
+    constexpr SmallLargeString() noexcept
+        : StackString { }
+    { }
+
+    [[nodiscard]] constexpr       LargeString_t* AsLargeStringPtr()       noexcept { return ::std::bit_cast<      LargeString_t*>(LargeStringRawPtr()); }
+    [[nodiscard]] constexpr const LargeString_t* AsLargeStringPtr() const noexcept { return ::std::bit_cast<const LargeString_t*>(LargeStringRawPtr()); }
+    [[nodiscard]] constexpr       LargeString_t& AsLargeString()       noexcept { return *AsLargeStringPtr(); }
+    [[nodiscard]] constexpr const LargeString_t& AsLargeString() const noexcept { return *AsLargeStringPtr(); }
+
+    [[nodiscard]] constexpr       u8* LargeStringRawPtr()       noexcept { return LargeString; }
+    [[nodiscard]] constexpr const u8* LargeStringRawPtr() const noexcept { return LargeString; }
 };
 
 template<typename Char>
@@ -78,24 +88,24 @@ public:
     template<uSys Len>
     constexpr StringData(const Char (&str)[Len]) noexcept;
 
-    StringData(const Char* buffer, uSys codeUnits) noexcept;
-    StringData(ReferenceCounter::Type* refCount, const Char* buffer, uSys codeUnits) noexcept;
+    constexpr StringData(const Char* buffer, uSys codeUnits) noexcept;
+    constexpr StringData(ReferenceCounter::Type* refCount, const Char* buffer, uSys codeUnits) noexcept;
 
-    ~StringData() noexcept;
+    constexpr ~StringData() noexcept;
 
-    StringData(const StringData& copy) noexcept;
-    StringData(StringData&& move) noexcept;
+    constexpr StringData(const StringData& copy) noexcept;
+    constexpr StringData(StringData&& move) noexcept;
 
-    StringData& operator=(const StringData& copy) noexcept;
-    StringData& operator=(StringData&& move) noexcept;
+    constexpr StringData& operator=(const StringData& copy) noexcept;
+    constexpr StringData& operator=(StringData&& move) noexcept;
     
     template<uSys Len>
-    StringData& operator=(const Char (&str)[Len]) noexcept;
+    constexpr StringData& operator=(const Char (&str)[Len]) noexcept;
 
-    void Reset(const Char* buffer, uSys codeUnits) noexcept;
-    void Reset(ReferenceCounter::Type* refCount, const Char* buffer, uSys codeUnits) noexcept;
+    constexpr void Reset(const Char* buffer, uSys codeUnits) noexcept;
+    constexpr void Reset(ReferenceCounter::Type* refCount, const Char* buffer, uSys codeUnits) noexcept;
 
-    [[nodiscard]] const Char* String() const noexcept { return Length < 16 ? Buffer.StackString : Buffer.AsLargeString().Buffer; }
+    [[nodiscard]] constexpr const Char* String() const noexcept { return Length < 16 ? Buffer.StackString : Buffer.AsLargeString().Buffer; }
 };
 
 }
@@ -125,19 +135,19 @@ template<typename Char>
 uSys toUpper(const Char* str, [[tau::nullable]] Char* store) noexcept;
 
 template<typename Char>
-uSys findHashCode([[tau::nonnull]] const Char* str) noexcept;
+constexpr uSys findHashCode([[tau::nonnull]] const Char* str) noexcept;
 
 template<typename Char>
-uSys findHashCode(const Char* str, uSys len) noexcept;
+constexpr uSys findHashCode([[tau::nonnull]] const Char* str, uSys len) noexcept;
 
 template<typename Char>
-uSys strLength(const Char* str) noexcept;
+constexpr uSys strLength([[tau::nonnull]] const Char* str) noexcept;
 
 template<typename Char>
-i32 strCompare(const Char* lhs, const Char* rhs) noexcept;
+constexpr i32 strCompare([[tau::nonnull]] const Char* lhs, [[tau::nonnull]] const Char* rhs) noexcept;
 
 template<typename Char>
-i32 strCompare(const Char* lhs, const Char* rhs, uSys length) noexcept;
+constexpr i32 strCompare([[tau::nonnull]] const Char* lhs, [[tau::nonnull]] const Char* rhs, uSys length) noexcept;
 
 inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs) noexcept
 {
@@ -271,22 +281,22 @@ class StringIteratorT final
     DEFAULT_DESTRUCT(StringIteratorT);
     DEFAULT_CM_PU(StringIteratorT);
 private:
-    const Char* _string;
-    uSys _length;
-    uSys _index;
+    const Char* m_String;
+    uSys m_Length;
+    uSys m_Index;
 public:
-    StringIteratorT(const Char* string, uSys length, uSys index) noexcept;
+    constexpr StringIteratorT(const Char* string, uSys length, uSys index) noexcept;
 
-    StringIteratorT<Char>& operator++() noexcept;
-    StringIteratorT<Char>& operator--() noexcept;
+    constexpr StringIteratorT<Char>& operator++() noexcept;
+    constexpr StringIteratorT<Char>& operator--() noexcept;
 
-    [[nodiscard]] StringIteratorT<Char> operator++(int) noexcept;
-    [[nodiscard]] StringIteratorT<Char> operator--(int) noexcept;
+    [[nodiscard]] constexpr StringIteratorT<Char> operator++(int) noexcept;
+    [[nodiscard]] constexpr StringIteratorT<Char> operator--(int) noexcept;
 
-    [[nodiscard]] inline Char operator*() const noexcept;
+    [[nodiscard]] constexpr inline Char operator*() const noexcept;
 
-    [[nodiscard]] bool operator ==(const StringIteratorT<Char>& other) const noexcept;
-    [[nodiscard]] bool operator !=(const StringIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator ==(const StringIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator !=(const StringIteratorT<Char>& other) const noexcept;
 };
 
 template<typename Char>
@@ -301,18 +311,18 @@ private:
     uSys m_Start;
     uSys m_Index;
 public:
-    DynStringCodeUnitIteratorT(const StringData& string, uSys index, uSys start = 0) noexcept;
+    constexpr DynStringCodeUnitIteratorT(const StringData& string, uSys index, uSys start = 0) noexcept;
 
-    DynStringCodeUnitIteratorT<Char>& operator++() noexcept;
-    DynStringCodeUnitIteratorT<Char>& operator--() noexcept;
+    constexpr DynStringCodeUnitIteratorT<Char>& operator++() noexcept;
+    constexpr DynStringCodeUnitIteratorT<Char>& operator--() noexcept;
 
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char> operator++(int) noexcept;
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char> operator--(int) noexcept;
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char> operator++(int) noexcept;
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char> operator--(int) noexcept;
 
-    [[nodiscard]] inline Char operator*() const noexcept;
+    [[nodiscard]] constexpr inline Char operator*() const noexcept;
 
-    [[nodiscard]] bool operator ==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept;
-    [[nodiscard]] bool operator !=(const DynStringCodeUnitIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator ==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator !=(const DynStringCodeUnitIteratorT<Char>& other) const noexcept;
 };
 
 template<typename Char>
@@ -324,31 +334,33 @@ private:
     using StringData = tau::string::StringData<Char>;
 
     StringData m_String;
-    uSys m_Start;
-    uSys m_Index;
+    iSys m_Start;
+    iSys m_Index;
     c32 m_CurrentCodePoint;
 public:
-    DynStringCodePointIteratorT(const StringData& string, uSys index, uSys start = 0) noexcept;
+    constexpr DynStringCodePointIteratorT(const StringData& string, iSys index, iSys start = 0) noexcept;
+    constexpr DynStringCodePointIteratorT(const StringData& string, uSys index, uSys start = 0) noexcept;
 protected:
-    DynStringCodePointIteratorT(const StringData& string, uSys index, uSys start, c32 currentCodePoint) noexcept;
+    constexpr DynStringCodePointIteratorT(const StringData& string, iSys index, iSys start, c32 currentCodePoint) noexcept;
+    constexpr DynStringCodePointIteratorT(const StringData& string, uSys index, uSys start, c32 currentCodePoint) noexcept;
 public:
-    DynStringCodePointIteratorT<Char>& operator++() noexcept;
-    DynStringCodePointIteratorT<Char>& operator--() noexcept;
+    constexpr DynStringCodePointIteratorT<Char>& operator++() noexcept;
+    constexpr DynStringCodePointIteratorT<Char>& operator--() noexcept;
 
-    [[nodiscard]] DynStringCodePointIteratorT<Char> operator++(int) noexcept;
-    [[nodiscard]] DynStringCodePointIteratorT<Char> operator--(int) noexcept;
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> operator++(int) noexcept;
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> operator--(int) noexcept;
 
-    [[nodiscard]] inline c32 operator*() const noexcept;
+    [[nodiscard]] constexpr inline c32 operator*() const noexcept;
 
-    [[nodiscard]] bool operator ==(const DynStringCodePointIteratorT<Char>& other) const noexcept;
-    [[nodiscard]] bool operator !=(const DynStringCodePointIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator ==(const DynStringCodePointIteratorT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool operator !=(const DynStringCodePointIteratorT<Char>& other) const noexcept;
 };
 
 template<typename Char>
 class ConstExprStringT final : public StringBaseT<Char>
 {
-    DEFAULT_DESTRUCT(ConstExprStringT);
-    DEFAULT_CM_PU(ConstExprStringT);
+    DEFAULT_DESTRUCT_C(ConstExprStringT);
+    DEFAULT_CM_PUC(ConstExprStringT);
 private:
     const Char* m_String;
     uSys m_Length;
@@ -364,26 +376,77 @@ public:
     [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Length; }
     [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
     
-    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
-    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
+    [[nodiscard]] constexpr StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
+    [[nodiscard]] constexpr StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
     template<uSys Len>
-    [[nodiscard]] constexpr bool equals(const Char (&str)[Len]) const noexcept;
+    [[nodiscard]] constexpr bool Equals(const Char (&str)[Len]) const noexcept;
     
-    [[nodiscard]] bool Equals(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const Char* str) const noexcept override;
 
-    [[nodiscard]] i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
     
-    [[nodiscard]] Char operator [](uSys index) const noexcept;
-    [[nodiscard]] Char at(uSys index) const noexcept;
+    [[nodiscard]] constexpr Char operator [](uSys index) const noexcept;
+    [[nodiscard]] constexpr Char at(uSys index) const noexcept;
+private:
+    template<typename CChar>
+    friend class ConstExprStringT;
+
+    template<typename CChar>
+    friend class DynStringT;
+
+    template<typename CChar>
+    friend class DynStringViewT;
+
+    template<typename CChar>
+    friend class StringBuilderT;
+};
+
+template<typename Char, uSys Len>
+class ConstExprStackStringT final : public StringBaseT<Char>
+{
+    DEFAULT_DESTRUCT_C(ConstExprStackStringT);
+    DEFAULT_CM_PUC(ConstExprStackStringT);
+public:
+    const Char m_String[Len];
+    uSys m_Hash;
+public:
+    consteval ConstExprStackStringT(const Char(&str)[Len]) noexcept;
+
+    [[nodiscard]] constexpr const Char* String() const noexcept override { return m_String; }
+    [[nodiscard]] constexpr uSys Length() const noexcept override { return Len; }
+    [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
+
+    [[nodiscard]] constexpr StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, Len, 0); }
+    [[nodiscard]] constexpr StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, Len, Len - 1); }
+
+    template<uSys OLen>
+    [[nodiscard]] consteval bool Equals(const Char(&str)[OLen]) const noexcept;
+    template<uSys OLen>
+    [[nodiscard]] consteval bool Equals(const ConstExprStackStringT<Char, OLen>& other) const noexcept;
+
+    [[nodiscard]] constexpr bool Equals(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const Char* str) const noexcept override;
+
+    [[nodiscard]] constexpr i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
+
+    [[nodiscard]] constexpr Char operator [](uSys index) const noexcept;
+    [[nodiscard]] constexpr Char at(uSys index) const noexcept;
 private:
     template<typename CChar>
     friend class ConstExprStringT;
@@ -426,66 +489,67 @@ private:
     template<uSys Len>
     constexpr DynStringT(const Char (&str)[Len]) noexcept;
 
-    DynStringT(const Char* string, uSys length) noexcept;
-    DynStringT(ReferenceCounter::Type* refCount, const Char* string, uSys length) noexcept;
+    constexpr DynStringT(const Char* string, uSys length) noexcept;
+    constexpr DynStringT(ReferenceCounter::Type* refCount, const Char* string, uSys length) noexcept;
 public:
-    DynStringT() noexcept;
-    DynStringT(const Char* string) noexcept;
-    DynStringT(uSys length, const Char* string) noexcept;
-    DynStringT(const ConstExprStringT<Char>& string) noexcept;
-    DynStringT(const DynStringViewT<Char>& string) noexcept;
-    DynStringT(const StringBaseT<Char>& string) noexcept;
+    constexpr DynStringT() noexcept;
+    constexpr DynStringT(const Char* string) noexcept;
+    constexpr DynStringT(uSys length, const Char* string) noexcept;
+    constexpr DynStringT(const ConstExprStringT<Char>& string) noexcept;
+    constexpr DynStringT(const DynStringViewT<Char>& string) noexcept;
+    constexpr DynStringT(const StringBaseT<Char>& string) noexcept;
     
-    DynStringT<Char>& operator=(const Char* string) noexcept;
-    DynStringT<Char>& operator=(const ConstExprStringT<Char>& string) noexcept;
-    DynStringT<Char>& operator=(const DynStringViewT<Char>& string) noexcept;
-    DynStringT<Char>& operator=(const StringBaseT<Char>& string) noexcept;
+    constexpr DynStringT<Char>& operator=(const Char* string) noexcept;
+    constexpr DynStringT<Char>& operator=(const ConstExprStringT<Char>& string) noexcept;
+    constexpr DynStringT<Char>& operator=(const DynStringViewT<Char>& string) noexcept;
+    // ReSharper disable once CppHidingFunction
+    constexpr DynStringT<Char>& operator=(const StringBaseT<Char>& string) noexcept;
 
-    [[nodiscard]] [[tau::nonnull]] const Char* String() const noexcept override { return m_Data.String(); }
-    [[nodiscard]] uSys Length() const noexcept override { return m_Data.Length; }
-    [[nodiscard]] uSys HashCode() const noexcept override { return m_Hash; }
+    [[nodiscard]] [[tau::nonnull]] constexpr const Char* String() const noexcept override { return m_Data.String(); }
+    [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Data.Length; }
+    [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
     
-    [[nodiscard]] bool Equals(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const Char* str) const noexcept override;
 
-    [[nodiscard]] i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
 
-    [[nodiscard]] DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length); }
-    [[nodiscard]] DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length - 1); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length - 1); }
 
-    [[nodiscard]] DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }
-    [[nodiscard]] DynStringCodePointIteratorT<Char>   end() const noexcept { return end(); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   end() const noexcept { return end(); }
 
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char> BeginUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, 0); }
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char>   EndUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Data.Length - 1); }
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char> BeginUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, 0); }
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char>   EndUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Data.Length - 1); }
 
-    [[nodiscard]] DynStringT<Char> Concat(const StringBaseT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const ConstExprStringT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const DynStringT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const DynStringViewT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const Char* other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const StringBaseT<Char>&      other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const ConstExprStringT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const DynStringT<Char>&       other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const DynStringViewT<Char>&   other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const Char*                   other) const noexcept;
 
-    [[nodiscard]] DynStringT<Char> operator +(const StringBaseT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const DynStringT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const DynStringViewT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const StringBaseT<Char>&      other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringT<Char>&       other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>&   other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
 
-    [[nodiscard]] DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
-    [[nodiscard]] DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
-    [[nodiscard]] DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
     
-    [[nodiscard]] Char operator [](uSys index) const noexcept;
-    [[nodiscard]] Char At(uSys index) const noexcept;
+    [[nodiscard]] constexpr Char operator [](uSys index) const noexcept;
+    [[nodiscard]] constexpr Char At(uSys index) const noexcept;
 private:
-    [[nodiscard]] DynStringT<Char> _concat(uSys len, const Char* str) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> _concat(uSys len, const Char* str) const noexcept;
 private:
     template<typename CharC>
     friend class ConstExprStringT;
@@ -511,72 +575,72 @@ private:
     uSys m_Length;
     uSys m_Hash;
 private:
-    DynStringViewT(uSys begin, uSys length, const DynStringT<Char>& str) noexcept;
-    DynStringViewT(uSys begin, uSys length, const DynStringViewT<Char>& str) noexcept;
+    constexpr DynStringViewT(uSys begin, uSys length, const DynStringT<Char>& str) noexcept;
+    constexpr DynStringViewT(uSys begin, uSys length, const DynStringViewT<Char>& str) noexcept;
 public:
-    DynStringViewT(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
-    DynStringViewT(const DynStringViewT<Char>& str, uSys begin, uSys end) noexcept;
+    constexpr DynStringViewT(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
+    constexpr DynStringViewT(const DynStringViewT<Char>& str, uSys begin, uSys end) noexcept;
 
-    DynStringViewT(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
-    DynStringViewT(DynStringViewT<Char>&& str, uSys begin, uSys end) noexcept = delete;
+    constexpr DynStringViewT(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
+    constexpr DynStringViewT(DynStringViewT<Char>&& str, uSys begin, uSys end) noexcept = delete;
     
-    [[nodiscard]] static inline DynStringViewT<Char> Create(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
-    [[nodiscard]] static inline DynStringViewT<Char> Create(const DynStringViewT<Char>& str, uSys begin, uSys length) noexcept;
+    [[nodiscard]] static inline constexpr DynStringViewT<Char> Create(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
+    [[nodiscard]] static inline constexpr DynStringViewT<Char> Create(const DynStringViewT<Char>& str, uSys begin, uSys length) noexcept;
 
-    [[nodiscard]] static inline DynStringViewT<Char> Create(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
-    [[nodiscard]] static inline DynStringViewT<Char> Create(DynStringViewT<Char>&& str, uSys begin, uSys length) noexcept = delete;
+    [[nodiscard]] static inline constexpr DynStringViewT<Char> Create(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
+    [[nodiscard]] static inline constexpr DynStringViewT<Char> Create(DynStringViewT<Char>&& str, uSys begin, uSys length) noexcept = delete;
 
-    DynStringViewT<Char>& Reset(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
-    DynStringViewT<Char>& ResetLen(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
+    constexpr DynStringViewT<Char>& Reset(const DynStringT<Char>& str, uSys begin, uSys end) noexcept;
+    constexpr DynStringViewT<Char>& ResetLen(const DynStringT<Char>& str, uSys begin, uSys length) noexcept;
 
-    DynStringViewT<Char>& Reset(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
-    DynStringViewT<Char>& ResetLen(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
+    constexpr DynStringViewT<Char>& Reset(DynStringT<Char>&& str, uSys begin, uSys end) noexcept = delete;
+    constexpr DynStringViewT<Char>& ResetLen(DynStringT<Char>&& str, uSys begin, uSys length) noexcept = delete;
 
-    [[nodiscard]] const Char* String() const noexcept override { return m_Data.String() + m_Start; }
-    [[nodiscard]] uSys Length() const noexcept override { return m_Length; }
-    [[nodiscard]] uSys HashCode() const noexcept override { return m_Hash; }
+    [[nodiscard]] constexpr const Char* String() const noexcept override { return m_Data.String() + m_Start; }
+    [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Length; }
+    [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
     
-    [[nodiscard]] DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length, m_Start); }
-    [[nodiscard]] DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length - 1, m_Start); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length, m_Start); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length - 1, m_Start); }
 
-    [[nodiscard]] DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }
-    [[nodiscard]] DynStringCodePointIteratorT<Char>   end() const noexcept { return end(); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   end() const noexcept { return end(); }
 
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char> BeginUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Start, m_Start); }
-    [[nodiscard]] DynStringCodeUnitIteratorT<Char>   EndUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Data.Length - 1, m_Start); }
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char> BeginUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Start, m_Start); }
+    [[nodiscard]] constexpr DynStringCodeUnitIteratorT<Char>   EndUnits() const noexcept { return DynStringCodeUnitIteratorT<Char>(m_Data, m_Data.Length - 1, m_Start); }
 
-    [[nodiscard]] bool Equals(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] bool Equals(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr bool Equals(const Char* str) const noexcept override;
 
-    [[nodiscard]] i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
-    [[nodiscard]] i32 CompareTo(const Char* str) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const StringBaseT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const ConstExprStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const DynStringT<Char>& other) const noexcept override;
+    [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
 
-    [[nodiscard]] DynStringT<Char> Concat(const StringBaseT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const ConstExprStringT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const DynStringT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const DynStringViewT<Char>& other) const noexcept;
-    [[nodiscard]] DynStringT<Char> Concat(const Char* other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const StringBaseT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const ConstExprStringT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const DynStringT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const DynStringViewT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> Concat(const Char* other) const noexcept;
 
-    [[nodiscard]] DynStringT<Char> operator +(const StringBaseT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const DynStringT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const DynStringViewT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const StringBaseT<Char>& other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringT<Char>& other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>& other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
 
-    [[nodiscard]] inline DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
-    [[nodiscard]] inline DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
-    [[nodiscard]] inline DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
     
-    [[nodiscard]] inline Char operator [](uSys index) const noexcept;
-    [[nodiscard]] inline Char At(uSys index) const noexcept;
+    [[nodiscard]] inline constexpr Char operator [](uSys index) const noexcept;
+    [[nodiscard]] inline constexpr Char At(uSys index) const noexcept;
 private:
-    [[nodiscard]] DynStringT<Char> _concat(uSys len, const Char* str) noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> _concat(uSys len, const Char* str) noexcept;
 private:
     template<typename CharC>
     friend class ConstExprStringT;
@@ -595,111 +659,172 @@ template<typename Char>
 class StringBuilderT final
 {
 public:
-    StringBuilderT() noexcept;
-    StringBuilderT(uSys initialSize) noexcept;
-    StringBuilderT(const Char* string) noexcept;
+    constexpr StringBuilderT() noexcept;
+    constexpr StringBuilderT(uSys initialSize) noexcept;
+    constexpr StringBuilderT(const Char* string) noexcept;
 
-    ~StringBuilderT() noexcept;
+    constexpr ~StringBuilderT() noexcept;
 
-    StringBuilderT(const StringBuilderT<Char>& copy) noexcept;
-    StringBuilderT(StringBuilderT<Char>&& move) noexcept;
+    constexpr StringBuilderT(const StringBuilderT<Char>& copy) noexcept;
+    constexpr StringBuilderT(StringBuilderT<Char>&& move) noexcept;
 
-    StringBuilderT<Char>& operator =(const StringBuilderT<Char>& copy) noexcept;
-    StringBuilderT<Char>& operator =(StringBuilderT<Char>&& move) noexcept;
+    constexpr StringBuilderT<Char>& operator =(const StringBuilderT<Char>& copy) noexcept;
+    constexpr StringBuilderT<Char>& operator =(StringBuilderT<Char>&& move) noexcept;
 
-    [[nodiscard]] const Char* String() const noexcept { return m_String; }
-    [[nodiscard]] const Char* c_str() const noexcept { return m_String; }
-    [[nodiscard]] uSys Length() const noexcept { return m_Length; }
-    [[nodiscard]] uSys length() const noexcept { return m_Length; }
-    [[nodiscard]] uSys Size() const noexcept { return m_Size; }
-    [[nodiscard]] uSys size() const noexcept { return m_Size; }
+    [[nodiscard]] constexpr const Char* String() const noexcept { return m_String; }
+    [[nodiscard]] constexpr const Char* c_str() const noexcept { return m_String; }
+    [[nodiscard]] constexpr uSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] constexpr uSys length() const noexcept { return m_Length; }
+    [[nodiscard]] constexpr uSys Size() const noexcept { return m_Size; }
+    [[nodiscard]] constexpr uSys size() const noexcept { return m_Size; }
 
-    [[nodiscard]] bool equals(const StringBuilderT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr bool equals(const StringBuilderT<Char>& other) const noexcept;
 
-    [[nodiscard]] i32 compareTo(const StringBuilderT<Char>& other) const noexcept;
+    [[nodiscard]] constexpr i32 compareTo(const StringBuilderT<Char>& other) const noexcept;
 
-    [[nodiscard]] StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
-    [[nodiscard]] StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
+    [[nodiscard]] constexpr StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
+    [[nodiscard]] constexpr StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
-    inline StringBuilderT<Char>& Append(const StringBaseT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& Append(const ConstExprStringT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& Append(const DynStringT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& Append(const DynStringViewT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& Append(const StringBuilderT<Char>& string) noexcept;
-    inline StringBuilderT<Char>& Append(const Char* string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const StringBaseT<Char>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const ConstExprStringT<Char>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const DynStringT<Char>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const DynStringViewT<Char>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const StringBuilderT<Char>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const Char* string) noexcept;
     template<typename CharDeduced = Char>
-    inline StringBuilderT<Char>& Append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept;
-    inline StringBuilderT<Char>& Append(c32 c) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(c32 c) noexcept;
 
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const StringBaseT<CharFrom>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const StringBaseT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const ConstExprStringT<CharFrom>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const ConstExprStringT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const DynStringT<CharFrom>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const DynStringT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const DynStringViewT<CharFrom>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const DynStringViewT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const StringBuilderT<CharFrom>& string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const StringBuilderT<CharFrom>& string) noexcept;
     template<typename CharFrom>
-    inline StringBuilderT<Char>& Append(const CharFrom* string) noexcept;
+    inline constexpr StringBuilderT<Char>& Append(const CharFrom* string) noexcept;
 
-    inline StringBuilderT<Char>& Reset() noexcept;
-    inline StringBuilderT<Char>& Reset(uSys newSize) noexcept;
-    inline StringBuilderT<Char>& ResetIf(uSys maxSize, uSys newSize) noexcept;
-    inline StringBuilderT<Char>& reset() noexcept { return Reset(); }
-    inline StringBuilderT<Char>& reset(const uSys newSize) noexcept { return Reset(newSize); }
-    inline StringBuilderT<Char>& resetIf(const uSys maxSize, const uSys newSize) noexcept { return ResetIf(maxSize, newSize); }
+    inline constexpr StringBuilderT<Char>& Reset() noexcept;
+    inline constexpr StringBuilderT<Char>& Reset(uSys newSize) noexcept;
+    inline constexpr StringBuilderT<Char>& ResetIf(uSys maxSize, uSys newSize) noexcept;
+    inline constexpr StringBuilderT<Char>& reset() noexcept { return Reset(); }
+    inline constexpr StringBuilderT<Char>& reset(const uSys newSize) noexcept { return Reset(newSize); }
+    inline constexpr StringBuilderT<Char>& resetIf(const uSys maxSize, const uSys newSize) noexcept { return ResetIf(maxSize, newSize); }
 
-    inline StringBuilderT<Char>& Backspace() noexcept;
-    inline StringBuilderT<Char>& Backspace(uSys count) noexcept;
-    inline StringBuilderT<Char>& backspace() noexcept { return Backspace(); }
-    inline StringBuilderT<Char>& backspace(const uSys count) noexcept { return Backspace(count); }
+    inline constexpr StringBuilderT<Char>& Backspace() noexcept;
+    inline constexpr StringBuilderT<Char>& Backspace(uSys count) noexcept;
+    inline constexpr StringBuilderT<Char>& backspace() noexcept { return Backspace(); }
+    inline constexpr StringBuilderT<Char>& backspace(const uSys count) noexcept { return Backspace(count); }
 
 #if __has_feature(__cpp_impl_three_way_comparison)
     [[nodiscard]] i32 operator <=> (const StringBuilderT<Char>& other) const noexcept { return compareTo(other); }
 #endif
 
-    [[nodiscard]] inline bool operator ==(const StringBuilderT<Char>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] inline bool operator !=(const StringBuilderT<Char>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] inline bool operator < (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <  0; }
-    [[nodiscard]] inline bool operator > (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >  0; }
-    [[nodiscard]] inline bool operator <=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] inline bool operator >=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] inline constexpr bool operator ==(const StringBuilderT<Char>& other) const noexcept { return  equals(other); }
+    [[nodiscard]] inline constexpr bool operator !=(const StringBuilderT<Char>& other) const noexcept { return !equals(other); }
+    [[nodiscard]] inline constexpr bool operator < (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <  0; }
+    [[nodiscard]] inline constexpr bool operator > (const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >  0; }
+    [[nodiscard]] inline constexpr bool operator <=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) <= 0; }
+    [[nodiscard]] inline constexpr bool operator >=(const StringBuilderT<Char>& other) const noexcept { return compareTo(other) >= 0; }
 
-    [[nodiscard]] inline StringBuilderT<Char>& operator +(const ConstExprStringT<Char>& other) noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<Char>& operator +(const DynStringT<Char>& other)       noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<Char>& operator +(const DynStringViewT<Char>& other)   noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<Char>& operator +(const StringBuilderT<Char>& other)   noexcept { return append(other); }
-    [[nodiscard]] inline StringBuilderT<Char>& operator +(const Char* other)                   noexcept { return append(other); }
+    [[nodiscard]] inline constexpr StringBuilderT<Char>& operator +(const ConstExprStringT<Char>& other) noexcept { return append(other); }
+    [[nodiscard]] inline constexpr StringBuilderT<Char>& operator +(const DynStringT<Char>& other)       noexcept { return append(other); }
+    [[nodiscard]] inline constexpr StringBuilderT<Char>& operator +(const DynStringViewT<Char>& other)   noexcept { return append(other); }
+    [[nodiscard]] inline constexpr StringBuilderT<Char>& operator +(const StringBuilderT<Char>& other)   noexcept { return append(other); }
+    [[nodiscard]] inline constexpr StringBuilderT<Char>& operator +(const Char* other)                   noexcept { return append(other); }
 
-    inline StringBuilderT<Char>& operator +=(const ConstExprStringT<Char>& other) noexcept { return append(other); }
-    inline StringBuilderT<Char>& operator +=(const DynStringT<Char>& other)       noexcept { return append(other); }
-    inline StringBuilderT<Char>& operator +=(const DynStringViewT<Char>& other)   noexcept { return append(other); }
-    inline StringBuilderT<Char>& operator +=(const StringBuilderT<Char>& other)   noexcept { return append(other); }
-    inline StringBuilderT<Char>& operator +=(const Char* other)                   noexcept { return append(other); }
+    inline constexpr StringBuilderT<Char>& operator +=(const ConstExprStringT<Char>& other) noexcept { return append(other); }
+    inline constexpr StringBuilderT<Char>& operator +=(const DynStringT<Char>& other)       noexcept { return append(other); }
+    inline constexpr StringBuilderT<Char>& operator +=(const DynStringViewT<Char>& other)   noexcept { return append(other); }
+    inline constexpr StringBuilderT<Char>& operator +=(const StringBuilderT<Char>& other)   noexcept { return append(other); }
+    inline constexpr StringBuilderT<Char>& operator +=(const Char* other)                   noexcept { return append(other); }
 
-    [[nodiscard]] inline DynStringT<Char> ToString() const noexcept { return DynStringT<Char>(m_String); }
-    [[nodiscard]] inline DynStringT<Char> toString() const noexcept { return DynStringT<Char>(m_String); }
-
-    [[nodiscard]] inline Char operator[](uSys index) const noexcept;
-    [[nodiscard]] inline Char At(uSys index) const noexcept;
-    [[nodiscard]] inline Char at(const uSys index) const noexcept { return At(index); }
+    [[nodiscard]] inline constexpr DynStringT<Char> ToString() const noexcept { return DynStringT<Char>(m_String); }
+    [[nodiscard]] inline constexpr DynStringT<Char> toString() const noexcept { return DynStringT<Char>(m_String); }
+    
+    [[nodiscard]] inline constexpr Char operator[](uSys index) const noexcept;
+    [[nodiscard]] inline constexpr Char At(uSys index) const noexcept;
+    [[nodiscard]] inline constexpr Char at(const uSys index) const noexcept { return At(index); }
 private:
-    void AssertSize(uSys newLength) noexcept;
+    constexpr void AssertSize(uSys newLength) noexcept;
 public:
-    void Append(const Char* string, uSys length) noexcept;
+    constexpr void Append(const Char* string, uSys length) noexcept;
 
     template<typename CharFrom>
-    void Append(const CharFrom* string, uSys length) noexcept;
+    constexpr void Append(const CharFrom* string, uSys length) noexcept;
 
-    void append(const Char* const string, const uSys length) noexcept { Append(string, length); }
+    constexpr void append(const Char* const string, const uSys length) noexcept { Append(string, length); }
     template<typename CharFrom>
-    void append(const CharFrom* const string, const uSys length) noexcept { Append(string, length); }
+    constexpr void append(const CharFrom* const string, const uSys length) noexcept { Append(string, length); }
 private:
     Char* m_String;
     uSys m_Length;
     uSys m_Size;
+};
+
+#include "String.CalculateCodeUnits.inl"
+
+template<typename Char, iSys Len>
+class ConstEvalStringBuilderT final
+{
+    DEFAULT_DESTRUCT_C(ConstEvalStringBuilderT);
+public:
+    consteval ConstEvalStringBuilderT() noexcept;
+    consteval ConstEvalStringBuilderT(const Char(&string)[Len]) noexcept;
+    
+    consteval ConstEvalStringBuilderT(const ConstEvalStringBuilderT<Char, Len>& copy) noexcept;
+    consteval ConstEvalStringBuilderT(ConstEvalStringBuilderT<Char, Len>&& move) noexcept;
+    
+    [[nodiscard]] consteval const Char* String() const noexcept { return m_String; }
+    [[nodiscard]] consteval const Char* c_str() const noexcept { return m_String; }
+    [[nodiscard]] consteval uSys Length() const noexcept { return Len; }
+    [[nodiscard]] consteval uSys length() const noexcept { return Len; }
+    [[nodiscard]] consteval uSys Size() const noexcept { return Len; }
+    [[nodiscard]] consteval uSys size() const noexcept { return Len; }
+
+    // template<iSys OLen>
+    // [[nodiscard]] consteval bool Equals(const ConstExprStackStringT<Char, OLen>& string) const noexcept;
+    //
+    // template<iSys OLen>
+    // [[nodiscard]] consteval i32 CompareTo(const ConstExprStackStringT<Char, OLen>& string) const noexcept;
+
+    [[nodiscard]] consteval StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, Len, 0); }
+    [[nodiscard]] consteval StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, Len, Len - 1); }
+
+    template<iSys OLen>
+    inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> Append(const ConstExprStackStringT<Char, OLen>& string) const noexcept;
+
+    template<iSys OLen>
+    inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> Append(const Char(&str)[OLen]) const noexcept;
+
+    inline consteval auto Append(const Char* const str, const iSys oLen) const noexcept;
+
+    template<typename CharDeduced = Char>
+    inline consteval auto Append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) const noexcept;
+
+    inline consteval auto Append(c32 c) const noexcept;
+    
+    template<typename CharFrom, iSys OLen>
+    inline consteval auto Append(const ConstExprStackStringT<CharFrom, OLen>& string) const noexcept;
+    template<typename CharFrom, iSys OLen>
+    inline consteval auto Append(const CharFrom(&str)[OLen]) const noexcept;
+    template<typename CharFrom>
+    inline consteval auto Append(const CharFrom* const str, const iSys oLen) const noexcept;
+    
+    inline consteval ConstEvalStringBuilderT<Char, maxT(Len - 1, 0)> Backspace() const noexcept;
+    inline consteval auto Backspace(uSys count) const noexcept;
+    
+    [[nodiscard]] inline consteval DynStringT<Char> ToString() const noexcept { return ConstExprStackStringT<Char, Len>(m_String); }
+    [[nodiscard]] inline consteval DynStringT<Char> toString() const noexcept { return ConstExprStackStringT<Char, Len>(m_String); }
+
+    [[nodiscard]] inline consteval Char operator[](const uSys index) const noexcept { return m_String[index]; }
+    [[nodiscard]] inline consteval Char At(const uSys index) const noexcept { return index >= Len ? Char { '\0' } : m_String[index]; }
+private:
+    Char m_String[Len];
 };
 
 template<typename CharTo, typename CharFrom>
@@ -744,6 +869,7 @@ using C32StringBuilder = StringBuilderT<c32>;
 #include "String.utf8.inl"
 #include "String.utf16.inl"
 #include "String.utf8_16.inl"
+#include "String.UnicodeTransform.inl"
 #include "String.inl"
 #include "String.UnicodeIterator.inl"
 #include "String.Cast.inl"

@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.23)
-project(TauUtilsConanTest LANGUAGES CXX C)
+cmake_minimum_required(VERSION 3.24)
+project(TauUtilsTest LANGUAGES CXX C)
 
 include(CheckCCompilerFlag)
-
-find_package(tauutils CONFIG REQUIRED)
 
 file(GLOB SOURCES "src/*.cpp")
 
 # Setup the ${PROJECT_NAME} executable with the source files.
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} tauutils::TauUtilsDynamicShared)
+target_link_libraries(${PROJECT_NAME} TauUtilsDynamicShared)
+
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
 # Set the include directory.
 target_include_directories(${PROJECT_NAME} PUBLIC include)

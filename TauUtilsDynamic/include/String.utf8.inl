@@ -12,7 +12,8 @@ static_assert(sizeof(c32) == 4, "char32_t was not 4 bytes.");
 
 namespace tau::string::utf8 {
 
-[[nodiscard]] inline constexpr c32 DecodeCodePointForwardUnsafe(const c8* const str, iSys& index, const iSys inCodeUnits) noexcept
+template<typename C8Alias = c8>
+[[nodiscard]] inline constexpr c32 DecodeCodePointForwardUnsafe(const C8Alias* const str, iSys& index, const iSys inCodeUnits) noexcept
 {
     if((str[index] & 0x80) == 0) // U+0000 - U+007F
     {
@@ -63,14 +64,15 @@ namespace tau::string::utf8 {
     }
 }
 
-inline constexpr iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& outCodeUnit, const iSys outCodeUnits) noexcept
+template<typename C8Alias = c8>
+inline constexpr iSys EncodeCodePoint(const c32 c, C8Alias* const outString, iSys& outCodeUnit, const iSys outCodeUnits) noexcept
 {
     if(c <= 0x7F) // 1 Byte
     {
         if(outCodeUnit >= outCodeUnits)
         { return 1; }
 
-        outString[outCodeUnit++] = static_cast<c8>(c);
+        outString[outCodeUnit++] = static_cast<C8Alias>(c);
     }
     else if(c <= 0x07FF) // 2 Bytes
     {
@@ -117,89 +119,8 @@ inline constexpr iSys EncodeCodePoint(const c32 c, c8* const outString, iSys& ou
     return 0;
 }
 
-[[nodiscard]] inline constexpr iSys CalculateCodePoints(const c8* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodePoints = 0) noexcept
-{
-    if(inCodeUnits == 0)
-    { return 0; }
-
-    if(!inString || inCodeUnits <= 0)
-    { return -1; }
-
-    iSys startingIndex = startCodeUnit;
-    if(startingIndex == 0 && inCodeUnits >= 3)
-    {
-        if(inString[0] == 0xEF &&
-           inString[1] == 0xBB &&
-           inString[2] == 0xBF) // Skip BOM
-        {
-            startingIndex = 3;
-        }
-    }
-
-    iSys outCodePoints = priorCodePoints;
-    for(iSys i = startingIndex; i < inCodeUnits;)
-    {
-        if((inString[i] & 0x80) == 0) // 1 Byte
-        {
-            ++i;
-        }
-        else if((inString[i] & 0xE0) == 0xC0) // 2 Bytes
-        {
-            i += 2;
-        }
-        else if((inString[i] & 0xF0) == 0xE0) // 3 Bytes
-        {
-            i += 3;
-        }
-        else if((inString[i] & 0xF8) == 0xF0) // 4 Bytes
-        {
-            i += 4;
-        }
-        else
-        {
-            return -1;
-        }
-        ++outCodePoints;
-    }
-    return outCodePoints;
-}
-
-[[nodiscard]] inline constexpr iSys CalculateCodeUnits(const c32* const inString, const iSys inCodeUnits, const iSys startCodeUnit = 0, const iSys priorCodeUnits = 0) noexcept
-{
-    if(inCodeUnits == 0)
-    { return 0; }
-
-    if(!inString || inCodeUnits <= 0)
-    { return -1; }
-
-    iSys outCodeUnits = priorCodeUnits;
-    for(iSys i = startCodeUnit; i < inCodeUnits; ++i)
-    {
-        if(inString[i] <= 0x7F) // 1 Byte
-        {
-            ++outCodeUnits;
-        }
-        else if(inString[i] <= 0x07FF) // 2 Bytes
-        {
-            outCodeUnits += 2;
-        }
-        else if(inString[i] <= 0xFFFF) // 3 Bytes
-        {
-            outCodeUnits += 3;
-        }
-        else if(inString[i] <= 0x10FFFF) // 4 Bytes
-        {
-            outCodeUnits += 4;
-        }
-        else
-        {
-            return -1;
-        }
-    }
-    return outCodeUnits;
-}
-
-inline constexpr iSys Transform(const c8* const inString, c32* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+template<typename C8Alias = c8, typename C32Alias = c32>
+inline constexpr iSys TransformC8ToC32(const C8Alias* const inString, C32Alias* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
@@ -239,7 +160,8 @@ inline constexpr iSys Transform(const c8* const inString, c32* const outString, 
     }
 }
 
-inline constexpr iSys Transform(const c32* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+template<typename C8Alias = c8, typename C32Alias = c32>
+inline constexpr iSys TransformC32ToC8(const C32Alias* const inString, C8Alias* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
 {
     if(!inString || inCodeUnits <= 0)
     { return -1; }
@@ -262,6 +184,60 @@ inline constexpr iSys Transform(const c32* const inString, c8* const outString, 
         }
         return outCodeUnit;
     }
+}
+
+template<typename CharIn, typename CharOut>
+inline constexpr iSys Transform(const CharIn* const inString, CharOut* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return -1;
+}
+
+template<>
+inline constexpr iSys Transform<c8, c32>(const c8* const inString, c32* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC8ToC32(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<c32, c8>(const c32* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC32ToC8(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<char, c32>(const char* const inString, c32* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC8ToC32(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<c32, char>(const c32* const inString, char* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC32ToC8(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<c8, wchar_t>(const c8* const inString, wchar_t* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC8ToC32(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<wchar_t, c8>(const wchar_t* const inString, c8* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC32ToC8(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<char, wchar_t>(const char* const inString, wchar_t* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC8ToC32(inString, outString, inCodeUnits, outCodeUnits);
+}
+
+template<>
+inline constexpr iSys Transform<wchar_t, char>(const wchar_t* const inString, char* const outString, const iSys inCodeUnits, const iSys outCodeUnits) noexcept
+{
+    return TransformC32ToC8(inString, outString, inCodeUnits, outCodeUnits);
 }
 
 }

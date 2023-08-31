@@ -57,7 +57,7 @@ inline DynStringT<wchar_t> StringCast<wchar_t, c8>(const DynStringT<c8>& string)
 template<>
 inline DynStringT<c32> StringCast<c32, wchar_t>(const DynStringT<wchar_t>& string) noexcept
 {
-    return C32DynString(string.Length(), reinterpret_cast<const c16*>(string.String()));
+    return C32DynString(string.Length(), reinterpret_cast<const c32*>(string.String()));
 }
 
 template<>

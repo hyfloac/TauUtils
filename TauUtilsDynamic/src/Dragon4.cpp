@@ -37,12 +37,12 @@ class BigInt final
 {
     DEFAULT_DESTRUCT(BigInt);
 public:
-    BigInt() noexcept
+    constexpr BigInt() noexcept
         : m_Length(0)
         , m_Blocks{}
     { }
 
-    BigInt(const BigInt& copy) noexcept
+    constexpr BigInt(const BigInt& copy) noexcept
         : m_Length(copy.m_Length)
         , m_Blocks{}
     {
@@ -52,7 +52,7 @@ public:
         }
     }
 
-    BigInt(BigInt&& move) noexcept
+    constexpr BigInt(BigInt&& move) noexcept
         : m_Length(move.m_Length)
         , m_Blocks{}
     {
@@ -62,7 +62,7 @@ public:
         }
     }
 
-    BigInt& operator=(const BigInt& copy) noexcept
+    constexpr BigInt& operator=(const BigInt& copy) noexcept
     {
         if(this == &copy)
         {
@@ -79,7 +79,7 @@ public:
         return *this;
     }
 
-    BigInt& operator=(BigInt&& move) noexcept
+    constexpr BigInt& operator=(BigInt&& move) noexcept
     {
         m_Length = move.m_Length;
 
@@ -91,14 +91,14 @@ public:
         return *this;
     }
 
-    [[nodiscard]] iSys Length() const noexcept { return m_Length; }
-    [[nodiscard]] iSys Length64() const noexcept { return (m_Length + 1) / 2; }
-    [[nodiscard]] u32 GetBlock(const uSys index) const noexcept { return m_Blocks[index]; }
-    void SetZero() noexcept { m_Length = 0; }
-    [[nodiscard]] bool IsZero() const noexcept { return m_Length == 0; }
-    [[nodiscard]] u32 GetU32() const noexcept { return m_Length == 0 ? 0 : m_Blocks[0]; }
+    [[nodiscard]] constexpr iSys Length() const noexcept { return m_Length; }
+    [[nodiscard]] constexpr iSys Length64() const noexcept { return (m_Length + 1) / 2; }
+    [[nodiscard]] constexpr u32 GetBlock(const uSys index) const noexcept { return m_Blocks[index]; }
+    constexpr void SetZero() noexcept { m_Length = 0; }
+    [[nodiscard]] constexpr bool IsZero() const noexcept { return m_Length == 0; }
+    [[nodiscard]] constexpr u32 GetU32() const noexcept { return m_Length == 0 ? 0 : m_Blocks[0]; }
 
-    void SetU32(const u32 val) noexcept
+    constexpr void SetU32(const u32 val) noexcept
     {
         if(val == 0)
         {
@@ -111,7 +111,7 @@ public:
         }
     }
 
-    void SetU64(const u64 val) noexcept
+    constexpr void SetU64(const u64 val) noexcept
     {
         if(val == 0)
         {
@@ -130,7 +130,7 @@ public:
         }
     }
 public:
-    [[nodiscard]] static i32 CompareTo(const BigInt& left, const BigInt& right) noexcept
+    [[nodiscard]] static constexpr i32 CompareTo(const BigInt& left, const BigInt& right) noexcept
     {
         const iSys lengthDiff = left.m_Length - right.m_Length;
         if(lengthDiff != 0)
@@ -153,7 +153,7 @@ public:
         return 0;
     }
 
-    static void Add(BigInt* const result, const BigInt& left, const BigInt& right) noexcept
+    static constexpr void Add(BigInt* const result, const BigInt& left, const BigInt& right) noexcept
     {
         const BigInt* large;
         const BigInt* small;
@@ -167,7 +167,7 @@ public:
             small = &right;
             large = &left;
         }
-#if 1
+#if 0
         unsigned char carry = 0;
 
         const iSys smallLength = small->Length64();
@@ -225,7 +225,7 @@ public:
 #endif
     }
 
-    static void Mul(BigInt* const result, const BigInt& left, const BigInt& right) noexcept
+    static constexpr void Mul(BigInt* const result, const BigInt& left, const BigInt& right) noexcept
     {
         const BigInt* small;
         const BigInt* large;
@@ -275,7 +275,7 @@ public:
         }
     }
     
-    static void Mul(BigInt* const result, const BigInt& left, const u32* const rightBlocks, const i32 rightLength) noexcept
+    static constexpr void Mul(BigInt* const result, const BigInt& left, const u32* const rightBlocks, const i32 rightLength) noexcept
     {
         const u32* smallBlocks;
         const u32* largeBlocks;
@@ -331,7 +331,7 @@ public:
         }
     }
 
-    static void Mul(BigInt* const result, const BigInt& left, const u32 right) noexcept
+    static constexpr void Mul(BigInt* const result, const BigInt& left, const u32 right) noexcept
     {
         u64 carry = 0;
         for(iSys i = 0; i < left.m_Length; ++i)
@@ -352,7 +352,7 @@ public:
         }
     }
 
-    static void Mul2(BigInt* const result, const BigInt& left) noexcept
+    static constexpr void Mul2(BigInt* const result, const BigInt& left) noexcept
     {
         u64 carry = 0;
         for(iSys i = 0; i < left.m_Length; ++i)
@@ -373,7 +373,7 @@ public:
         }
     }
 
-    static void Mul2(BigInt* const result) noexcept
+    static constexpr void Mul2(BigInt* const result) noexcept
     {
         u64 carry = 0;
         for(iSys i = 0; i < result->m_Length; ++i)
@@ -390,7 +390,7 @@ public:
         }
     }
 
-    static void Mul10(BigInt* const result) noexcept
+    static constexpr void Mul10(BigInt* const result) noexcept
     {
         u64 carry = 0;
         for(iSys i = 0; i < result->m_Length; ++i)
@@ -407,7 +407,7 @@ public:
         }
     }
 
-    static void Pow10(BigInt* const result, u32 exponent) noexcept
+    static constexpr void Pow10(BigInt* const result, u32 exponent) noexcept
     {
         BigInt tmp0;
         BigInt tmp1;
@@ -434,7 +434,7 @@ public:
         *result = *currTmp;
     }
 
-    static void MulPow10(BigInt* result, const BigInt& in, u32 exponent) noexcept
+    static constexpr void MulPow10(BigInt* result, const BigInt& in, u32 exponent) noexcept
     {
         BigInt tmp0;
         BigInt tmp1;
@@ -468,7 +468,7 @@ public:
         *result = *currTmp;
     }
 
-    static void Pow2(BigInt* result, const u32 exponent) noexcept
+    static constexpr void Pow2(BigInt* result, const u32 exponent) noexcept
     {
         const i32 blockIndex = static_cast<i32>(exponent / 32);
         const i32 bitIndex = static_cast<i32>(exponent % 32);
@@ -482,7 +482,7 @@ public:
         result->m_Blocks[blockIndex] |= 1 << bitIndex;
     }
 
-    static u32 DivWithRem_MaxQuotient9(BigInt* dividend, const BigInt& divisor)
+    static constexpr u32 DivWithRem_MaxQuotient9(BigInt* dividend, const BigInt& divisor)
     {
         i32 length = divisor.m_Length;
 
@@ -544,7 +544,7 @@ public:
         return quotient;
     }
 
-    static void ShiftLeft(BigInt* result, const i32 shift)
+    static constexpr void ShiftLeft(BigInt* result, const i32 shift)
     {
         constexpr i32 BitCount = sizeof(u32) * CHAR_BIT;
 
@@ -678,7 +678,7 @@ union FloatUnion64 final
 //    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.72.4656&rep=rep1&type=pdf
 //******************************************************************************
 template<typename Char>
-static uSys Dragon4T(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, u32 cutoffNumber, Char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+static constexpr uSys Dragon4T(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, u32 cutoffNumber, Char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 {
     if(mantissa == 0)
     {
@@ -1065,19 +1065,19 @@ static uSys Dragon4T(const u64 mantissa, const i32 exponent, const i32 mantissaH
     return static_cast<u32>(currDigit - outBuffer);
 }
 
-TAU_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, wchar_t* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, wchar_t* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c8* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c8* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c16* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c16* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c32* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c32* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
 
 template<typename Char>
-static uSys FormatPositional(Char* const outBuffer, const uSys bufferSize, const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const i32 precision) noexcept
+static constexpr uSys FormatPositional(Char* const outBuffer, const uSys bufferSize, const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const i32 precision) noexcept
 {
     i32 printExponent;
     uSys numPrintDigits;
@@ -1201,7 +1201,7 @@ static uSys FormatPositional(Char* const outBuffer, const uSys bufferSize, const
 }
 
 template<typename Char>
-static uSys FormatScientific(Char* const outBuffer, const uSys bufferSize, const u64 mantissa, const i32 exponent, const u32 mantissaHighBitIndex, const bool hasUnequalMargins, const i32 precision) noexcept
+static constexpr uSys FormatScientific(Char* const outBuffer, const uSys bufferSize, const u64 mantissa, const i32 exponent, const u32 mantissaHighBitIndex, const bool hasUnequalMargins, const i32 precision) noexcept
 {
     i32 printExponent;
     uSys numPrintDigits;
@@ -1308,7 +1308,7 @@ static uSys FormatScientific(Char* const outBuffer, const uSys bufferSize, const
 }
 
 template<typename Char>
-static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 mantissa) noexcept
+static constexpr uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 mantissa) noexcept
 {
     const uSys printLen = bufferSize - 1 > 3 ? 3 : bufferSize - 1;
     if(mantissa == 0)
@@ -1337,7 +1337,7 @@ static uSys PrintInfNaN(Char* const outBuffer, const uSys bufferSize, const u64 
 }
 
 template<typename Char>
-static uSys PrintFloat32T(Char* outBuffer, uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+static constexpr uSys PrintFloat32T(Char* outBuffer, uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 {
     if(bufferSize == 0)
     {
@@ -1420,7 +1420,7 @@ static uSys PrintFloat32T(Char* outBuffer, uSys bufferSize, const f32 value, con
 }
 
 template<typename Char>
-static uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+static constexpr uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 {
     if(bufferSize == 0)
     {
@@ -1502,24 +1502,24 @@ static uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 value, con
     }
 }
 
-TAU_LIB uSys PrintFloat32(char* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat32(char* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat32(wchar_t* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat32(wchar_t* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat32(c8* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat32(c8* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat32(c16* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat32(c16* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat32(c32* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat32(c32* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
 
-TAU_LIB uSys PrintFloat64(char* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat64(char* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat64(wchar_t* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat64(wchar_t* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat64(c8* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat64(c8* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat64(c16* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat64(c16* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_LIB uSys PrintFloat64(c32* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_LIB constexpr uSys PrintFloat64(c32* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }

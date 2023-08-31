@@ -191,7 +191,7 @@ inline DynStringT<c16> StringCastFlipEndian(const DynStringT<c32>& string) noexc
         c16 newStr[16];
         newStr[len] = u'\0';
 
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16, true) <= 0)
+        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16, true, false) <= 0)
         {
             return DynStringT<c16>();
         }
@@ -206,7 +206,7 @@ inline DynStringT<c16> StringCastFlipEndian(const DynStringT<c32>& string) noexc
         c16* const newStr = new(refCount + 1) c16[len + 1];
         newStr[len] = u'\0';
 
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len, true) <= 0)
+        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len, true, false) <= 0)
         {
             ::TauUtilsDeallocate(placement);
             return DynStringT<c16>();

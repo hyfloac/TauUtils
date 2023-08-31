@@ -1,14 +1,22 @@
 // ReSharper disable CppClangTidyCertDcl58Cpp
+// ReSharper disable CppUnreachableCode
 #pragma once
 
 #if defined(STRING_IN_DEV) || 1
 #include "String.hpp"
 #endif
 
+#pragma warning(push, 0)
 #include <cstring>
 #include <cwctype>
 #include <cuchar>
 #include <locale>
+#include <bit>
+#include <type_traits>
+#include <memory>
+#pragma warning(pop)
+
+#include "String.hpp"
 #include "TUMaths.hpp"
 #include "allocator/TauAllocator.hpp"
 
@@ -28,31 +36,54 @@ constexpr LargeString<Char>::LargeString() noexcept
 { }
 
 template<typename Char>
-LargeString<Char>::LargeString(const Char* const buffer, const uSys codeUnits) noexcept
+constexpr LargeString<Char>::LargeString(const Char* const buffer, const uSys codeUnits) noexcept
 {
-    void* newBuffer = ::TauUtilsAllocate((codeUnits + 1) * sizeof(Char) + sizeof(ReferenceCounter::Type));
-    RefCount = ReferenceCounter(::new(newBuffer) ReferenceCounter::Type(0));
-    Char* cBuffer = reinterpret_cast<Char*>(reinterpret_cast<ReferenceCounter::Type*>(newBuffer) + 1);
-    cBuffer[codeUnits] = Char{ '\0' };
+    Char* cBuffer;
 
-    (void) ::std::memcpy(cBuffer, buffer, codeUnits * sizeof(Char));
+    if(::std::is_constant_evaluated())
+    {
+        // void* newBuffer = ::TauUtilsAllocate((codeUnits + 1) * sizeof(Char) + sizeof(ReferenceCounter::Type));
+        RefCount = ReferenceCounter();
+        cBuffer = ::TauUtilsAllocateTArr<Char>(codeUnits + 1);
+        
+    }
+    else
+    {
+        void* newBuffer = ::TauUtilsAllocate((codeUnits + 1) * sizeof(Char) + sizeof(ReferenceCounter::Type));
+        RefCount = ReferenceCounter(::std::construct_at(::std::bit_cast<ReferenceCounter::Type*>(newBuffer), 0));
+        cBuffer = ::std::bit_cast<Char*>(::std::bit_cast<ReferenceCounter::Type*>(newBuffer) + 1);
+    }
+
+    cBuffer[codeUnits] = Char { '\0' };
+
+    (void) ::std::copy_n(buffer, codeUnits, cBuffer);
+    // (void) ::std::memcpy(cBuffer, buffer, codeUnits * sizeof(Char));
     Buffer = cBuffer;
 }
 
 template<typename Char>
-LargeString<Char>::LargeString(ReferenceCounter::Type* const refCount, const Char* const buffer) noexcept
+constexpr LargeString<Char>::LargeString(ReferenceCounter::Type* const refCount, const Char* const buffer) noexcept
     : RefCount(refCount)
     , Buffer(buffer)
 { }
 
 template<typename Char>
-LargeString<Char>::~LargeString() noexcept
+constexpr LargeString<Char>::~LargeString() noexcept
 {
     if(RefCount.RefCount() == 1)
     {
-        if(reinterpret_cast<const void*>(RefCount.RefCountPtr() + 1) != reinterpret_cast<const void*>(Buffer))
+        if(static_cast<const void*>(RefCount.RefCountPtr() + 1) != static_cast<const void*>(Buffer))
         {
-            ::TauUtilsDeallocate(const_cast<Char*>(Buffer));
+            if(::std::is_constant_evaluated())
+            {
+                // When executing within a constexpr environment, this just maps to delete[],
+                // so we don't need to know the element count.
+                ::TauUtilsDeallocateTArr(const_cast<Char*>(Buffer), 0);
+            }
+            else
+            {
+                ::TauUtilsDeallocate(const_cast<Char*>(Buffer));
+            }
         }
     }
 }
@@ -70,43 +101,57 @@ constexpr StringData<Char>::StringData(nullptr_t) noexcept
 template<typename Char>
 template<uSys Len>
 constexpr StringData<Char>::StringData(const Char(& str)[Len]) noexcept
-    : Buffer(str)
+    : Buffer { }
     , Length(Len)
-{ }
-
-template<typename Char>
-StringData<Char>::StringData(const Char* const buffer, const uSys codeUnits) noexcept
-    : Length(codeUnits)
 {
-    if(codeUnits < 16)
+    if constexpr(Len < 16)
     {
-        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
-        Buffer.StackString[codeUnits] = Char{ '\0' };
+        Buffer.StackString[Len] = Char { '\0' };
+        (void) ::std::copy_n(str, Len, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, buffer, Len * sizeof(Char));
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+        ::std::construct_at(Buffer.AsLargeStringPtr(), str, Len);
     }
 }
 
 template<typename Char>
-StringData<Char>::StringData(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
-    : Length(codeUnits)
+constexpr StringData<Char>::StringData(const Char* const buffer, const uSys codeUnits) noexcept
+    : Buffer { }
+    , Length(codeUnits)
 {
     if(codeUnits < 16)
     {
-        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
-        Buffer.StackString[codeUnits] = Char{ '\0' };
-        TU_DELETE(refCount);
+        Buffer.StackString[codeUnits] = Char { '\0' };
+        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(refCount, buffer);
+        ::std::construct_at(Buffer.AsLargeStringPtr(), buffer, codeUnits);
     }
 }
 
 template<typename Char>
-StringData<Char>::~StringData() noexcept
+constexpr StringData<Char>::StringData(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
+    : Length(codeUnits)
+{
+    if(codeUnits < 16)
+    {
+        Buffer.StackString[codeUnits] = Char { '\0' };
+        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
+        ::TauUtilsDeallocate(refCount);
+    }
+    else
+    {
+        ::std::construct_at(Buffer.AsLargeStringPtr(), refCount, buffer);
+    }
+}
+
+template<typename Char>
+constexpr StringData<Char>::~StringData() noexcept
 {
     if(Length >= 16)
     {
@@ -115,7 +160,7 @@ StringData<Char>::~StringData() noexcept
 }
 
 template<typename Char>
-StringData<Char>::StringData(const StringData& copy) noexcept
+constexpr StringData<Char>::StringData(const StringData& copy) noexcept
     : Length(copy.Length)
 {
     if(Length == 0)
@@ -125,16 +170,16 @@ StringData<Char>::StringData(const StringData& copy) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
+        (void) ::std::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(copy.Buffer.AsLargeString());
+        ::std::construct_at(Buffer.AsLargeStringPtr(), copy.Buffer.AsLargeString());
     }
 }
 
 template<typename Char>
-StringData<Char>::StringData(StringData&& move) noexcept
+constexpr StringData<Char>::StringData(StringData&& move) noexcept
     : Length(move.Length)
 {
     if(Length == 0)
@@ -144,16 +189,17 @@ StringData<Char>::StringData(StringData&& move) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
+        (void) ::std::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(::std::move(move.Buffer.AsLargeString()));
+        ::std::construct_at(Buffer.AsLargeStringPtr(), ::std::move(move.Buffer.AsLargeString()));
     }
 }
 
 template<typename Char>
-StringData<Char>& StringData<Char>::operator=(const StringData& copy) noexcept
+constexpr StringData<Char>& StringData<Char>::operator=(const StringData& copy) noexcept
 {
     if(this == &copy)
     {
@@ -174,18 +220,19 @@ StringData<Char>& StringData<Char>::operator=(const StringData& copy) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
+        (void) ::std::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(copy.Buffer.AsLargeString());
+        ::std::construct_at(Buffer.AsLargeStringPtr(), copy.Buffer.AsLargeString());
     }
 
     return *this;
 }
 
 template<typename Char>
-StringData<Char>& StringData<Char>::operator=(StringData&& move) noexcept
+constexpr StringData<Char>& StringData<Char>::operator=(StringData&& move) noexcept
 {
     if(Length >= 16)
     {
@@ -201,11 +248,12 @@ StringData<Char>& StringData<Char>::operator=(StringData&& move) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
+        (void) ::std::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(::std::move(move.Buffer.AsLargeString()));
+        ::std::construct_at(Buffer.AsLargeStringPtr(), ::std::move(move.Buffer.AsLargeString()));
     }
 
     return *this;
@@ -213,7 +261,7 @@ StringData<Char>& StringData<Char>::operator=(StringData&& move) noexcept
 
 template<typename Char>
 template<uSys Len>
-StringData<Char>& StringData<Char>::operator=(const Char(& str)[Len]) noexcept
+constexpr StringData<Char>& StringData<Char>::operator=(const Char(& str)[Len]) noexcept
 {
     if(String() == str)
     { return *this; }
@@ -225,13 +273,13 @@ StringData<Char>& StringData<Char>::operator=(const Char(& str)[Len]) noexcept
 
     Length = Len;
 
-    ::new(Buffer.LargeString) LargeString<Char>(str);
+    ::std::construct_at(Buffer.AsLargeStringPtr(), str);
 
     return *this;
 }
 
 template<typename Char>
-void StringData<Char>::Reset(const Char* const buffer, const uSys codeUnits) noexcept
+constexpr void StringData<Char>::Reset(const Char* const buffer, const uSys codeUnits) noexcept
 {
     if(String() == buffer)
     { return; }
@@ -245,17 +293,19 @@ void StringData<Char>::Reset(const Char* const buffer, const uSys codeUnits) noe
     
     if(codeUnits < 16)
     {
-        (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
+        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
         Buffer.StackString[codeUnits] = Char{ '\0' };
     }
     else
     {
-        ::new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+        ::std::construct_at(Buffer.AsLargeStringPtr(), buffer, codeUnits);
+        // ::new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
     }
 }
 
 template<typename Char>
-void StringData<Char>::Reset(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
+constexpr void StringData<Char>::Reset(ReferenceCounter::Type* const refCount, const Char* const buffer, const uSys codeUnits) noexcept
 {
     if(String() == buffer)
     { return; }
@@ -266,8 +316,8 @@ void StringData<Char>::Reset(ReferenceCounter::Type* const refCount, const Char*
     }
 
     Length = codeUnits;
-    
-    ::new(Buffer.LargeString) LargeString<Char>(buffer, codeUnits);
+
+    ::std::construct_at(Buffer.AsLargeStringPtr(), refCount, buffer);
 }
 
 }
@@ -363,7 +413,7 @@ inline uSys toUpper(const C* const str, C* const store) noexcept
 }
 
 template<typename C>
-inline uSys findHashCode(const C* str) noexcept
+inline constexpr uSys findHashCode(const C* str) noexcept
 {
     uSys hash = 0;
     for(uSys i = 0; str[i]; ++i)
@@ -374,7 +424,7 @@ inline uSys findHashCode(const C* str) noexcept
 }
 
 template<typename C>
-inline uSys findHashCode(const C* str, const uSys len) noexcept
+inline constexpr uSys findHashCode(const C* str, const uSys len) noexcept
 {
     uSys hash = 0;
     for(uSys i = 0; i < len; ++i)
@@ -385,7 +435,7 @@ inline uSys findHashCode(const C* str, const uSys len) noexcept
 }
 
 template<typename Char>
-inline uSys strLength(const Char* const str) noexcept
+inline constexpr uSys strLengthConst(const Char* const str) noexcept
 {
     if(!str)
     { return 0; }
@@ -396,16 +446,40 @@ inline uSys strLength(const Char* const str) noexcept
     return i;
 }
 
-template<>
-inline uSys strLength<char>(const char* const str) noexcept
-{ return ::std::strlen(str); }
+template<typename Char>
+inline constexpr uSys strLength(const Char* const str) noexcept
+{
+    return strLengthConst(str);
+}
 
 template<>
-inline uSys strLength<wchar_t>(const wchar_t* const str) noexcept
-{ return ::std::wcslen(str); }
+inline constexpr uSys strLength<char>(const char* const str) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strLengthConst(str);
+    }
+    else
+    {
+        return ::std::strlen(str);
+    }
+}
+
+template<>
+inline constexpr uSys strLength<wchar_t>(const wchar_t* const str) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strLengthConst(str);
+    }
+    else
+    {
+        return ::std::wcslen(str);
+    }
+}
 
 template<typename C>
-inline i32 strCompare(const C* lhs, const C* rhs) noexcept
+inline constexpr i32 strCompareConst(const C* lhs, const C* rhs) noexcept
 {
     while(*lhs != '\0' && *rhs != '\0')
     {
@@ -438,16 +512,40 @@ inline i32 strCompare(const C* lhs, const C* rhs) noexcept
     }
 }
 
-template<>
-inline i32 strCompare(const char* const lhs, const char* const rhs) noexcept
-{ return ::std::strcmp(lhs, rhs); }
+template<typename C>
+inline constexpr i32 strCompare(const C* lhs, const C* rhs) noexcept
+{
+    return strCompareConst(lhs, rhs);
+}
 
 template<>
-inline i32 strCompare(const wchar_t* const lhs, const wchar_t* const rhs) noexcept
-{ return ::std::wcscmp(lhs, rhs); }
+inline constexpr i32 strCompare(const char* const lhs, const char* const rhs) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strCompareConst(lhs, rhs);
+    }
+    else
+    {
+        return ::std::strcmp(lhs, rhs);
+    }
+}
+
+template<>
+inline constexpr i32 strCompare(const wchar_t* const lhs, const wchar_t* const rhs) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strCompareConst(lhs, rhs);
+    }
+    else
+    {
+        return ::std::wcscmp(lhs, rhs);
+    }
+}
 
 template<typename C>
-inline i32 strCompare(const C* lhs, const C* rhs, const uSys length) noexcept
+inline constexpr i32 strCompareConst(const C* lhs, const C* rhs, const uSys length) noexcept
 {
     uSys i = 0;
     while(*lhs != '\0' && *rhs != '\0' && i < length)
@@ -482,13 +580,37 @@ inline i32 strCompare(const C* lhs, const C* rhs, const uSys length) noexcept
     }
 }
 
+template<typename C>
+inline constexpr i32 strCompare(const C* lhs, const C* rhs, const uSys length) noexcept
+{
+    return strCompareConst(lhs, rhs, length);
+}
+
 template<>
 inline i32 strCompare(const char* const lhs, const char* const rhs, const uSys length) noexcept
-{ return ::std::strncmp(lhs, rhs, length); }
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strCompareConst(lhs, rhs, length);
+    }
+    else
+    {
+        return ::std::strncmp(lhs, rhs, length);
+    }
+}
 
 template<>
 inline i32 strCompare(const wchar_t* const lhs, const wchar_t* const rhs, const uSys length) noexcept
-{ return ::std::wcsncmp(lhs, rhs, length); }
+{
+    if(::std::is_constant_evaluated())
+    {
+        return strCompareConst(lhs, rhs, length);
+    }
+    else
+    {
+        return ::std::wcsncmp(lhs, rhs, length);
+    }
+}
 
 template<typename Char, uSys Len>
 inline constexpr uSys cexpr::strlen(const Char(&str)[Len]) noexcept
@@ -534,30 +656,30 @@ inline constexpr uSys cexpr::findHashCode(const Char(&str)[Len]) noexcept
 }
 
 template<typename Char>
-inline StringIteratorT<Char>::StringIteratorT(const Char* const string, const uSys length, const uSys index) noexcept
-    : _string(string)
-    , _length(length)
-    , _index(index)
+inline constexpr StringIteratorT<Char>::StringIteratorT(const Char* const string, const uSys length, const uSys index) noexcept
+    : m_String(string)
+    , m_Length(length)
+    , m_Index(index)
 { }
 
 template<typename Char>
-inline StringIteratorT<Char>& StringIteratorT<Char>::operator++() noexcept
+inline constexpr StringIteratorT<Char>& StringIteratorT<Char>::operator++() noexcept
 {
-    if(_index < _length - 1)
-    { ++_index; }
+    if(m_Index < m_Length - 1)
+    { ++m_Index; }
     return *this;
 }
 
 template<typename Char>
-inline StringIteratorT<Char>& StringIteratorT<Char>::operator--() noexcept
+inline constexpr StringIteratorT<Char>& StringIteratorT<Char>::operator--() noexcept
 {
-    if(_index > 0)
-    { --_index; }
+    if(m_Index > 0)
+    { --m_Index; }
     return *this;
 }
 
 template<typename Char>
-inline StringIteratorT<Char> StringIteratorT<Char>::operator++(int) noexcept
+inline constexpr StringIteratorT<Char> StringIteratorT<Char>::operator++(int) noexcept
 {
     const StringIteratorT copy(*this);
     operator++();
@@ -565,7 +687,7 @@ inline StringIteratorT<Char> StringIteratorT<Char>::operator++(int) noexcept
 }
 
 template<typename Char>
-inline StringIteratorT<Char> StringIteratorT<Char>::operator--(int) noexcept
+inline constexpr StringIteratorT<Char> StringIteratorT<Char>::operator--(int) noexcept
 {
     const StringIteratorT copy(*this);
     operator--();
@@ -573,26 +695,26 @@ inline StringIteratorT<Char> StringIteratorT<Char>::operator--(int) noexcept
 }
 
 template<typename Char>
-inline Char StringIteratorT<Char>::operator*() const noexcept
-{ return _string[_index]; }
+inline constexpr Char StringIteratorT<Char>::operator*() const noexcept
+{ return m_String[m_Index]; }
 
 template<typename Char>
-inline bool StringIteratorT<Char>::operator==(const StringIteratorT<Char>& other) const noexcept
-{ return _index == other._index; }
+inline constexpr bool StringIteratorT<Char>::operator==(const StringIteratorT<Char>& other) const noexcept
+{ return m_Index == other.m_Index; }
 
 template<typename Char>
-inline bool StringIteratorT<Char>::operator!=(const StringIteratorT<Char>& other) const noexcept
-{ return _index != other._index; }
+inline constexpr bool StringIteratorT<Char>::operator!=(const StringIteratorT<Char>& other) const noexcept
+{ return m_Index != other.m_Index; }
 
 template<typename Char>
-DynStringCodeUnitIteratorT<Char>::DynStringCodeUnitIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char>::DynStringCodeUnitIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
     : m_String(string)
     , m_Start(start)
     , m_Index(index)
 { }
 
 template<typename Char>
-DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator++() noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator++() noexcept
 {
     if(m_Index < m_String.Length - 1)
     { ++m_Index; }
@@ -600,7 +722,7 @@ DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator++()
 }
 
 template<typename Char>
-DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator--() noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator--() noexcept
 {
     if(m_Index > m_Start)
     { --m_Index; }
@@ -608,7 +730,7 @@ DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator--()
 }
 
 template<typename Char>
-DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator++(int) noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator++(int) noexcept
 {
     const DynStringCodeUnitIteratorT copy(*this);
     operator++();
@@ -616,7 +738,7 @@ DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator++(in
 }
 
 template<typename Char>
-DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator--(int) noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator--(int) noexcept
 {
     const DynStringCodeUnitIteratorT copy(*this);
     operator--();
@@ -624,27 +746,32 @@ DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Char>::operator--(in
 }
 
 template<typename Char>
-Char DynStringCodeUnitIteratorT<Char>::operator*() const noexcept
+inline constexpr Char DynStringCodeUnitIteratorT<Char>::operator*() const noexcept
 { return m_String.String()[m_Index]; }
 
 template<typename Char>
-bool DynStringCodeUnitIteratorT<Char>::operator==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
+inline constexpr bool DynStringCodeUnitIteratorT<Char>::operator==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
 { return m_Index == other.m_Index; }
 
 template<typename Char>
-bool DynStringCodeUnitIteratorT<Char>::operator!=(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
+inline constexpr bool DynStringCodeUnitIteratorT<Char>::operator!=(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
 { return m_Index != other.m_Index; }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
+    , m_Start(static_cast<iSys>(start))
+    , m_Index(static_cast<iSys>(index))
     , m_CurrentCodePoint(string.Length > 0 ? string.String()[index] : Char{ '\0' })
 { }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start, const c32 currentCodePoint) noexcept
+inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+    : DynStringCodePointIteratorT(string, static_cast<iSys>(index), static_cast<iSys>(start))
+{ }
+
+template<typename Char>
+inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start, const c32 currentCodePoint) noexcept
     : m_String(string)
     , m_Start(start)
     , m_Index(index)
@@ -652,7 +779,12 @@ DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData&
 { }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator++() noexcept
+inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const uSys index, const uSys start, const c32 currentCodePoint) noexcept
+    : DynStringCodePointIteratorT(string, static_cast<iSys>(index), static_cast<iSys>(start), currentCodePoint)
+{ }
+
+template<typename Char>
+inline constexpr DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator++() noexcept
 {
     if(m_Index < m_String.Length - 1)
     { ++m_Index; }
@@ -660,7 +792,7 @@ DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator++
 }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator--() noexcept
+inline constexpr DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator--() noexcept
 {
     if(m_Index > m_Start)
     { --m_Index; }
@@ -668,7 +800,7 @@ DynStringCodePointIteratorT<Char>& DynStringCodePointIteratorT<Char>::operator--
 }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator++(int) noexcept
+inline constexpr DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator++(int) noexcept
 {
     const DynStringCodePointIteratorT copy(*this);
     operator++();
@@ -676,7 +808,7 @@ DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator++(
 }
 
 template<typename Char>
-DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator--(int) noexcept
+inline constexpr DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator--(int) noexcept
 {
     const DynStringCodePointIteratorT copy(*this);
     operator--();
@@ -684,15 +816,15 @@ DynStringCodePointIteratorT<Char> DynStringCodePointIteratorT<Char>::operator--(
 }
 
 template<typename Char>
-c32 DynStringCodePointIteratorT<Char>::operator*() const noexcept
+inline constexpr c32 DynStringCodePointIteratorT<Char>::operator*() const noexcept
 { return m_CurrentCodePoint; }
 
 template<typename Char>
-bool DynStringCodePointIteratorT<Char>::operator==(const DynStringCodePointIteratorT<Char>& other) const noexcept
+inline constexpr bool DynStringCodePointIteratorT<Char>::operator==(const DynStringCodePointIteratorT<Char>& other) const noexcept
 { return m_Index == other.m_Index; }
 
 template<typename Char>
-bool DynStringCodePointIteratorT<Char>::operator!=(const DynStringCodePointIteratorT<Char>& other) const noexcept
+inline constexpr bool DynStringCodePointIteratorT<Char>::operator!=(const DynStringCodePointIteratorT<Char>& other) const noexcept
 { return m_Index != other.m_Index; }
 
 template<typename Char>
@@ -716,7 +848,7 @@ inline constexpr ConstExprStringT<Char>& ConstExprStringT<Char>::operator=(const
 
 template<typename Char>
 template<uSys Len>
-inline constexpr bool ConstExprStringT<Char>::equals(const Char(&str)[Len]) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const Char(&str)[Len]) const noexcept
 {
     if(m_String == str) { return true; }
     if(m_Length != Len) { return false; }
@@ -724,7 +856,7 @@ inline constexpr bool ConstExprStringT<Char>::equals(const Char(&str)[Len]) cons
 }
 
 template<typename Char>
-inline bool ConstExprStringT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
     if(m_String == other.String()) { return true; }
@@ -734,7 +866,7 @@ inline bool ConstExprStringT<Char>::Equals(const StringBaseT<Char>& other) const
 }
 
 template<typename Char>
-inline bool ConstExprStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
     if(m_String == other.m_String) { return true; }
     if(m_Length != other.m_Length) { return false; }
@@ -743,7 +875,7 @@ inline bool ConstExprStringT<Char>::Equals(const ConstExprStringT<Char>& other) 
 }
 
 template<typename Char>
-inline bool ConstExprStringT<Char>::Equals(const DynStringT<Char>& other) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const DynStringT<Char>& other) const noexcept
 {
     if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
@@ -751,7 +883,7 @@ inline bool ConstExprStringT<Char>::Equals(const DynStringT<Char>& other) const 
 }
 
 template<typename Char>
-inline bool ConstExprStringT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
 {
     if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
@@ -759,46 +891,144 @@ inline bool ConstExprStringT<Char>::Equals(const DynStringViewT<Char>& other) co
 }
 
 template<typename Char>
-inline bool ConstExprStringT<Char>::Equals(const Char* const str) const noexcept
+inline constexpr bool ConstExprStringT<Char>::Equals(const Char* const str) const noexcept
 {
     if(m_String == str) { return true; }
     return strCompare(m_String, str) == 0;
 }
 
 template<typename Char>
-inline i32 ConstExprStringT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
+inline constexpr i32 ConstExprStringT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
 { return strCompare(m_String, other.String()); }
 
 template<typename Char>
-inline i32 ConstExprStringT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr i32 ConstExprStringT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
 { return strCompare(m_String, other.String()); }
 
 template<typename Char>
-inline i32 ConstExprStringT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
+inline constexpr i32 ConstExprStringT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
 { return strCompare(m_String, other.String()); }
 
 template<typename Char>
-inline i32 ConstExprStringT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
+inline constexpr i32 ConstExprStringT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
 { return strCompare(m_String, other.String(), minT(m_Length, other.Length())); }
 
 template<typename Char>
-inline i32 ConstExprStringT<Char>::CompareTo(const Char* const str) const noexcept
+inline constexpr i32 ConstExprStringT<Char>::CompareTo(const Char* const str) const noexcept
 { return strCompare(m_String, str); }
 
 template<typename Char>
-inline Char ConstExprStringT<Char>::operator[](const uSys index) const noexcept
+inline constexpr Char ConstExprStringT<Char>::operator[](const uSys index) const noexcept
 { return m_String[index]; }
 
 template<typename Char>
-inline Char ConstExprStringT<Char>::at(const uSys index) const noexcept
+inline constexpr Char ConstExprStringT<Char>::at(const uSys index) const noexcept
 {
     if(index >= m_Length) { return Char{ '\0' }; }
     return m_String[index];
 }
 
+template<typename Char, uSys Len>
+inline consteval ConstExprStackStringT<Char, Len>::ConstExprStackStringT(const Char(&str)[Len]) noexcept
+    : m_String(str)
+    , m_Hash(cexpr::findHashCode(str))
+{ }
+
+template<typename Char, uSys Len>
+template<uSys OLen>
+inline consteval bool ConstExprStackStringT<Char, Len>::Equals(const Char(&str)[OLen]) const noexcept
+{
+    if(m_String == str) { return true; }
+    if(Len != OLen) { return false; }
+    return strCompare(m_String, str) == 0;
+}
+
+template<typename Char, uSys Len>
+template<uSys OLen>
+inline consteval bool ConstExprStackStringT<Char, Len>::Equals(const ConstExprStackStringT<Char, OLen>& other) const noexcept
+{
+    if(m_String == other.m_String) { return true; }
+    if(Len != OLen) { return false; }
+    if(m_Hash != other.m_Hash) { return false; }
+    return strCompare(m_String, other.String()) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const StringBaseT<Char>& other) const noexcept
+{
+    if(this == &other) { return true; }
+    if(m_String == other.String()) { return true; }
+    if(Len != other.Length()) { return false; }
+    if(m_Hash != other.HashCode()) { return false; }
+    return strCompare(m_String, other.String()) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const ConstExprStringT<Char>& other) const noexcept
+{
+    if(m_String == other.m_String) { return true; }
+    if(Len != other.m_Length) { return false; }
+    if(m_Hash != other.HashCode()) { return false; }
+    return strCompare(m_String, other.String()) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const DynStringT<Char>& other) const noexcept
+{
+    if(Len != other.Length() || m_Hash != other.HashCode())
+    { return false; }
+    return strCompare(m_String, other.String()) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const DynStringViewT<Char>& other) const noexcept
+{
+    if(Len != other.Length() || m_Hash != other.HashCode())
+    { return false; }
+    return strCompare(m_String, other.String(), Len) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const Char* const str) const noexcept
+{
+    if(m_String == str) { return true; }
+    return strCompare(m_String, str) == 0;
+}
+
+template<typename Char, uSys Len>
+inline constexpr i32 ConstExprStackStringT<Char, Len>::CompareTo(const StringBaseT<Char>& other) const noexcept
+{ return strCompare(m_String, other.String()); }
+
+template<typename Char, uSys Len>
+inline constexpr i32 ConstExprStackStringT<Char, Len>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
+{ return strCompare(m_String, other.String()); }
+
+template<typename Char, uSys Len>
+inline constexpr i32 ConstExprStackStringT<Char, Len>::CompareTo(const DynStringT<Char>& other) const noexcept
+{ return strCompare(m_String, other.String()); }
+
+template<typename Char, uSys Len>
+inline constexpr i32 ConstExprStackStringT<Char, Len>::CompareTo(const DynStringViewT<Char>& other) const noexcept
+{ return strCompare(m_String, other.String(), minT(Len, other.Length())); }
+
+template<typename Char, uSys Len>
+inline constexpr i32 ConstExprStackStringT<Char, Len>::CompareTo(const Char* const str) const noexcept
+{ return strCompare(m_String, str); }
+
+template<typename Char, uSys Len>
+inline constexpr Char ConstExprStackStringT<Char, Len>::operator[](const uSys index) const noexcept
+{ return m_String[index]; }
+
+template<typename Char, uSys Len>
+inline constexpr Char ConstExprStackStringT<Char, Len>::at(const uSys index) const noexcept
+{
+    if(index >= Len) { return Char { '\0' }; }
+    return m_String[index];
+}
+
 template<typename Char>
 template<uSys Len>
-constexpr DynStringT<Char> DynStringT<Char>::FromStatic(const Char(& str)[Len]) noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::FromStatic(const Char(& str)[Len]) noexcept
 {
     if(Len < 16)
     {
@@ -852,55 +1082,55 @@ constexpr DynStringT<Char>::DynStringT(const Char(& str)[Len]) noexcept
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const Char* const string, const uSys length) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const Char* const string, const uSys length) noexcept
     : m_Data(string, length)
     , m_Hash(findHashCode(string))
 { }
 
 template<typename Char>
-DynStringT<Char>::DynStringT(ReferenceCounter::Type* const refCount, const Char* const string, const uSys length) noexcept
+constexpr DynStringT<Char>::DynStringT(ReferenceCounter::Type* const refCount, const Char* const string, const uSys length) noexcept
     : m_Data(refCount, string, length)
     , m_Hash(findHashCode(string))
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT() noexcept
+inline constexpr DynStringT<Char>::DynStringT() noexcept
     : m_Data()
     , m_Hash(0)
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const Char* const string) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const Char* const string) noexcept
     : m_Data(string, strLength(string))
     , m_Hash(findHashCode(string))
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const uSys length, const Char* string) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const uSys length, const Char* string) noexcept
     : m_Data(string, length)
     , m_Hash(findHashCode(string, length))
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const ConstExprStringT<Char>& string) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const ConstExprStringT<Char>& string) noexcept
     : m_Data(string.String(), string.Length())
     , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const DynStringViewT<Char>& string) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const DynStringViewT<Char>& string) noexcept
     : m_Data(string.String(), string.Length())
     , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
-inline DynStringT<Char>::DynStringT(const StringBaseT<Char>&string) noexcept
+inline constexpr DynStringT<Char>::DynStringT(const StringBaseT<Char>&string) noexcept
     : m_Data(string.String(), string.Length())
     , m_Hash(string.HashCode())
 { }
 
 template<typename Char>
-inline DynStringT<Char>& DynStringT<Char>::operator=(const Char* const string) noexcept
+inline constexpr DynStringT<Char>& DynStringT<Char>::operator=(const Char* const string) noexcept
 {
     if(!string)
     {
@@ -921,7 +1151,7 @@ inline DynStringT<Char>& DynStringT<Char>::operator=(const Char* const string) n
 }
 
 template<typename Char>
-inline DynStringT<Char>& DynStringT<Char>::operator=(const ConstExprStringT<Char>& string) noexcept
+inline constexpr DynStringT<Char>& DynStringT<Char>::operator=(const ConstExprStringT<Char>& string) noexcept
 {
     m_Data.Reset(string, string.Length());
     m_Hash = string.HashCode();
@@ -930,7 +1160,7 @@ inline DynStringT<Char>& DynStringT<Char>::operator=(const ConstExprStringT<Char
 }
 
 template<typename Char>
-inline DynStringT<Char>& DynStringT<Char>::operator=(const DynStringViewT<Char>& string) noexcept
+inline constexpr DynStringT<Char>& DynStringT<Char>::operator=(const DynStringViewT<Char>& string) noexcept
 {
     m_Data.Reset(string, string.Length());
     m_Hash = string.HashCode();
@@ -939,7 +1169,7 @@ inline DynStringT<Char>& DynStringT<Char>::operator=(const DynStringViewT<Char>&
 }
 
 template<typename Char>
-inline DynStringT<Char>& DynStringT<Char>::operator=(const StringBaseT<Char>& string) noexcept
+inline constexpr DynStringT<Char>& DynStringT<Char>::operator=(const StringBaseT<Char>& string) noexcept
 {
     m_Data.Reset(string, string.Length());
     m_Hash = string.HashCode();
@@ -948,7 +1178,7 @@ inline DynStringT<Char>& DynStringT<Char>::operator=(const StringBaseT<Char>& st
 }
 
 template<typename Char>
-inline bool DynStringT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
+inline constexpr bool DynStringT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
     if(m_Data.Length != other.Length()) { return false; }
@@ -957,7 +1187,7 @@ inline bool DynStringT<Char>::Equals(const StringBaseT<Char>& other) const noexc
 }
 
 template<typename Char>
-inline bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
     if(m_Data.Length != other.Length()) { return false; }
     if(m_Hash != other.HashCode()) { return false; }
@@ -965,7 +1195,7 @@ inline bool DynStringT<Char>::Equals(const ConstExprStringT<Char>& other) const 
 }
 
 template<typename Char>
-inline bool DynStringT<Char>::Equals(const DynStringT<Char>& other) const noexcept
+inline constexpr bool DynStringT<Char>::Equals(const DynStringT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
     if(m_Data.Length == other.m_Data.Length && m_Hash == other.m_Hash)
@@ -981,7 +1211,7 @@ inline bool DynStringT<Char>::Equals(const DynStringT<Char>& other) const noexce
 }
 
 template<typename Char>
-inline bool DynStringT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
+inline constexpr bool DynStringT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
 {
     if(m_Data.Length != other.Length() ) { return false; }
     if(m_Hash != other.HashCode()) { return false; }
@@ -989,59 +1219,61 @@ inline bool DynStringT<Char>::Equals(const DynStringViewT<Char>& other) const no
 }
 
 template<typename Char>
-inline bool DynStringT<Char>::Equals(const Char* const str) const noexcept
+inline constexpr bool DynStringT<Char>::Equals(const Char* const str) const noexcept
 { return strCompare(String(), str) == 0; }
 
 template<typename Char>
-inline i32 DynStringT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
+inline constexpr i32 DynStringT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
 { return strCompare(String(), other.String()); }
 
 template<typename Char>
-inline i32 DynStringT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr i32 DynStringT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
 { return strCompare(String(), other.String()); }
 
 template<typename Char>
-inline i32 DynStringT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
+inline constexpr i32 DynStringT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
 { return strCompare(String(), other.String()); }
 
 template<typename Char>
-inline i32 DynStringT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
+inline constexpr i32 DynStringT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
 { return strCompare(String(), other.String(), other.Length()); }
 
 template<typename Char>
-inline i32 DynStringT<Char>::CompareTo(const Char* const str) const noexcept
+inline constexpr i32 DynStringT<Char>::CompareTo(const Char* const str) const noexcept
 { return strCompare(String(), str); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::Concat(const StringBaseT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const StringBaseT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::Concat(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const ConstExprStringT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::Concat(const DynStringT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const DynStringT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::Concat(const DynStringViewT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const DynStringViewT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::Concat(const Char* const other) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const Char* const other) const noexcept
 { return _concat(strLength(other), other); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::_concat(const uSys len, const Char* const str) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::_concat(const uSys len, const Char* const str) const noexcept
 {
     const uSys newLen = m_Data.Length + len;
     if(newLen >= 16)
     {
-        Char* const newStr = TU_NEW_ARR(Char, newLen + 1);
+        Char* const newStr = ::std::bit_cast<Char*>(::TauUtilsAllocate(sizeof(Char) * (newLen + 1)));
         newStr[newLen] = '\0';
-        (void) ::std::memcpy(newStr, String(), m_Data.Length * sizeof(Char));
-        (void) ::std::memcpy(newStr + m_Data.Length, str, len * sizeof(Char));
+        (void) ::std::copy_n(String(), m_Data.Length, newStr);
+        // (void) ::std::memcpy(newStr, String(), m_Data.Length * sizeof(Char));
+        (void) ::std::copy_n(str, len, newStr + m_Data.Length);
+        // (void) ::std::memcpy(newStr + m_Data.Length, str, len * sizeof(Char));
         return DynStringT<Char>(newStr, newLen);
     }
     else
@@ -1049,14 +1281,16 @@ inline DynStringT<Char> DynStringT<Char>::_concat(const uSys len, const Char* co
         Char buf[16];
         buf[newLen] = Char{ '\0' };
         
-        (void) ::std::memcpy(buf, m_Data.Buffer.StackString, sizeof(buf)); // Perform a fast intrinsic copy.
-        (void) ::std::memcpy(buf + m_Data.Length, str, len * sizeof(Char));
+        (void) ::std::copy_n(m_Data.Buffer.StackString, sizeof(buf), buf); // Perform a fast intrinsic copy.
+        // (void) ::std::memcpy(buf, m_Data.Buffer.StackString, sizeof(buf)); // Perform a fast intrinsic copy.
+        (void) ::std::copy_n(str, len, buf + m_Data.Length);
+        // (void) ::std::memcpy(buf + m_Data.Length, str, len * sizeof(Char));
         return DynStringT<Char>(static_cast<const Char*>(buf), newLen);
     }
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::SubStringLen(const uSys begin, const uSys length) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::SubStringLen(const uSys begin, const uSys length) const noexcept
 {
     if(begin + length > m_Data.Length)
     {
@@ -1065,9 +1299,10 @@ inline DynStringT<Char> DynStringT<Char>::SubStringLen(const uSys begin, const u
 
     if(length >= 16)
     {
-        Char* const sub = TU_NEW_ARR(Char, length + 1);
+        Char* const sub = ::std::bit_cast<Char*>(::TauUtilsAllocate(sizeof(Char) * (length + 1)));
         sub[length] = Char { '\0' };
-        (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
+        (void) ::std::copy_n(String() + begin, length, sub);
+        // (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
         return DynStringT<Char>(sub, length);
     }
 
@@ -1075,30 +1310,30 @@ inline DynStringT<Char> DynStringT<Char>::SubStringLen(const uSys begin, const u
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::SubString(const uSys begin, const uSys end) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::SubString(const uSys begin, const uSys end) const noexcept
 {
     return SubStringLen(begin, end - begin);
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::SubString(const uSys from) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::SubString(const uSys from) const noexcept
 {
     return SubStringLen(from, Length() - from);
 }
 
 template<typename Char>
-inline Char DynStringT<Char>::operator[](const uSys index) const noexcept
+inline constexpr Char DynStringT<Char>::operator[](const uSys index) const noexcept
 { return String()[index]; }
 
 template<typename Char>
-inline Char DynStringT<Char>::At(const uSys index) const noexcept
+inline constexpr Char DynStringT<Char>::At(const uSys index) const noexcept
 {
     if(index >= m_Data.Length) { return '\0'; }
     return String()[index];
 }
 
 template<typename Char>
-inline DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length, const DynStringT<Char>& str) noexcept
+inline constexpr DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length, const DynStringT<Char>& str) noexcept
     : m_Data(str.m_Data)
     , m_Start(begin)
     , m_Length(length)
@@ -1106,7 +1341,7 @@ inline DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length,
 { }
 
 template<typename Char>
-inline DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length, const DynStringViewT<Char>& str) noexcept
+inline constexpr DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length, const DynStringViewT<Char>& str) noexcept
     : m_Data(str.m_Data)
     , m_Start(begin)
     , m_Length(length)
@@ -1114,7 +1349,7 @@ inline DynStringViewT<Char>::DynStringViewT(const uSys begin, const uSys length,
 { }
 
 template<typename Char>
-inline DynStringViewT<Char>::DynStringViewT(const DynStringT<Char>& str, const uSys begin, const uSys end) noexcept
+inline constexpr DynStringViewT<Char>::DynStringViewT(const DynStringT<Char>& str, const uSys begin, const uSys end) noexcept
     : m_Data(str.m_Data)
     , m_Start(begin)
     , m_Length(end - begin)
@@ -1122,7 +1357,7 @@ inline DynStringViewT<Char>::DynStringViewT(const DynStringT<Char>& str, const u
 { }
 
 template<typename Char>
-inline DynStringViewT<Char>::DynStringViewT(const DynStringViewT<Char>& str, const uSys begin, const uSys end) noexcept
+inline constexpr DynStringViewT<Char>::DynStringViewT(const DynStringViewT<Char>& str, const uSys begin, const uSys end) noexcept
     : m_Data(str.m_Data)
     , m_Start(begin)
     , m_Length(end - begin)
@@ -1130,15 +1365,15 @@ inline DynStringViewT<Char>::DynStringViewT(const DynStringViewT<Char>& str, con
 { }
 
 template<typename Char>
-inline DynStringViewT<Char> DynStringViewT<Char>::Create(const DynStringT<Char>& str, const uSys begin, const uSys length) noexcept
+inline constexpr DynStringViewT<Char> DynStringViewT<Char>::Create(const DynStringT<Char>& str, const uSys begin, const uSys length) noexcept
 { return DynStringViewT(begin, length, str); }
 
 template<typename Char>
-inline DynStringViewT<Char> DynStringViewT<Char>::Create(const DynStringViewT<Char>& str, const uSys begin, const uSys length) noexcept
+inline constexpr DynStringViewT<Char> DynStringViewT<Char>::Create(const DynStringViewT<Char>& str, const uSys begin, const uSys length) noexcept
 { return DynStringViewT(begin, length, str); }
 
 template<typename Char>
-inline DynStringViewT<Char>& DynStringViewT<Char>::Reset(const DynStringT<Char>& str, const uSys begin, const uSys end) noexcept
+inline constexpr DynStringViewT<Char>& DynStringViewT<Char>::Reset(const DynStringT<Char>& str, const uSys begin, const uSys end) noexcept
 {
     if(end > str.length())
     { return *this; }
@@ -1152,7 +1387,7 @@ inline DynStringViewT<Char>& DynStringViewT<Char>::Reset(const DynStringT<Char>&
 }
 
 template<typename Char>
-inline DynStringViewT<Char>& DynStringViewT<Char>::ResetLen(const DynStringT<Char>& str, const uSys begin, const uSys length) noexcept
+inline constexpr DynStringViewT<Char>& DynStringViewT<Char>::ResetLen(const DynStringT<Char>& str, const uSys begin, const uSys length) noexcept
 {
     if(begin + length > str.length())
     { return *this; }
@@ -1166,7 +1401,7 @@ inline DynStringViewT<Char>& DynStringViewT<Char>::ResetLen(const DynStringT<Cha
 }
 
 template<typename Char>
-inline bool DynStringViewT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
+inline constexpr bool DynStringViewT<Char>::Equals(const StringBaseT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
 
@@ -1178,7 +1413,7 @@ inline bool DynStringViewT<Char>::Equals(const StringBaseT<Char>& other) const n
 }
 
 template<typename Char>
-inline bool DynStringViewT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr bool DynStringViewT<Char>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
     if(m_Length == other.Length() && m_Hash == other.HashCode())
     {
@@ -1188,7 +1423,7 @@ inline bool DynStringViewT<Char>::Equals(const ConstExprStringT<Char>& other) co
 }
 
 template<typename Char>
-inline bool DynStringViewT<Char>::Equals(const DynStringT<Char>& other) const noexcept
+inline constexpr bool DynStringViewT<Char>::Equals(const DynStringT<Char>& other) const noexcept
 {
     if(m_Length == other.Length() && m_Hash == other.HashCode())
     {
@@ -1198,7 +1433,7 @@ inline bool DynStringViewT<Char>::Equals(const DynStringT<Char>& other) const no
 }
 
 template<typename Char>
-inline bool DynStringViewT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
+inline constexpr bool DynStringViewT<Char>::Equals(const DynStringViewT<Char>& other) const noexcept
 {
     if(this == &other) { return true; }
 
@@ -1210,99 +1445,104 @@ inline bool DynStringViewT<Char>::Equals(const DynStringViewT<Char>& other) cons
 }
 
 template<typename Char>
-inline bool DynStringViewT<Char>::Equals(const Char* str) const noexcept
+inline constexpr bool DynStringViewT<Char>::Equals(const Char* str) const noexcept
 {
     return strCompare(m_Data.String() + m_Start, str, m_Length) == 0;
 }
 
 template<typename Char>
-inline i32 DynStringViewT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
+inline constexpr i32 DynStringViewT<Char>::CompareTo(const StringBaseT<Char>& other) const noexcept
 {
     return strCompare(m_Data.String() + m_Start, other.String(), minT(m_Length, other.Length()));
 }
 
 template<typename Char>
-inline i32 DynStringViewT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr i32 DynStringViewT<Char>::CompareTo(const ConstExprStringT<Char>& other) const noexcept
 {
     return strCompare(m_Data.String() + m_Start, other.String(), minT(m_Length, other.Length()));
 }
 
 template<typename Char>
-inline i32 DynStringViewT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
+inline constexpr i32 DynStringViewT<Char>::CompareTo(const DynStringViewT<Char>& other) const noexcept
 {
     if(this == &other) { return 0; }
     return strCompare(m_Data.String() + m_Start, other.String(), minT(m_Length, other.Length()));
 }
 
 template<typename Char>
-inline i32 DynStringViewT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
+inline constexpr i32 DynStringViewT<Char>::CompareTo(const DynStringT<Char>& other) const noexcept
 {
     return strCompare(m_Data.String() + m_Start, other.String(), minT(m_Length, other.Length()));
 }
 
 template<typename Char>
-inline i32 DynStringViewT<Char>::CompareTo(const Char* str) const noexcept
+inline constexpr i32 DynStringViewT<Char>::CompareTo(const Char* str) const noexcept
 {
     return strCompare(m_Data.String() + m_Start, str, m_Length);
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::Concat(const StringBaseT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::Concat(const StringBaseT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::Concat(const ConstExprStringT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::Concat(const ConstExprStringT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::Concat(const DynStringT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::Concat(const DynStringT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::Concat(const DynStringViewT<Char>& other) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::Concat(const DynStringViewT<Char>& other) const noexcept
 { return _concat(other.Length(), other.String()); }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::Concat(const Char* const other) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::Concat(const Char* const other) const noexcept
 {
     const uSys otherLen = strLength(other);
     return _concat(otherLen, other);
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::_concat(const uSys len, const Char* const str) noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::_concat(const uSys len, const Char* const str) noexcept
 {
     const uSys newLen = m_Length + len;
     if(newLen >= 16)
     {
-        Char* const newStr = TU_NEW_ARR(Char, newLen + 1);
+        Char* const newStr = ::TauUtilsAllocateTArr<Char>(newLen + 1);
         newStr[newLen] = Char{ '\0' };
-        (void) ::std::memcpy(newStr, String(), m_Length * sizeof(Char));
-        (void) ::std::memcpy(newStr + m_Length, str, len * sizeof(Char));
+        (void) ::std::copy_n(String(), m_Length, newStr);
+        // (void) ::std::memcpy(newStr, String(), m_Length * sizeof(Char));
+        (void) ::std::copy_n(str, len, newStr + m_Length);
+        // (void) ::std::memcpy(newStr + m_Length, str, len * sizeof(Char));
         return DynStringT<Char>(newStr, newLen);
     }
     else
     {
         DynStringT<Char> tmp(newLen);
         tmp.String()[newLen] = Char{ '\0' };
-        (void) ::std::memcpy(tmp.String(), String(), m_Length * sizeof(Char));
-        (void) ::std::memcpy(tmp.String() + Length(), str, len * sizeof(Char));
+        (void) ::std::copy_n(String(), m_Length, tmp.String());
+        // (void) ::std::memcpy(tmp.String(), String(), m_Length * sizeof(Char));
+        (void) ::std::copy_n(str, len, tmp.String() + Length());
+        // (void) ::std::memcpy(tmp.String() + Length(), str, len * sizeof(Char));
         tmp.m_Hash = findHashCode(tmp.String());
         return tmp;
     }
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::SubStringLen(const uSys begin, const uSys length) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::SubStringLen(const uSys begin, const uSys length) const noexcept
 {
     if(begin + length > m_Length)
     { return DynStringT<Char>(); }
 
     if(length >= 16)
     {
-        Char* const sub = TU_NEW_ARR(Char, length + 1);
+        Char* const sub = ::TauUtilsAllocateTArr<Char>(length + 1);
         sub[length] = Char { '\0' };
-        (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
+        (void) ::std::copy_n(String() + begin, length, sub);
+        // (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
         return DynStringT<Char>(sub, length);
     }
 
@@ -1310,23 +1550,23 @@ inline DynStringT<Char> DynStringViewT<Char>::SubStringLen(const uSys begin, con
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::SubString(const uSys begin, const uSys end) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::SubString(const uSys begin, const uSys end) const noexcept
 {
     return SubStringLen(begin, end - begin);
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringViewT<Char>::SubString(const uSys from) const noexcept
+inline constexpr DynStringT<Char> DynStringViewT<Char>::SubString(const uSys from) const noexcept
 {
     return SubStringLen(from, m_Length - from);
 }
 
 template<typename Char>
-inline Char DynStringViewT<Char>::operator[](const uSys index) const noexcept
+inline constexpr Char DynStringViewT<Char>::operator[](const uSys index) const noexcept
 { return String()[index]; }
 
 template<typename Char>
-inline Char DynStringViewT<Char>::At(const uSys index) const noexcept
+inline constexpr Char DynStringViewT<Char>::At(const uSys index) const noexcept
 {
     if(index >= m_Length) { return Char{ '\0' }; }
     return String()[index];
@@ -1335,75 +1575,82 @@ inline Char DynStringViewT<Char>::At(const uSys index) const noexcept
 static inline constexpr uSys STRING_BUILDER_DEFAULT_SIZE = 64;
 
 template<typename Char>
-inline StringBuilderT<Char>::StringBuilderT() noexcept
-    : m_String(TU_NEW_ARR(Char, STRING_BUILDER_DEFAULT_SIZE))
+inline constexpr StringBuilderT<Char>::StringBuilderT() noexcept
+    : m_String(::TauUtilsAllocateTArr<Char>(STRING_BUILDER_DEFAULT_SIZE))
     , m_Length(0)
     , m_Size(STRING_BUILDER_DEFAULT_SIZE)
 { }
 
 template<typename Char>
-inline StringBuilderT<Char>::StringBuilderT(const uSys initialSize) noexcept
-    : m_String(TU_NEW_ARR(Char, maxT(initialSize, 1)))
+inline constexpr StringBuilderT<Char>::StringBuilderT(const uSys initialSize) noexcept
+    : m_String(::TauUtilsAllocateTArr<Char>(maxT(initialSize, 1)))
     , m_Length(0)
     , m_Size(maxT(initialSize, 2))
 { }
 
 template<typename Char>
-inline StringBuilderT<Char>::StringBuilderT(const Char* const string) noexcept
+inline constexpr StringBuilderT<Char>::StringBuilderT(const Char* const string) noexcept
     : m_String(nullptr)
     , m_Length(strLength(string))
     , m_Size(m_Length + STRING_BUILDER_DEFAULT_SIZE)
 {
-    Char* const str = TU_NEW_ARR(Char, m_Size);
+    Char* const str = ::TauUtilsAllocateTArr<Char>(m_Size);
 
     if(string)
-    { (void) ::std::memcpy(str, string, (m_Length + 1) * sizeof(Char)); }
+    {
+        (void) ::std::copy_n(string, m_Length + 1, str);
+        // (void) ::std::memcpy(str, string, (m_Length + 1) * sizeof(Char));
+    }
 
     m_String = str;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>::~StringBuilderT() noexcept
-{ TU_DELETE_ARR(m_String); }
+inline constexpr StringBuilderT<Char>::~StringBuilderT() noexcept
+{ ::TauUtilsDeallocateTArr(m_String, m_Size); }
 
 template<typename Char>
-inline StringBuilderT<Char>::StringBuilderT(const StringBuilderT<Char>& copy) noexcept
-    : m_String(TU_NEW_ARR(Char, copy.m_Size))
+inline constexpr StringBuilderT<Char>::StringBuilderT(const StringBuilderT<Char>& copy) noexcept
+    : m_String(::std::bit_cast<Char*>(::TauUtilsAllocateTArr<Char>(copy.m_Size)))
     , m_Length(copy.m_Length)
     , m_Size(copy.m_Size)
-{ (void) ::std::memcpy(m_String, copy.m_String, m_Size); }
+{
+    (void) ::std::copy_n(copy.m_String, m_Size, m_String);
+    // (void) ::std::memcpy(m_String, copy.m_String, m_Size);
+}
 
 template<typename Char>
-inline StringBuilderT<Char>::StringBuilderT(StringBuilderT<Char>&& move) noexcept
+inline constexpr StringBuilderT<Char>::StringBuilderT(StringBuilderT<Char>&& move) noexcept
     : m_String(move.m_String)
     , m_Length(move.m_Length)
     , m_Size(move.m_Size)
 { move.m_String = nullptr; }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::operator=(const StringBuilderT<Char>& copy) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::operator=(const StringBuilderT<Char>& copy) noexcept
 {
     if(this == &copy)
     { return *this; }
 
-    TU_DELETE_ARR(m_String);
+    ::TauUtilsDeallocateTArr(m_String, m_Size);
 
-    m_String = TU_NEW_ARR(Char, copy.m_Size);
+    m_String = ::TauUtilsAllocateTArr<Char>(copy.m_Size);
     m_Length = copy.m_Length;
     m_Size = copy.m_Size;
 
-    (void) ::std::memcpy(m_String, copy.m_String, m_Size * sizeof(Char));
+    (void) ::std::copy_n(copy.m_String, m_Size, m_String);
+    // (void) ::std::memcpy(m_String, copy.m_String, m_Size * sizeof(Char));
 
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::operator=(StringBuilderT<Char>&& move) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::operator=(StringBuilderT<Char>&& move) noexcept
 {
     if(this == &move)
     { return *this; } 
 
-    TU_DELETE_ARR(m_String);
+    ::TauUtilsDeallocateTArr(m_String, m_Size);
 
     m_String = move.m_String;
     m_Length = move.m_Length;
@@ -1415,7 +1662,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::operator=(StringBuilderT<Char
 }
 
 template<typename Char>
-inline bool StringBuilderT<Char>::equals(const StringBuilderT<Char>& other) const noexcept
+inline constexpr bool StringBuilderT<Char>::equals(const StringBuilderT<Char>& other) const noexcept
 {
     if(m_String == other.m_String) { return true; }
     if(m_Length == other.m_Length)
@@ -1426,150 +1673,53 @@ inline bool StringBuilderT<Char>::equals(const StringBuilderT<Char>& other) cons
 }
 
 template<typename Char>
-inline i32 StringBuilderT<Char>::compareTo(const StringBuilderT<Char>& other) const noexcept
+inline constexpr i32 StringBuilderT<Char>::compareTo(const StringBuilderT<Char>& other) const noexcept
 {
     if(m_String == other.m_String) { return 0; }
     return strCompare(m_String, other.m_String);
 }
 
 template<typename Char>
-inline void StringBuilderT<Char>::Append(const Char* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<Char>::Append(const Char* const string, const uSys length) noexcept
 {
     const uSys newLen = m_Length + length;
     AssertSize(newLen);
-    (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+    (void) ::std::copy_n(string, length, m_String + m_Length);
+    // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
     m_Length = newLen;
     m_String[m_Length] = '\0';
 }
 
 template<typename Char>
 template<typename CharFrom>
-inline void StringBuilderT<Char>::Append(const CharFrom* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<Char>::Append(const CharFrom* const string, const uSys length) noexcept
 {
     const uSys newLen = m_Length + length;
     AssertSize(newLen);
-    (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+    (void) ::std::copy_n(string, length, m_String + m_Length);
+    // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
     m_Length = newLen;
-    m_String[m_Length] = '\0';
+    m_String[m_Length] = Char { '\0' };
 }
 
 template<>
 template<>
-inline void StringBuilderT<char>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<char>::Append<c8>(const c8* string, const uSys length) noexcept
 {
-    const wchar_t* stringReal = string;
-    WDynString stringHolder;
-
-    if(strLength(string) != length)
+    if(::std::is_constant_evaluated())
     {
-        stringHolder = WDynString(length, string);
-        stringReal = stringHolder.String();
-    }
-
-    ::std::mbstate_t state;
-    (void) ::std::memset(&state, 0, sizeof(state));
-    uSys len;
-    errno_t error = wcsrtombs_s(&len, nullptr, 0, &stringReal, 0, &state);
-
-    if(error != 0)
-    {
-        return;
-    }
-
-    const uSys newLen = m_Length + len - 1;
-    AssertSize(newLen);
-
-    (void) ::std::memset(&state, 0, sizeof(state));
-    error = wcsrtombs_s(&len, m_String + m_Length, len + 1, &stringReal, len, &state);
-
-    m_Length = newLen;
-    m_String[m_Length] = '\0';
-}
-
-template<>
-template<>
-inline void StringBuilderT<char>::Append<c8>(const c8* string, const uSys length) noexcept
-{
-    Append(reinterpret_cast<const char*>(string), length);
-}
-
-template<>
-template<>
-inline void StringBuilderT<char>::Append<c16>(const c16* string, const uSys length) noexcept
-{
-    const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
-    const uSys newLen = m_Length + codeUnitLength;
-    AssertSize(newLen);
-    (void) ::tau::string::utf8_16::Transform(string, reinterpret_cast<c8*>(m_String + m_Length), static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), true);
-    m_Length = newLen;
-    m_String[m_Length] = '\0';
-}
-
-template<>
-template<>
-inline void StringBuilderT<char>::Append<c32>(const c32* string, const uSys length) noexcept
-{
-    const uSys codeUnitLength = ::tau::string::utf8::CalculateCodeUnits(string, static_cast<iSys>(length));
-    const uSys newLen = m_Length + codeUnitLength;
-    AssertSize(newLen);
-    (void) ::tau::string::utf8::Transform(string, reinterpret_cast<c8*>(m_String + m_Length), static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
-    m_Length = newLen;
-    m_String[m_Length] = '\0';
-}
-
-template<>
-template<>
-inline void StringBuilderT<wchar_t>::Append<char>(const char* string, const uSys length) noexcept
-{
-    const char* stringReal = string;
-    DynString stringHolder;
-
-    if(strLength(string) != length)
-    {
-        stringHolder = DynString(length, string);
-        stringReal = stringHolder.String();
-    }
-
-    ::std::mbstate_t state;
-    uSys len;
-    errno_t error = mbsrtowcs_s(&len, nullptr, 0, &stringReal, 0, &state);
-
-    if(error != 0)
-    {
-        return;
-    }
-
-    const uSys newLen = m_Length + len - 1;
-    AssertSize(newLen);
-
-    error = mbsrtowcs_s(&len, m_String + m_Length, len + 1, &stringReal, len, &state);
-
-    m_Length = newLen;
-    m_String[m_Length] = '\0';
-}
-
-template<>
-template<>
-inline void StringBuilderT<wchar_t>::Append<c8>(const c8* string, const uSys length) noexcept
-{
-    Append(reinterpret_cast<const char*>(string), length);
-}
-
-template<>
-template<>
-inline void StringBuilderT<wchar_t>::Append<c16>(const c16* string, const uSys length) noexcept
-{
-    if constexpr(sizeof(wchar_t) == sizeof(c16))
-    {
-        Append(reinterpret_cast<const wchar_t*>(string), length);
-    }
-    else if constexpr(sizeof(wchar_t) == sizeof(c32))
-    {
-
-        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodePoints(string, static_cast<iSys>(length));
-        const uSys newLen = m_Length + codeUnitLength;
+        const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::tau::string::utf16::Transform(string, reinterpret_cast<c32*>(m_String + m_Length), static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        m_Length = newLen;
+        m_String[m_Length] = '\0';
+    }
+    else
+    {
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = '\0';
     }
@@ -1577,26 +1727,7 @@ inline void StringBuilderT<wchar_t>::Append<c16>(const c16* string, const uSys l
 
 template<>
 template<>
-inline void StringBuilderT<wchar_t>::Append<c32>(const c32* string, const uSys length) noexcept
-{
-    if constexpr(sizeof(wchar_t) == sizeof(c16))
-    {
-        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
-        const uSys newLen = m_Length + codeUnitLength;
-        AssertSize(newLen);
-        (void) ::tau::string::utf16::Transform(string, reinterpret_cast<c16*>(m_String + m_Length), static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
-        m_Length = newLen;
-        m_String[m_Length] = '\0';
-    }
-    else if constexpr(sizeof(wchar_t) == sizeof(c32))
-    {
-        Append(reinterpret_cast<const wchar_t*>(string), length);
-    }
-}
-
-template<>
-template<>
-inline void StringBuilderT<c8>::Append<c16>(const c16* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<char>::Append<c16>(const c16* string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
     const uSys newLen = m_Length + codeUnitLength;
@@ -1608,7 +1739,7 @@ inline void StringBuilderT<c8>::Append<c16>(const c16* const string, const uSys 
 
 template<>
 template<>
-inline void StringBuilderT<c8>::Append<c32>(const c32* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<char>::Append<c32>(const c32* string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf8::CalculateCodeUnits(string, static_cast<iSys>(length));
     const uSys newLen = m_Length + codeUnitLength;
@@ -1620,160 +1751,437 @@ inline void StringBuilderT<c8>::Append<c32>(const c32* const string, const uSys 
 
 template<>
 template<>
-inline void StringBuilderT<c8>::Append<char>(const char* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<wchar_t>::Append<char>(const char* string, const uSys length) noexcept
 {
-    Append(reinterpret_cast<const c8*>(string), length);
+    if(::std::is_constant_evaluated())
+    {
+        if constexpr(sizeof(wchar_t) == sizeof(u16))
+        {
+            const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+            const uSys newLen = m_Length + codeUnitLength;
+            AssertSize(newLen);
+            (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
+            m_Length = newLen;
+            m_String[m_Length] = L'\0';
+        }
+        else if constexpr(sizeof(wchar_t) == sizeof(c32))
+        {
+            const uSys codeUnitLength = ::tau::string::utf8::CalculateCodePoints(string, static_cast<iSys>(length));
+            const uSys newLen = m_Length + codeUnitLength;
+            AssertSize(newLen);
+            (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+            m_Length = newLen;
+            m_String[m_Length] = L'\0';
+        }
+    }
+    else
+    {
+        const char* stringReal = string;
+        DynString stringHolder;
+
+        if(strLength(string) != length)
+        {
+            stringHolder = DynString(length, string);
+            stringReal = stringHolder.String();
+        }
+
+        ::std::mbstate_t state;
+        uSys len;
+        errno_t error = mbsrtowcs_s(&len, nullptr, 0, &stringReal, 0, &state);
+
+        if(error != 0)
+        {
+            return;
+        }
+
+        const uSys newLen = m_Length + len - 1;
+        AssertSize(newLen);
+
+        error = mbsrtowcs_s(&len, m_String + m_Length, len + 1, &stringReal, len, &state);
+
+        m_Length = newLen;
+        m_String[m_Length] = '\0';
+    }
 }
 
 template<>
 template<>
-inline void StringBuilderT<c8>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<wchar_t>::Append<c8>(const c8* string, const uSys length) noexcept
 {
-    ::std::mbstate_t state;
-    uSys len;
-    errno_t error = wcsrtombs_s(&len, nullptr, 0, &string, 0, &state);
-
-    if(error != 0)
+    if constexpr(sizeof(wchar_t) == sizeof(u16))
     {
-        return;
+        const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+    }
+    else if constexpr(sizeof(wchar_t) == sizeof(c32))
+    {
+        const uSys codeUnitLength = ::tau::string::utf8::CalculateCodePoints(string, static_cast<iSys>(length));
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+    }
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<wchar_t>::Append<c16>(const c16* string, const uSys length) noexcept
+{
+    if constexpr(sizeof(wchar_t) == sizeof(c16))
+    {
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+    }
+    else if constexpr(sizeof(wchar_t) == sizeof(c32))
+    {
+        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodePoints(string, static_cast<iSys>(length));
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+    }
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<wchar_t>::Append<c32>(const c32* string, const uSys length) noexcept
+{
+    if constexpr(sizeof(wchar_t) == sizeof(c16))
+    {
+        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+    }
+    else if constexpr(sizeof(wchar_t) == sizeof(c32))
+    {
+#ifndef _WIN32
+#pragma warning(push, 0)
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+        m_Length = newLen;
+        m_String[m_Length] = L'\0';
+#pragma warning(pop)
+#endif
+    }
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<c8>::Append<c16>(const c16* const string, const uSys length) noexcept
+{
+    const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+    const uSys newLen = m_Length + codeUnitLength;
+    AssertSize(newLen);
+    (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), true);
+    m_Length = newLen;
+    m_String[m_Length] = u8'\0';
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<c8>::Append<c32>(const c32* const string, const uSys length) noexcept
+{
+    const uSys codeUnitLength = ::tau::string::utf8::CalculateCodeUnits(string, static_cast<iSys>(length));
+    const uSys newLen = m_Length + codeUnitLength;
+    AssertSize(newLen);
+    (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+    m_Length = newLen;
+    m_String[m_Length] = u8'\0';
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<c8>::Append<char>(const char* string, const uSys length) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        m_Length = newLen;
+        m_String[m_Length] = u8'\0';
+    }
+    else
+    {
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+        m_Length = newLen;
+        m_String[m_Length] = u8'\0';
+    }
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<c8>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+{
+    if constexpr(sizeof(wchar_t) == sizeof(u16))
+    {
+        const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), true);
+        m_Length = newLen;
+        m_String[m_Length] = u8'\0';
+    }
+    else if constexpr(sizeof(wchar_t) == sizeof(c32))
+    {
+        const uSys codeUnitLength = ::tau::string::utf8::CalculateCodeUnits(string, static_cast<iSys>(length));
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+        m_Length = newLen;
+        m_String[m_Length] = u8'\0';
     }
 
-    const uSys newLen = m_Length + len;
-    AssertSize(newLen);
-
-    error = wcsrtombs_s(&len, reinterpret_cast<char*>(m_String + m_Length), len + 1, &string, len, &state);
-
-    m_Length = newLen;
-    m_String[m_Length] = '\0';
+    // ::std::mbstate_t state;
+    // uSys len;
+    // errno_t error = wcsrtombs_s(&len, nullptr, 0, &string, 0, &state);
+    //
+    // if(error != 0)
+    // {
+    //     return;
+    // }
+    //
+    // const uSys newLen = m_Length + len;
+    // AssertSize(newLen);
+    //
+    // error = wcsrtombs_s(&len, ::std::bit_cast<char*>(m_String + m_Length), len + 1, &string, len, &state);
+    //
+    // m_Length = newLen;
+    // m_String[m_Length] = '\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c16>::Append<c8>(const c8* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c16>::Append<c8>(const c8* const string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
     const uSys newLen = m_Length + codeUnitLength;
     AssertSize(newLen);
     (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
     m_Length = newLen;
-    m_String[m_Length] = '\0';
+    m_String[m_Length] = u'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c16>::Append<c32>(const c32* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c16>::Append<c32>(const c32* const string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf16::CalculateCodeUnits(string, static_cast<iSys>(length), true);
     const uSys newLen = m_Length + codeUnitLength;
     AssertSize(newLen);
     (void) ::tau::string::utf16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
     m_Length = newLen;
-    m_String[m_Length] = '\0';
+    m_String[m_Length] = u'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c16>::Append<char>(const char* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c16>::Append<char>(const char* string, const uSys length) noexcept
 {
-    Append(reinterpret_cast<const c8*>(string), length);
+    const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+    const uSys newLen = m_Length + codeUnitLength;
+    AssertSize(newLen);
+    (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
+    m_Length = newLen;
+    m_String[m_Length] = u'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c16>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c16>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
 {
     if constexpr(sizeof(wchar_t) == sizeof(c16))
     {
-        Append(reinterpret_cast<const c16*>(string), length);
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+        m_Length = newLen;
+        m_String[m_Length] = u'\0';
     }
     else if constexpr(sizeof(wchar_t) == sizeof(c32))
     {
-        Append(reinterpret_cast<const c32*>(string), length);
+        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodeUnits(string, static_cast<iSys>(length), true);
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf16::Transform<wchar_t, c16>(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), false, true);
+        m_Length = newLen;
+        m_String[m_Length] = u'\0';
     }
 }
 
 template<>
 template<>
-inline void StringBuilderT<c32>::Append<c8>(const c8* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c32>::Append<c8>(const c8* const string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf8::CalculateCodePoints(string, static_cast<iSys>(length));
     const uSys newLen = m_Length + codeUnitLength;
     AssertSize(newLen);
     (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
     m_Length = newLen;
-    m_String[m_Length] = '\0';
+    m_String[m_Length] = U'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c32>::Append<c16>(const c16* const string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c32>::Append<c16>(const c16* const string, const uSys length) noexcept
 {
     const uSys codeUnitLength = ::tau::string::utf16::CalculateCodePoints(string, static_cast<iSys>(length));
     const uSys newLen = m_Length + codeUnitLength;
     AssertSize(newLen);
     (void) ::tau::string::utf16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
     m_Length = newLen;
-    m_String[m_Length] = '\0';
+    m_String[m_Length] = U'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c32>::Append<char>(const char* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c32>::Append<char>(const char* string, const uSys length) noexcept
 {
-    Append(reinterpret_cast<const c8*>(string), length);
+    const uSys codeUnitLength = ::tau::string::utf8::CalculateCodePoints(string, static_cast<iSys>(length));
+    const uSys newLen = m_Length + codeUnitLength;
+    AssertSize(newLen);
+    (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+    m_Length = newLen;
+    m_String[m_Length] = U'\0';
 }
 
 template<>
 template<>
-inline void StringBuilderT<c32>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+inline constexpr void StringBuilderT<c32>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
 {
     if constexpr(sizeof(wchar_t) == sizeof(c16))
     {
-        Append(reinterpret_cast<const c16*>(string), length);
+        const uSys codeUnitLength = ::tau::string::utf16::CalculateCodePoints(string, static_cast<iSys>(length));
+        const uSys newLen = m_Length + codeUnitLength;
+        AssertSize(newLen);
+        (void) ::tau::string::utf16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+        m_Length = newLen;
+        m_String[m_Length] = '\0';
     }
     else if constexpr(sizeof(wchar_t) == sizeof(c32))
     {
-        Append(reinterpret_cast<const c32*>(string), length);
+        const uSys newLen = m_Length + length;
+        AssertSize(newLen);
+        (void) ::std::copy_n(string, length, m_String + m_Length);
+        // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
+        m_Length = newLen;
+        m_String[m_Length] = U'\0';
+    }
+}
+
+template<>
+template<>
+inline constexpr void StringBuilderT<char>::Append<wchar_t>(const wchar_t* string, const uSys length) noexcept
+{
+    if(::std::is_constant_evaluated())
+    {
+        if constexpr(sizeof(wchar_t) == sizeof(u16))
+        {
+            const uSys codeUnitLength = ::tau::string::utf8_16::CalculateCodeUnits(string, static_cast<iSys>(length), 0, 0, true);
+            const uSys newLen = m_Length + codeUnitLength;
+            AssertSize(newLen);
+            (void) ::tau::string::utf8_16::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength), true);
+            m_Length = newLen;
+            m_String[m_Length] = '\0';
+        }
+        else if constexpr(sizeof(wchar_t) == sizeof(c32))
+        {
+            const uSys codeUnitLength = ::tau::string::utf8::CalculateCodeUnits(string, static_cast<iSys>(length));
+            const uSys newLen = m_Length + codeUnitLength;
+            AssertSize(newLen);
+            (void) ::tau::string::utf8::Transform(string, m_String + m_Length, static_cast<iSys>(length), static_cast<iSys>(codeUnitLength));
+            m_Length = newLen;
+            m_String[m_Length] = '\0';
+        }
+    }
+    else
+    {
+        const wchar_t* stringReal = string;
+        WDynString stringHolder;
+
+        if(strLength(string) != length)
+        {
+            stringHolder = WDynString(length, string);
+            stringReal = stringHolder.String();
+        }
+
+        ::std::mbstate_t state;
+        (void) ::std::memset(&state, 0, sizeof(state));
+        uSys len;
+        errno_t error = wcsrtombs_s(&len, nullptr, 0, &stringReal, 0, &state);
+
+        if(error != 0)
+        {
+            return;
+        }
+
+        const uSys newLen = m_Length + len - 1;
+        AssertSize(newLen);
+
+        (void) ::std::memset(&state, 0, sizeof(state));
+        error = wcsrtombs_s(&len, m_String + m_Length, len + 1, &stringReal, len, &state);
+
+        m_Length = newLen;
+        m_String[m_Length] = '\0';
     }
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBaseT<Char>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBaseT<Char>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const ConstExprStringT<Char>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const ConstExprStringT<Char>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringT<Char>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringT<Char>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringViewT<Char>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringViewT<Char>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBuilderT<Char>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBuilderT<Char>& string) noexcept
 {
     Append(string.m_String, string.m_Length);
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const Char* const string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const Char* const string) noexcept
 {
     Append(string, strLength(string));
     return *this;
@@ -1781,7 +2189,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const Char* const stri
 
 template<typename Char>
 template<typename CharDeduced>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const ::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const ::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) noexcept
 {
     const Char string[2] = { c, Char{ '\0' } };
     Append(string, 1);
@@ -1789,7 +2197,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const ::std::enable_if
 }
 
 template<>
-inline StringBuilderT<c8>& StringBuilderT<c8>::Append(const c32 c) noexcept
+inline constexpr StringBuilderT<c8>& StringBuilderT<c8>::Append(const c32 c) noexcept
 {
     using Char = c8;
 
@@ -1826,7 +2234,7 @@ inline StringBuilderT<c8>& StringBuilderT<c8>::Append(const c32 c) noexcept
 }
 
 template<>
-inline StringBuilderT<c16>& StringBuilderT<c16>::Append(const c32 c) noexcept
+inline constexpr StringBuilderT<c16>& StringBuilderT<c16>::Append(const c32 c) noexcept
 {
     using Char = c16;
 
@@ -1850,7 +2258,7 @@ inline StringBuilderT<c16>& StringBuilderT<c16>::Append(const c32 c) noexcept
 }
 
 template<>
-inline StringBuilderT<c32>& StringBuilderT<c32>::Append(const c32 c) noexcept
+inline constexpr StringBuilderT<c32>& StringBuilderT<c32>::Append(const c32 c) noexcept
 {
     const c32 string[2] = { c, U'\0' };
     Append(string, 1);
@@ -1858,7 +2266,7 @@ inline StringBuilderT<c32>& StringBuilderT<c32>::Append(const c32 c) noexcept
 }
 
 template<>
-inline StringBuilderT<char>& StringBuilderT<char>::Append(const c32 c) noexcept
+inline constexpr StringBuilderT<char>& StringBuilderT<char>::Append(const c32 c) noexcept
 {
     const c32 string[2] = { c, U'\0' };
     Append(string, 1);
@@ -1866,7 +2274,7 @@ inline StringBuilderT<char>& StringBuilderT<char>::Append(const c32 c) noexcept
 }
 
 template<>
-inline StringBuilderT<wchar_t>& StringBuilderT<wchar_t>::Append(const c32 c) noexcept
+inline constexpr StringBuilderT<wchar_t>& StringBuilderT<wchar_t>::Append(const c32 c) noexcept
 {
     const c32 string[2] = { c, U'\0' };
     Append(string, 1);
@@ -1875,7 +2283,7 @@ inline StringBuilderT<wchar_t>& StringBuilderT<wchar_t>::Append(const c32 c) noe
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBaseT<CharFrom>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBaseT<CharFrom>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
@@ -1883,7 +2291,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBaseT<Char
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const ConstExprStringT<CharFrom>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const ConstExprStringT<CharFrom>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
@@ -1891,7 +2299,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const ConstExprStringT
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringT<CharFrom>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringT<CharFrom>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
@@ -1899,7 +2307,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringT<CharF
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringViewT<CharFrom>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringViewT<CharFrom>& string) noexcept
 {
     Append(string.String(), string.Length());
     return *this;
@@ -1907,7 +2315,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const DynStringViewT<C
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBuilderT<CharFrom>& string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBuilderT<CharFrom>& string) noexcept
 {
     Append(string.m_String, string.m_Length);
     return *this;
@@ -1915,14 +2323,14 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const StringBuilderT<C
 
 template<typename Char>
 template<typename CharFrom>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Append(const CharFrom* const string) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Append(const CharFrom* const string) noexcept
 {
     Append(string, strLength(string));
     return *this;
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Reset() noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Reset() noexcept
 {
     m_Length = 0;
     m_String[0] = Char { '\0' };
@@ -1930,14 +2338,14 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Reset() noexcept
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Reset(const uSys newSize) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Reset(const uSys newSize) noexcept
 {
     if(newSize == 0) 
     { return *this; }
 
-    TU_DELETE_ARR(m_String);
+    ::TauUtilsDeallocateTArr(m_String, m_Size);
 
-    m_String = TU_NEW_ARR(Char, newSize);
+    m_String = ::TauUtilsAllocateTArr<Char>(newSize);
     m_Size = newSize;
     m_Length = 0;
     m_String[0] = Char{ '\0' };
@@ -1946,15 +2354,15 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Reset(const uSys newSize) noe
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::ResetIf(const uSys maxSize, const uSys newSize) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::ResetIf(const uSys maxSize, const uSys newSize) noexcept
 {
     if(newSize == 0) { return *this; }
     if(maxSize <= newSize) { return *this; }
 
     if(m_Size >= maxSize)
     {
-        TU_DELETE_ARR(m_String);
-        m_String = TU_NEW_ARR(Char, newSize);
+        ::TauUtilsDeallocateTArr(m_String, m_Size);
+        m_String = ::TauUtilsAllocateTArr<Char>(newSize);
         m_Size = newSize;
     }
 
@@ -1965,7 +2373,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::ResetIf(const uSys maxSize, c
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Backspace() noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Backspace() noexcept
 {
     if(m_Length > 0)
     {
@@ -1976,7 +2384,7 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Backspace() noexcept
 }
 
 template<typename Char>
-inline StringBuilderT<Char>& StringBuilderT<Char>::Backspace(const uSys count) noexcept
+inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::Backspace(const uSys count) noexcept
 {
     if(m_Length > 0)
     {
@@ -1991,28 +2399,161 @@ inline StringBuilderT<Char>& StringBuilderT<Char>::Backspace(const uSys count) n
 }
 
 template<typename Char>
-inline Char StringBuilderT<Char>::operator[](const uSys index) const noexcept
+inline constexpr Char StringBuilderT<Char>::operator[](const uSys index) const noexcept
 { return m_String[index]; }
 
 template<typename Char>
-inline Char StringBuilderT<Char>::At(const uSys index) const noexcept
+inline constexpr Char StringBuilderT<Char>::At(const uSys index) const noexcept
 {
     if(index >= m_Length) { return '\0'; }
     return m_String[index];
 }
 
 template<typename Char>
-inline void StringBuilderT<Char>::AssertSize(const uSys newLength) noexcept
+inline constexpr void StringBuilderT<Char>::AssertSize(const uSys newLength) noexcept
 {
     if(newLength >= m_Size)
     {
         const uSys newSize = newLength + (newLength >> 1);
-        Char* const newStr = TU_NEW_ARR(Char, newSize);
-        (void) ::std::memcpy(newStr, m_String, (m_Length + 1) * sizeof(Char));
-        TU_DELETE_ARR(m_String);
+        Char* const newStr = ::TauUtilsAllocateTArr<Char>(newSize);
+        (void) ::std::copy_n(m_String, m_Length + 1, newStr);
+        // (void) ::std::memcpy(newStr, m_String, (m_Length + 1) * sizeof(Char));
+        ::TauUtilsDeallocateTArr(m_String, m_Size);
         m_String = newStr;
         m_Size = newSize;
     }
+}
+
+template<typename Char, iSys Len>
+inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT() noexcept
+    : m_String{ }
+{ }
+
+template<typename Char, iSys Len>
+inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(const Char(&string)[Len]) noexcept
+    : m_String{ }
+{
+    (void) ::std::copy_n(string, Len, m_String);
+}
+
+template<typename Char, iSys Len>
+inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(const ConstEvalStringBuilderT<Char, Len>& copy) noexcept
+    : m_String{ }
+{
+    (void) ::std::copy_n(copy.m_String, Len, m_String);
+}
+
+template<typename Char, iSys Len>
+inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(ConstEvalStringBuilderT<Char, Len>&& move) noexcept
+    : m_String{ }
+{
+    (void) ::std::copy_n(move.m_String, Len, m_String);
+}
+
+template<typename Char, iSys Len>
+template<iSys OLen>
+inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> ConstEvalStringBuilderT<Char, Len>::Append(const ConstExprStackStringT<Char, OLen>& string) const noexcept
+{
+    Char newString[Len + OLen - 1];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::copy_n(string.String(), OLen, &newString[Len]);
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+template<iSys OLen>
+inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> ConstEvalStringBuilderT<Char, Len>::Append(const Char(&str)[OLen]) const noexcept
+{
+    Char newString[Len + OLen - 1];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::copy_n(str, OLen, &newString[Len]);
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const Char* const str, const iSys oLen) const noexcept
+{
+    Char newString[Len + oLen - 1];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::copy_n(str, oLen, &newString[Len]);
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+template<typename CharDeduced>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(::std::enable_if_t<!::std::is_same_v<CharDeduced, c32>> c) const noexcept
+{
+    const Char string[2] = { c, Char{ '\0' } };
+    return Append(string);
+}
+
+template<typename Char, iSys Len>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(c32 c) const noexcept
+{
+    const c32 string[2] = { c, U'\0' };
+    return Append(string);
+    // Char newString[Len + ::tau::string::CodeUnitCountConst<Char, c32, 1>::Count(&c)];
+    // (void) ::std::copy_n(m_String, Len - 1, newString);
+    // newString[Len] = c;
+    // newString[Len + 1] = Char { '\0' };
+    // return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+template<typename CharFrom, iSys OLen>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const ConstExprStackStringT<CharFrom, OLen>& string) const noexcept
+{
+    constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(string.m_String);
+    constexpr iSys NewLen = Len + FromLen;
+    Char newString[NewLen];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::tau::string::Transform(string.m_String, &newString[Len], OLen, FromLen, false, true);
+    newString[NewLen - 1] = Char { '\0' };
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+template<typename CharFrom, iSys OLen>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const CharFrom(&str)[OLen]) const noexcept
+{
+    constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(str);
+    constexpr iSys NewLen = Len + FromLen;
+    Char newString[NewLen];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::tau::string::Transform(str, &newString[Len], OLen, FromLen, false, true);
+    newString[NewLen - 1] = Char { '\0' };
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+template<typename CharFrom>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const CharFrom* const str, const iSys oLen) const noexcept
+{
+    constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(str);
+    constexpr iSys NewLen = Len + FromLen;
+    Char newString[NewLen];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::tau::string::Transform(str, &newString[Len], oLen, FromLen, false, true);
+    newString[NewLen - 1] = Char { '\0' };
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+inline consteval ConstEvalStringBuilderT<Char, maxT(Len - 1, 0)> ConstEvalStringBuilderT<Char, Len>::Backspace() const noexcept
+{
+    Char newString[Len - 1];
+    (void) ::std::copy_n(m_String, Len - 1, newString);
+    newString[Len - 2] = Char { '\0' };
+    return ConstEvalStringBuilderT(newString);
+}
+
+template<typename Char, iSys Len>
+inline consteval auto ConstEvalStringBuilderT<Char, Len>::Backspace(const uSys count) const noexcept
+{
+    Char newString[Len - count];
+    (void) ::std::copy_n(m_String, Len - count, newString);
+    newString[Len - count - 1] = Char { '\0' };
+    return ConstEvalStringBuilderT(newString);
 }
 
 template<typename CTo, typename CFrom>

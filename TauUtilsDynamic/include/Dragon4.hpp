@@ -46,28 +46,28 @@ enum class PrintFloatFormat
     Scientific  // [-]d.dddde[sign]ddd
 };
 
-TAU_LIB uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, char* buffer, uSys bufferSize, i32* outExponent) noexcept;
-TAU_LIB uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, wchar_t* buffer, uSys bufferSize, i32* outExponent) noexcept;
-TAU_LIB uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c8* buffer, uSys bufferSize, i32* outExponent) noexcept;
-TAU_LIB uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c16* buffer, uSys bufferSize, i32* outExponent) noexcept;
-TAU_LIB uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c32* buffer, uSys bufferSize, i32* outExponent) noexcept;
+TAU_LIB constexpr uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, char* buffer, uSys bufferSize, i32* outExponent) noexcept;
+TAU_LIB constexpr uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, wchar_t* buffer, uSys bufferSize, i32* outExponent) noexcept;
+TAU_LIB constexpr uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c8* buffer, uSys bufferSize, i32* outExponent) noexcept;
+TAU_LIB constexpr uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c16* buffer, uSys bufferSize, i32* outExponent) noexcept;
+TAU_LIB constexpr uSys Dragon4(u64 mantissa, i32 exponent, u32 mantissaHighBitIndex, bool hasUnequalMargins, CutoffMode cutoffMode, u32 cutoffNumber, c32* buffer, uSys bufferSize, i32* outExponent) noexcept;
 
 // If precision is negative, the minimum number of digits to represent a
 // unique 32-bit floating point value is output. Otherwise,
 // this is the number of digits to print past the decimal point.
 
-TAU_LIB uSys PrintFloat32(char* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat32(wchar_t* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat32(c8* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat32(c16* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat32(c32* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat32(char* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat32(wchar_t* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat32(c8* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat32(c16* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat32(c32* outBuffer, uSys bufferSize, f32 value, PrintFloatFormat format, i32 precision) noexcept;
 
 // If precision is negative, the minimum number of digits to represent a
 // unique 32-bit floating point value is output. Otherwise,
 // this is the number of digits to print past the decimal point.
 
-TAU_LIB uSys PrintFloat64(char* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat64(wchar_t* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat64(c8* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat64(c16* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
-TAU_LIB uSys PrintFloat64(c32* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat64(char* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat64(wchar_t* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat64(c8* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat64(c16* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;
+TAU_LIB constexpr uSys PrintFloat64(c32* outBuffer, uSys bufferSize, f64 value, PrintFloatFormat format, i32 precision) noexcept;

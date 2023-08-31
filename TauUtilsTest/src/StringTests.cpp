@@ -154,25 +154,60 @@ static void TestStringBuilder()
 }
 
 template<typename Char>
-static void TestStringFormatT(const Char* const helloWorld)
+static consteval DynStringT<Char> StringFormatSmallT()
 {
-    const DynStringT<Char> str = Format<Char>("{}{}{}{}{}{}", u8"Hello", u",", U" ", "World", 0, L"!");
+    return Format<Char>("{}{}{}{}{}{}", u8"Hello", u",", U" ", "World", 0, L"!");
+}
+
+template<typename Char>
+static void TestStringFormatSmallT(const Char* const helloWorld)
+{
+    const DynStringT<Char> str = StringFormatSmallT<Char>();
 
     TAU_UNIT_EQ(str, helloWorld, "Appended string did not match a raw string literal.");
 
     ConPrinter::PrintLn("{}", str);
 }
 
-static void TestStringFormat()
+static void TestStringFormatSmall()
 {
     TAU_UNIT_TEST();
 
     {
-        TestStringFormatT<c8>(u8"Hello, World0!");
-        TestStringFormatT<c16>(u"Hello, World0!");
-        TestStringFormatT<c32>(U"Hello, World0!");
-        TestStringFormatT<char>("Hello, World0!");
-        TestStringFormatT<wchar_t>(L"Hello, World0!");
+        TestStringFormatSmallT<c8>(u8"Hello, World0!");
+        TestStringFormatSmallT<c16>(u"Hello, World0!");
+        TestStringFormatSmallT<c32>(U"Hello, World0!");
+        TestStringFormatSmallT<char>("Hello, World0!");
+        TestStringFormatSmallT<wchar_t>(L"Hello, World0!");
+    }
+}
+
+template<typename Char>
+static auto StringFormatLargeT()
+{
+    return Format<Char>("{}{}{}{}{}{}!!!", u8"Hello", u",", U" ", "World", 0, L"!");
+}
+
+template<typename Char>
+static void TestStringFormatLargeT(const Char* const helloWorld)
+{
+    const auto str = StringFormatLargeT<Char>();
+
+    TAU_UNIT_EQ(str, helloWorld, "Appended string did not match a raw string literal.");
+
+    ConPrinter::PrintLn("{}", str);
+}
+
+static void TestStringFormatLarge()
+{
+    TAU_UNIT_TEST();
+
+    {
+        TestStringFormatLargeT<c8>(u8"Hello, World0!!!!");
+        TestStringFormatLargeT<c16>(u"Hello, World0!!!!");
+        TestStringFormatLargeT<c32>(U"Hello, World0!!!!");
+        TestStringFormatLargeT<char>("Hello, World0!!!!");
+        TestStringFormatLargeT<wchar_t>(L"Hello, World0!!!!");
     }
 }
 
@@ -181,5 +216,6 @@ void StringTests()
     TestIterateCodeUnits();
     ToStringTests();
     TestStringBuilder();
-    TestStringFormat();
+    TestStringFormatSmall();
+    TestStringFormatLarge();
 }
