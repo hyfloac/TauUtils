@@ -526,15 +526,15 @@ struct ConPrinterFormatContext final
     u32 HandlerHexPad0(const Int t) noexcept
     { return ::ConPrinter::PrintHexPad0<Uppercase>(t); }
 
-    u32 Handler(const f32 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
+    u32 Handler(const f32 f, const PrintFloatFormat format, const i32 precision = 6) noexcept
     { return ::ConPrinter::Print(f, format, precision); }
 
-    u32 Handler(const f64 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
+    u32 Handler(const f64 f, const PrintFloatFormat format, const i32 precision = 17) noexcept
     { return ::ConPrinter::Print(f, format, precision); }
 };
 
 template<typename Char, typename CurrArg, typename... Args>
-inline u32 Print(const Char* fmt, CurrArg currArg, const Args&... args) noexcept
+inline u32 Print(const Char* fmt, const CurrArg& currArg, const Args&... args) noexcept
 {
     ConPrinterFormatContext ctx;
     return InternalFormat0(ctx, fmt, currArg, args...);

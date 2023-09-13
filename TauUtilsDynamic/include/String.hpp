@@ -187,6 +187,9 @@ class StringIteratorT;
 template<typename Char>
 class ConstExprStringT;
 
+template<typename Char, uSys Len>
+class ConstExprStackStringT;
+
 template<typename Char>
 class DynStringT;
 
@@ -400,6 +403,9 @@ private:
     template<typename CChar>
     friend class ConstExprStringT;
 
+    template<typename CChar, uSys Len>
+    friend class ConstExprStackStringT;
+
     template<typename CChar>
     friend class DynStringT;
 
@@ -416,17 +422,20 @@ class ConstExprStackStringT final : public StringBaseT<Char>
     DEFAULT_DESTRUCT_C(ConstExprStackStringT);
     DEFAULT_CM_PUC(ConstExprStackStringT);
 public:
-    const Char m_String[Len];
+    Char m_String[Len];
+    uSys m_Length;
     uSys m_Hash;
 public:
     consteval ConstExprStackStringT(const Char(&str)[Len]) noexcept;
 
+    consteval ConstExprStackStringT(const Char* const str, const uSys length) noexcept;
+
     [[nodiscard]] constexpr const Char* String() const noexcept override { return m_String; }
-    [[nodiscard]] constexpr uSys Length() const noexcept override { return Len; }
+    [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Length; }
     [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
 
-    [[nodiscard]] constexpr StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, Len, 0); }
-    [[nodiscard]] constexpr StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, Len, Len - 1); }
+    [[nodiscard]] constexpr StringIteratorT<Char> begin() const noexcept { return StringIteratorT<Char>(m_String, m_Length, 0); }
+    [[nodiscard]] constexpr StringIteratorT<Char>   end() const noexcept { return StringIteratorT<Char>(m_String, m_Length, m_Length - 1); }
 
     template<uSys OLen>
     [[nodiscard]] consteval bool Equals(const Char(&str)[OLen]) const noexcept;
@@ -745,6 +754,9 @@ public:
 
     [[nodiscard]] inline constexpr DynStringT<Char> ToString() const noexcept { return DynStringT<Char>(m_String); }
     [[nodiscard]] inline constexpr DynStringT<Char> toString() const noexcept { return DynStringT<Char>(m_String); }
+
+    template<uSys Len>
+    [[nodiscard]] inline consteval ConstExprStackStringT<Char, Len> ToStringC() const noexcept { return ConstExprStackStringT<Char, Len>(m_String, m_Length); }
     
     [[nodiscard]] inline constexpr Char operator[](uSys index) const noexcept;
     [[nodiscard]] inline constexpr Char At(uSys index) const noexcept;

@@ -223,7 +223,7 @@ u32 Console::Write(const c32* const str, const uSys length) noexcept
 {
     using namespace tau::console::internal;
     
-    const uSys wideLength = tau::string::utf16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()));
+    const uSys wideLength = tau::string::utf16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()), false, true);
     return Write(ETB.GetAs<c16>(), wideLength);
 }
 

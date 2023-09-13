@@ -128,8 +128,6 @@ static void ToStringTests()
 template<typename Char>
 static void TestStringBuilderT(const Char* const helloWorld)
 {
-    TAU_UNIT_TEST();
-
     StringBuilderT<Char> builder;
     builder.Append(u8"Hello");
     builder.Append(u",");
@@ -146,6 +144,8 @@ static void TestStringBuilderT(const Char* const helloWorld)
 
 static void TestStringBuilder()
 {
+    TAU_UNIT_TEST();
+
     TestStringBuilderT<c8>(u8"Hello, World!");
     TestStringBuilderT<c16>(u"Hello, World!");
     TestStringBuilderT<c32>(U"Hello, World!");
@@ -211,6 +211,35 @@ static void TestStringFormatLarge()
     }
 }
 
+template<typename Char>
+static consteval auto StringFormatLargeTConst()
+{
+    return FormatConstEval<Char, 18>("{}{}{}{}{}{}!!!", u8"Hello", u",", U" ", "World", 0, L"!");
+}
+
+template<typename Char>
+static void TestStringFormatLargeTConst(const Char* const helloWorld)
+{
+    const auto str = StringFormatLargeTConst<Char>();
+
+    TAU_UNIT_EQ(str, helloWorld, "Appended string did not match a raw string literal.");
+
+    ConPrinter::PrintLn("{}", str);
+}
+
+static void TestStringFormatLargeConst()
+{
+    TAU_UNIT_TEST();
+
+    {
+        TestStringFormatLargeTConst<c8>(u8"Hello, World0!!!!");
+        TestStringFormatLargeTConst<c16>(u"Hello, World0!!!!");
+        TestStringFormatLargeTConst<c32>(U"Hello, World0!!!!");
+        TestStringFormatLargeTConst<char>("Hello, World0!!!!");
+        TestStringFormatLargeTConst<wchar_t>(L"Hello, World0!!!!");
+    }
+}
+
 void StringTests()
 {
     TestIterateCodeUnits();
@@ -218,4 +247,5 @@ void StringTests()
     TestStringBuilder();
     TestStringFormatSmall();
     TestStringFormatLarge();
+    TestStringFormatLargeConst();
 }

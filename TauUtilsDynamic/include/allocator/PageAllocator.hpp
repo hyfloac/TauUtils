@@ -2,8 +2,9 @@
 
 #include "NumTypes.hpp"
 #include "Objects.hpp"
+#include "TUConfig.hpp"
 
-class PageAllocator final
+class TAU_LIB PageAllocator final
 {
     DELETE_CONSTRUCT(PageAllocator);
     DELETE_DESTRUCT(PageAllocator);

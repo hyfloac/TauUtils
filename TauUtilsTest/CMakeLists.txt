@@ -3,11 +3,15 @@ project(TauUtilsTest LANGUAGES CXX C)
 
 include(CheckCCompilerFlag)
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB TEST_SOURCES "src/*.cpp")
 
 # Setup the ${PROJECT_NAME} executable with the source files.
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${TEST_SOURCES})
 target_link_libraries(${PROJECT_NAME} TauUtilsDynamicShared)
+
+source_group("src" FILES ${TEST_SOURCES})
+
+target_sources(${PROJECT_NAME} PUBLIC ${TEST_SOURCES})
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 

@@ -931,15 +931,23 @@ inline constexpr Char ConstExprStringT<Char>::at(const uSys index) const noexcep
 template<typename Char, uSys Len>
 inline consteval ConstExprStackStringT<Char, Len>::ConstExprStackStringT(const Char(&str)[Len]) noexcept
     : m_String(str)
+    , m_Length(Len - 1)
     , m_Hash(cexpr::findHashCode(str))
 { }
+
+template<typename Char, uSys Len>
+inline consteval ConstExprStackStringT<Char, Len>::ConstExprStackStringT(const Char* const str, const uSys len) noexcept
+    : m_String{ }
+    , m_Length(len)
+    , m_Hash(findHashCode(str))
+{ ::std::copy_n(str, len, m_String); }
 
 template<typename Char, uSys Len>
 template<uSys OLen>
 inline consteval bool ConstExprStackStringT<Char, Len>::Equals(const Char(&str)[OLen]) const noexcept
 {
     if(m_String == str) { return true; }
-    if(Len != OLen) { return false; }
+    if(m_Length != OLen) { return false; }
     return strCompare(m_String, str) == 0;
 }
 
@@ -948,7 +956,7 @@ template<uSys OLen>
 inline consteval bool ConstExprStackStringT<Char, Len>::Equals(const ConstExprStackStringT<Char, OLen>& other) const noexcept
 {
     if(m_String == other.m_String) { return true; }
-    if(Len != OLen) { return false; }
+    if(m_Length != OLen) { return false; }
     if(m_Hash != other.m_Hash) { return false; }
     return strCompare(m_String, other.String()) == 0;
 }
@@ -958,7 +966,7 @@ inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const StringBaseT
 {
     if(this == &other) { return true; }
     if(m_String == other.String()) { return true; }
-    if(Len != other.Length()) { return false; }
+    if(m_Length != other.Length()) { return false; }
     if(m_Hash != other.HashCode()) { return false; }
     return strCompare(m_String, other.String()) == 0;
 }
@@ -967,7 +975,7 @@ template<typename Char, uSys Len>
 inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const ConstExprStringT<Char>& other) const noexcept
 {
     if(m_String == other.m_String) { return true; }
-    if(Len != other.m_Length) { return false; }
+    if(m_Length != other.m_Length) { return false; }
     if(m_Hash != other.HashCode()) { return false; }
     return strCompare(m_String, other.String()) == 0;
 }
@@ -975,7 +983,7 @@ inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const ConstExprSt
 template<typename Char, uSys Len>
 inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const DynStringT<Char>& other) const noexcept
 {
-    if(Len != other.Length() || m_Hash != other.HashCode())
+    if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
     return strCompare(m_String, other.String()) == 0;
 }
@@ -983,7 +991,7 @@ inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const DynStringT<
 template<typename Char, uSys Len>
 inline constexpr bool ConstExprStackStringT<Char, Len>::Equals(const DynStringViewT<Char>& other) const noexcept
 {
-    if(Len != other.Length() || m_Hash != other.HashCode())
+    if(m_Length != other.Length() || m_Hash != other.HashCode())
     { return false; }
     return strCompare(m_String, other.String(), Len) == 0;
 }
@@ -1022,7 +1030,7 @@ inline constexpr Char ConstExprStackStringT<Char, Len>::operator[](const uSys in
 template<typename Char, uSys Len>
 inline constexpr Char ConstExprStackStringT<Char, Len>::at(const uSys index) const noexcept
 {
-    if(index >= Len) { return Char { '\0' }; }
+    if(index >= m_Length) { return Char { '\0' }; }
     return m_String[index];
 }
 
@@ -1579,14 +1587,18 @@ inline constexpr StringBuilderT<Char>::StringBuilderT() noexcept
     : m_String(::TauUtilsAllocateTArr<Char>(STRING_BUILDER_DEFAULT_SIZE))
     , m_Length(0)
     , m_Size(STRING_BUILDER_DEFAULT_SIZE)
-{ }
+{
+    m_String[0] = Char { '\0' };
+}
 
 template<typename Char>
 inline constexpr StringBuilderT<Char>::StringBuilderT(const uSys initialSize) noexcept
     : m_String(::TauUtilsAllocateTArr<Char>(maxT(initialSize, 1)))
     , m_Length(0)
     , m_Size(maxT(initialSize, 2))
-{ }
+{
+    m_String[0] = Char { '\0' };
+}
 
 template<typename Char>
 inline constexpr StringBuilderT<Char>::StringBuilderT(const Char* const string) noexcept

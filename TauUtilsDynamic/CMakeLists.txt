@@ -83,6 +83,16 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
 
     set_target_properties(TauUtilsDynamicShared PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set_target_properties(TauUtilsDynamicStatic PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    
+    target_compile_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/Zi>")
+    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/DEBUG>")
+    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:REF>")
+    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>")
+    
+    target_compile_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/Zi>")
+    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/DEBUG>")
+    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:REF>")
+    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>")
 endif()
 
 check_c_compiler_flag(/wd5030 HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
