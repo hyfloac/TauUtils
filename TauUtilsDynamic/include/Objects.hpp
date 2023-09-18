@@ -30,6 +30,14 @@
     inline constexpr TYPE(TYPE&& move)            noexcept = default; \
     inline constexpr TYPE& operator=(TYPE&& move) noexcept = default
 
+#define DEFAULT_COPY_CV(TYPE) \
+    inline consteval TYPE(const TYPE& copy)            noexcept = default; \
+    inline consteval TYPE& operator=(const TYPE& copy) noexcept = default
+
+#define DEFAULT_MOVE_CV(TYPE) \
+    inline consteval TYPE(TYPE&& move)            noexcept = default; \
+    inline consteval TYPE& operator=(TYPE&& move) noexcept = default
+
 #define DEFAULT_CM(TYPE) \
     DEFAULT_COPY(TYPE); \
     DEFAULT_MOVE(TYPE)
@@ -37,6 +45,10 @@
 #define DEFAULT_CM_C(TYPE) \
     DEFAULT_COPY_C(TYPE); \
     DEFAULT_MOVE_C(TYPE)
+
+#define DEFAULT_CM_CV(TYPE) \
+    DEFAULT_COPY_CV(TYPE); \
+    DEFAULT_MOVE_CV(TYPE)
 
 #define DEFAULT_COPY_PU(TYPE)  public:    DEFAULT_COPY(TYPE)
 #define DEFAULT_COPY_PI(TYPE)  private:   DEFAULT_COPY(TYPE)
@@ -65,20 +77,24 @@
 #define DEFAULT_DESTRUCT_VI(TYPE) public: inline virtual   ~TYPE() noexcept = default
 
 #define DELETE_CONSTRUCT(TYPE) private: inline TYPE() noexcept = delete
-#define DEFAULT_CONSTRUCT(TYPE) inline TYPE() noexcept = default
-#define DEFAULT_CONSTRUCT_C(TYPE) inline constexpr TYPE() noexcept = default
-#define DEFAULT_CONSTRUCT_PU(TYPE)  public:    DEFAULT_CONSTRUCT(TYPE)
-#define DEFAULT_CONSTRUCT_PI(TYPE)  private:   DEFAULT_CONSTRUCT(TYPE)
-#define DEFAULT_CONSTRUCT_PO(TYPE)  protected: DEFAULT_CONSTRUCT(TYPE)
-#define DEFAULT_CONSTRUCT_PUC(TYPE) public:    DEFAULT_CONSTRUCT_C(TYPE)
-#define DEFAULT_CONSTRUCT_PIC(TYPE) private:   DEFAULT_CONSTRUCT_C(TYPE)
-#define DEFAULT_CONSTRUCT_POC(TYPE) protected: DEFAULT_CONSTRUCT_C(TYPE)
+#define DEFAULT_CONSTRUCT(TYPE)    inline           TYPE() noexcept = default
+#define DEFAULT_CONSTRUCT_C(TYPE)  inline constexpr TYPE() noexcept = default
+#define DEFAULT_CONSTRUCT_CV(TYPE) inline consteval TYPE() noexcept = default
+#define DEFAULT_CONSTRUCT_PU(TYPE)   public:    DEFAULT_CONSTRUCT(TYPE)
+#define DEFAULT_CONSTRUCT_PI(TYPE)   private:   DEFAULT_CONSTRUCT(TYPE)
+#define DEFAULT_CONSTRUCT_PO(TYPE)   protected: DEFAULT_CONSTRUCT(TYPE)
+#define DEFAULT_CONSTRUCT_PUC(TYPE)  public:    DEFAULT_CONSTRUCT_C(TYPE)
+#define DEFAULT_CONSTRUCT_PIC(TYPE)  private:   DEFAULT_CONSTRUCT_C(TYPE)
+#define DEFAULT_CONSTRUCT_POC(TYPE)  protected: DEFAULT_CONSTRUCT_C(TYPE)
+#define DEFAULT_CONSTRUCT_PUCV(TYPE) public:    DEFAULT_CONSTRUCT_CV(TYPE)
+#define DEFAULT_CONSTRUCT_PICV(TYPE) private:   DEFAULT_CONSTRUCT_CV(TYPE)
+#define DEFAULT_CONSTRUCT_POCV(TYPE) protected: DEFAULT_CONSTRUCT_CV(TYPE)
 
 #define DECL_OPAQUE_TYPE(TYPE)                      \
     struct TYPE final {                             \
-        DEFAULT_CONSTRUCT_PU(CTYPE);                \
-        DEFAULT_DESTRUCT(TYPE);                     \
-        DEFAULT_CM_PUC(TYPE);                       \
+        DEFAULT_CONSTRUCT_PUCV(TYPE);               \
+        DEFAULT_DESTRUCT_CV(TYPE);                  \
+        DEFAULT_CM_PUCV(TYPE);                      \
     public:                                         \
         void* raw;                                  \
     public:                                         \
@@ -95,8 +111,19 @@
 
 namespace tau {
 
-struct TIPDefault final { constexpr TIPDefault() noexcept = default; };
-struct TIPRecommended final { constexpr TIPRecommended() noexcept = default; };
+struct TIPDefault final
+{
+    DEFAULT_CONSTRUCT_CV(TIPDefault);
+    DEFAULT_DESTRUCT_C(TIPDefault);
+    DEFAULT_CM_CV(TIPDefault);
+};
+
+struct TIPRecommended final
+{
+    DEFAULT_CONSTRUCT_CV(TIPRecommended);
+    DEFAULT_DESTRUCT_C(TIPRecommended);
+    DEFAULT_CM_CV(TIPRecommended);
+};
 
 static constexpr TIPDefault Default { };
 static constexpr const TIPDefault& def = Default;

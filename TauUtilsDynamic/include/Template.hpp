@@ -20,10 +20,10 @@ struct TypeName final
     };
 #define TYPE_NAME_T(TYPE) TYPE_NAME(TYPE, #TYPE)
 
-#ifdef CHAR_IS_BYTE
-  TYPE_NAME(char, "byte");
+#ifdef UCHAR_IS_BYTE
+  TYPE_NAME(unsigned char, "byte");
 #else
-  TYPE_NAME_T(char);
+  TYPE_NAME_T(unsigned char);
 #endif
 
 TYPE_NAME_T(short);
@@ -153,16 +153,16 @@ TYPE_NAME_T(void);
 namespace tau {
 
 template <class T, class... Types>
-inline constexpr bool IsAnyOfV = ::std::disjunction_v<::std::is_same<T, Types>...>;
+inline consteval bool IsAnyOfV = ::std::disjunction_v<::std::is_same<T, Types>...>;
 
 template<typename T>
-inline constexpr bool IsCharV = IsAnyOfV<::std::remove_cv_t<T>, char, wchar_t, c8, c16, c32>;
+inline consteval bool IsCharV = IsAnyOfV<::std::remove_cv_t<T>, char, wchar_t, c8, c16, c32>;
 
 template<typename T>
 struct IsChar : ::std::bool_constant<IsCharV<T>> { };
 
 template<typename T>
-inline constexpr bool IsExtendedCharV = IsCharV<T> || IsAnyOfV<::std::remove_cv_t<T>, signed char, unsigned char>;
+inline consteval bool IsExtendedCharV = IsCharV<T> || IsAnyOfV<::std::remove_cv_t<T>, signed char, unsigned char>;
 
 template<typename T>
 struct IsExtendedChar : ::std::bool_constant<IsExtendedCharV<T>> { };

@@ -56,8 +56,8 @@ inline constexpr iSys TransformC8ToC16(const C8Alias* const inString, C16Alias* 
 
             if(priorCodeUnitsModifier == -1)
             { return -1; }
-            else if(priorCodeUnitsModifier != 0)
-            { return utf8_16::CalculateCodeUnits<C8Alias>(inString, inCodeUnits, i + 1, outCodeUnit + priorCodeUnitsModifier - 1); }
+            // else if(priorCodeUnitsModifier != 0)
+            // { return utf8_16::CalculateCodeUnits<C8Alias>(inString, inCodeUnits, i + 1, outCodeUnit + priorCodeUnitsModifier - 1); }
         }
         return outCodeUnit;
     }

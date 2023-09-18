@@ -22,13 +22,42 @@
 { \
     const auto& _tmp__strSwitch_ = PARAM; \
     bool _switch_defaulted_ = true; \
-    switch(_tmp__strSwitch_.hashCode()) BLOCK \
+    switch(_tmp__strSwitch_.HashCode()) BLOCK \
     if(_switch_defaulted_) DEFAULT_BLOCK \
 }
 
 #define STR_CASE(CASE, BLOCK) \
-case ConstExprString(CASE).hashCode(): \
-    if(ConstExprString(CASE).equals(_tmp__strSwitch_.c_str())) { \
+case ConstExprString(CASE).HashCode(): \
+    if(ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
+        _switch_defaulted_ = false; \
+        BLOCK \
+    } else { break; }
+
+
+#define WSTR_CASE(CASE, BLOCK) \
+case WConstExprString(CASE).HashCode(): \
+    if(WConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
+        _switch_defaulted_ = false; \
+        BLOCK \
+    } else { break; }
+
+#define C8STR_CASE(CASE, BLOCK) \
+case C8ConstExprString(CASE).HashCode(): \
+    if(C8ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
+        _switch_defaulted_ = false; \
+        BLOCK \
+    } else { break; }
+
+#define C16STR_CASE(CASE, BLOCK) \
+case C16ConstExprString(CASE).HashCode(): \
+    if(C16ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
+        _switch_defaulted_ = false; \
+        BLOCK \
+    } else { break; }
+
+#define C32STR_CASE(CASE, BLOCK) \
+case C32ConstExprString(CASE).HashCode(): \
+    if(C32ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
     } else { break; }
@@ -530,8 +559,8 @@ public:
     [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
     [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
 
-    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length); }
-    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data.String(), m_Data.Length - 1); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data, 0_uz); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data, m_Data.Length); }
 
     [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }
     [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   end() const noexcept { return end(); }

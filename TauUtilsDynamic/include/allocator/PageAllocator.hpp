@@ -4,7 +4,7 @@
 #include "Objects.hpp"
 #include "TUConfig.hpp"
 
-class TAU_LIB PageAllocator final
+class TAU_UTILS_LIB PageAllocator final
 {
     DELETE_CONSTRUCT(PageAllocator);
     DELETE_DESTRUCT(PageAllocator);

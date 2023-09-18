@@ -16,8 +16,8 @@ namespace tau::file::path {
 struct PathSanitizerSettings final
 {
     DEFAULT_CONSTRUCT_PUC(PathSanitizerSettings);
-    DEFAULT_DESTRUCT(PathSanitizerSettings);
-    DEFAULT_CM_PU(PathSanitizerSettings);
+    DEFAULT_DESTRUCT_C(PathSanitizerSettings);
+    DEFAULT_CM_PUC(PathSanitizerSettings);
 public:
     b32 BlockUNCPath : 1;
     b32 BlockLocalDevicePath : 1;
@@ -33,7 +33,7 @@ public:
     b32 BlockDisallowedCharacters : 1;
     b32 Pad : 20;
 
-    constexpr PathSanitizerSettings(const ::tau::TIPDefault&) noexcept
+    consteval PathSanitizerSettings(const ::tau::TIPDefault&) noexcept
         : BlockUNCPath(true)
         , BlockLocalDevicePath(false)
         , BlockLocalDeviceDriveAbsolutePath(false)
@@ -49,7 +49,7 @@ public:
         , Pad(0)
     { }
 
-    constexpr PathSanitizerSettings(const ::tau::TIPRecommended&) noexcept
+    consteval PathSanitizerSettings(const ::tau::TIPRecommended&) noexcept
         : BlockUNCPath(true)
         , BlockLocalDevicePath(true)
         , BlockLocalDeviceDriveAbsolutePath(true)

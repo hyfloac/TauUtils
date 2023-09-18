@@ -5,7 +5,7 @@
 #include "Safeties.hpp"
 #include "TauMacros.hpp"
 
-class TAU_LIB Encoding
+class TAU_UTILS_LIB Encoding
 {
     DEFAULT_CONSTRUCT_PO(Encoding);
     DEFAULT_DESTRUCT_VI(Encoding);
@@ -37,7 +37,7 @@ public:
     virtual iSys ToLower(const c32* originalString, c32* newString, uSys newStringLength) noexcept = 0;
 };
 
-class TAU_LIB DefaultEncoding final : public Encoding
+class TAU_UTILS_LIB DefaultEncoding final : public Encoding
 {
     DEFAULT_CONSTRUCT_PU(DefaultEncoding);
     DEFAULT_DESTRUCT(DefaultEncoding);

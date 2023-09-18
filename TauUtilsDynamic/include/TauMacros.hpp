@@ -83,11 +83,11 @@
 #define UNUSED5(X0, X1, X2, X3, X4) ((void) (X0)); ((void) (X1)); ((void) (X2)); ((void) (X3)); ((void) (X4))
       
 #ifdef TAU_UTILS_BUILD_SHARED
-  #define TAU_LIB DYNAMIC_EXPORT
+  #define TAU_UTILS_LIB DYNAMIC_EXPORT
 #elif defined(TAU_UTILS_BUILD_STATIC)
-  #define TAU_LIB
+  #define TAU_UTILS_LIB
 #elif defined(TAU_UTILS_IMPORT_SHARED)
-  #define TAU_LIB DYNAMIC_IMPORT
+  #define TAU_UTILS_LIB DYNAMIC_IMPORT
 #else
-  #define TAU_LIB
+  #define TAU_UTILS_LIB
 #endif

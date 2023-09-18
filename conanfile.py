@@ -55,7 +55,9 @@ class TauCOMRecipe(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure()
+        definitions = {};
+        definitions["NO_GEN_TEST"] = "ON";
+        cmake.configure(variables=definitions)
         cmake.build()
 
     def package(self):

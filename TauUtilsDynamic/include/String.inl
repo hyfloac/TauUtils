@@ -1589,6 +1589,8 @@ inline constexpr StringBuilderT<Char>::StringBuilderT() noexcept
     , m_Size(STRING_BUILDER_DEFAULT_SIZE)
 {
     m_String[0] = Char { '\0' };
+    // TODO: Fix the buffer overrun so this isn't necessary.
+    ::std::fill_n(m_String, m_Size, Char { '\0' });
 }
 
 template<typename Char>
@@ -1598,6 +1600,8 @@ inline constexpr StringBuilderT<Char>::StringBuilderT(const uSys initialSize) no
     , m_Size(maxT(initialSize, 2))
 {
     m_String[0] = Char { '\0' };
+    // TODO: Fix the buffer overrun so this isn't necessary.
+    ::std::fill_n(m_String, m_Size, Char { '\0' });
 }
 
 template<typename Char>

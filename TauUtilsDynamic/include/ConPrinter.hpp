@@ -117,6 +117,13 @@ inline u32 Print(const T* const p) noexcept
     return Console::Write(buffer, sizeof(uPtr) * 2);
 }
 
+inline u32 Print(nullptr_t) noexcept
+{
+    c16 buffer[sizeof(uPtr) * 2 + 1];
+    (void) ::tau::XtoAP<true, uPtr, c16, u'0'>(0, buffer);
+    return Console::Write(buffer, sizeof(uPtr) * 2);
+}
+
 inline u32 Print(const char* const str)    noexcept
 {
     if(!str)

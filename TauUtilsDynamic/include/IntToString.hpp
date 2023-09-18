@@ -49,23 +49,23 @@ inline constexpr Char GetNumberUpper(Int val) noexcept
 {
     switch(val)
     {
-        case 0x0: return Char{'0'};
-        case 0x1: return Char{'1'};
-        case 0x2: return Char{'2'};
-        case 0x3: return Char{'3'};
-        case 0x4: return Char{'4'};
-        case 0x5: return Char{'5'};
-        case 0x6: return Char{'6'};
-        case 0x7: return Char{'7'};
-        case 0x8: return Char{'8'};
-        case 0x9: return Char{'9'};
-        case 0xA: return Char{'A'};
-        case 0xB: return Char{'B'};
-        case 0xC: return Char{'C'};
-        case 0xD: return Char{'D'};
-        case 0xE: return Char{'E'};
-        case 0xF: return Char{'F'};
-        default:  return Char{'?'};
+        case 0x0: return Char{ '0' };
+        case 0x1: return Char{ '1' };
+        case 0x2: return Char{ '2' };
+        case 0x3: return Char{ '3' };
+        case 0x4: return Char{ '4' };
+        case 0x5: return Char{ '5' };
+        case 0x6: return Char{ '6' };
+        case 0x7: return Char{ '7' };
+        case 0x8: return Char{ '8' };
+        case 0x9: return Char{ '9' };
+        case 0xA: return Char{ 'A' };
+        case 0xB: return Char{ 'B' };
+        case 0xC: return Char{ 'C' };
+        case 0xD: return Char{ 'D' };
+        case 0xE: return Char{ 'E' };
+        case 0xF: return Char{ 'F' };
+        default:  return Char{ '?' };
     }
 }
 
@@ -74,23 +74,23 @@ inline constexpr Char GetNumberLower(Int val) noexcept
 {
     switch(val)
     {
-        case 0x0: return Char{'0'};
-        case 0x1: return Char{'1'};
-        case 0x2: return Char{'2'};
-        case 0x3: return Char{'3'};
-        case 0x4: return Char{'4'};
-        case 0x5: return Char{'5'};
-        case 0x6: return Char{'6'};
-        case 0x7: return Char{'7'};
-        case 0x8: return Char{'8'};
-        case 0x9: return Char{'9'};
-        case 0xA: return Char{'a'};
-        case 0xB: return Char{'b'};
-        case 0xC: return Char{'c'};
-        case 0xD: return Char{'d'};
-        case 0xE: return Char{'e'};
-        case 0xF: return Char{'f'};
-        default:  return Char{'?'};
+        case 0x0: return Char{ '0' };
+        case 0x1: return Char{ '1' };
+        case 0x2: return Char{ '2' };
+        case 0x3: return Char{ '3' };
+        case 0x4: return Char{ '4' };
+        case 0x5: return Char{ '5' };
+        case 0x6: return Char{ '6' };
+        case 0x7: return Char{ '7' };
+        case 0x8: return Char{ '8' };
+        case 0x9: return Char{ '9' };
+        case 0xA: return Char{ 'a' };
+        case 0xB: return Char{ 'b' };
+        case 0xC: return Char{ 'c' };
+        case 0xD: return Char{ 'd' };
+        case 0xE: return Char{ 'e' };
+        case 0xF: return Char{ 'f' };
+        default:  return Char{ '?' };
     }
 }
 
@@ -190,16 +190,86 @@ template<>
 struct MaxCharCount<c32> final
 { static constexpr uSys Value = MaxCharCount<MatchingCharSizeType<c32>::Int>::Value; };
 
+template<typename Char>
+inline constexpr void IToA_Fill0(Char* const buffer) noexcept
+{
+    buffer[0] = Char { '0' };
+    buffer[1] = Char { '\0' };
+}
+
+template<typename Char>
+inline constexpr void IToA_FillMinI8(Char* const buffer) noexcept
+{
+    buffer[0] = Char { '-'  };
+    buffer[1] = Char { '1'  };
+    buffer[2] = Char { '2'  };
+    buffer[3] = Char { '8'  };
+    buffer[4] = Char { '\0' };
+}
+
+template<typename Char>
+inline constexpr void IToA_FillMinI16(Char* const buffer) noexcept
+{
+    buffer[0] = Char { '-'  };
+    buffer[1] = Char { '3'  };
+    buffer[2] = Char { '2'  };
+    buffer[3] = Char { '7'  };
+    buffer[4] = Char { '6'  };
+    buffer[5] = Char { '8'  };
+    buffer[6] = Char { '\0' };
+}
+
+template<typename Char>
+inline constexpr void IToA_FillMinI32(Char* const buffer) noexcept
+{
+    buffer[0]  = Char { '-'  };
+    buffer[1]  = Char { '2'  };
+    buffer[2]  = Char { '1'  };
+    buffer[3]  = Char { '4'  };
+    buffer[4]  = Char { '7'  };
+    buffer[5]  = Char { '4'  };
+    buffer[6]  = Char { '8'  };
+    buffer[7]  = Char { '3'  };
+    buffer[8]  = Char { '6'  };
+    buffer[9]  = Char { '4'  };
+    buffer[10] = Char { '8'  };
+    buffer[11] = Char { '\0' };
+}
+
+template<typename Char>
+inline constexpr void IToA_FillMinI64(Char* const buffer) noexcept
+{
+    buffer[0]  = Char { '-'  };
+    buffer[1]  = Char { '9'  };
+    buffer[2]  = Char { '2'  };
+    buffer[3]  = Char { '2'  };
+    buffer[4]  = Char { '3'  };
+    buffer[5]  = Char { '3'  };
+    buffer[6]  = Char { '7'  };
+    buffer[7]  = Char { '2'  };
+    buffer[8]  = Char { '0'  };
+    buffer[9]  = Char { '3'  };
+    buffer[10] = Char { '6'  };
+    buffer[11] = Char { '8'  };
+    buffer[12] = Char { '5'  };
+    buffer[13] = Char { '4'  };
+    buffer[14] = Char { '7'  };
+    buffer[15] = Char { '7'  };
+    buffer[16] = Char { '5'  };
+    buffer[17] = Char { '8'  };
+    buffer[18] = Char { '0'  };
+    buffer[19] = Char { '8'  };
+    buffer[20] = Char { '\0' };
+}
 
 template<typename Int, typename Char>
-inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
+inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize) noexcept
 {
     if(val == 0)
     {
         if(bufferSize >= 2)
         {
-            buffer[0] = Char{'0'};
-            buffer[1] = Char{'\0'};
+            IToA_Fill0(buffer);
         }
         return 2;
     }
@@ -217,11 +287,7 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
                 {
                     if(bufferSize >= 5)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'1'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'8'};
-                        buffer[4] = Char{'\0'};
+                        IToA_FillMinI8(buffer);
                     }
                     return 4;
                 }
@@ -229,13 +295,7 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
                 {
                     if(bufferSize >= 7)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'3'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'7'};
-                        buffer[4] = Char{'6'};
-                        buffer[5] = Char{'8'};
-                        buffer[6] = Char{'\0'};
+                        IToA_FillMinI16(buffer);
                     }
                     return 6;
                 }
@@ -243,46 +303,15 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
                 {
                     if(bufferSize >= 12)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'2'};
-                        buffer[2] = Char{'1'};
-                        buffer[3] = Char{'4'};
-                        buffer[4] = Char{'7'};
-                        buffer[5] = Char{'4'};
-                        buffer[6] = Char{'8'};
-                        buffer[7] = Char{'3'};
-                        buffer[8] = Char{'6'};
-                        buffer[9] = Char{'4'};
-                        buffer[10] = Char{'8'};
-                        buffer[11] = Char{'\0'};
+                        IToA_FillMinI32(buffer);
                     }
                     return 11;
                 }
-                else if constexpr(::std::is_same_v<Int, i32>)
+                else if constexpr(::std::is_same_v<Int, i64>)
                 {
                     if(bufferSize >= 21)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'9'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'2'};
-                        buffer[4] = Char{'3'};
-                        buffer[5] = Char{'3'};
-                        buffer[6] = Char{'7'};
-                        buffer[7] = Char{'2'};
-                        buffer[8] = Char{'0'};
-                        buffer[9] = Char{'3'};
-                        buffer[10] = Char{'6'};
-                        buffer[11] = Char{'8'};
-                        buffer[12] = Char{'5'};
-                        buffer[13] = Char{'4'};
-                        buffer[14] = Char{'7'};
-                        buffer[15] = Char{'7'};
-                        buffer[16] = Char{'5'};
-                        buffer[17] = Char{'8'};
-                        buffer[18] = Char{'0'};
-                        buffer[19] = Char{'8'};
-                        buffer[20] = Char{'\0'};
+                        IToA_FillMinI64(buffer);
                     }
                     return 20;
                 }
@@ -295,7 +324,7 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
             {
                 if(bufferSize > 1)
                 {
-                    buffer[0] = Char{'-'};
+                    buffer[0] = Char{ '-' };
                 }
                 val = -val;
                 writeIndex = 1;
@@ -327,25 +356,24 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize)
         {
             ReverseBuffer(buffer, writeIndex);
         }
-        buffer[writeIndex] = Char{'\0'};
+        buffer[writeIndex] = Char{ '\0' };
     }
     else
     {
-        buffer[0] = Char{'\0'};
+        buffer[0] = Char{ '\0' };
     }
 
     return static_cast<i32>(writeIndex);
 }
 
 template<typename Int, typename Char, uSys BufferSize>
-inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
+inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize]) noexcept
 {
     if(val == 0)
     {
         if constexpr(BufferSize >= 2)
         {
-            buffer[0] = Char{'0'};
-            buffer[1] = Char{'\0'};
+            IToA_Fill0(buffer);
         }
         return 2;
     }
@@ -363,11 +391,7 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
                 {
                     if constexpr(BufferSize >= 5)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'1'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'8'};
-                        buffer[4] = Char{'\0'};
+                        IToA_FillMinI8(buffer);
                     }
                     return 4;
                 }
@@ -375,13 +399,7 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
                 {
                     if constexpr(BufferSize >= 7)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'3'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'7'};
-                        buffer[4] = Char{'6'};
-                        buffer[5] = Char{'8'};
-                        buffer[6] = Char{'\0'};
+                        IToA_FillMinI16(buffer);
                     }
                     return 6;
                 }
@@ -389,46 +407,15 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
                 {
                     if constexpr(BufferSize >= 12)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'2'};
-                        buffer[2] = Char{'1'};
-                        buffer[3] = Char{'4'};
-                        buffer[4] = Char{'7'};
-                        buffer[5] = Char{'4'};
-                        buffer[6] = Char{'8'};
-                        buffer[7] = Char{'3'};
-                        buffer[8] = Char{'6'};
-                        buffer[9] = Char{'4'};
-                        buffer[10] = Char{'8'};
-                        buffer[11] = Char{'\0'};
+                        IToA_FillMinI32(buffer);
                     }
                     return 11;
                 }
-                else if constexpr(::std::is_same_v<Int, i32>)
+                else if constexpr(::std::is_same_v<Int, i64>)
                 {
                     if constexpr(BufferSize >= 21)
                     {
-                        buffer[0] = Char{'-'};
-                        buffer[1] = Char{'9'};
-                        buffer[2] = Char{'2'};
-                        buffer[3] = Char{'2'};
-                        buffer[4] = Char{'3'};
-                        buffer[5] = Char{'3'};
-                        buffer[6] = Char{'7'};
-                        buffer[7] = Char{'2'};
-                        buffer[8] = Char{'0'};
-                        buffer[9] = Char{'3'};
-                        buffer[10] = Char{'6'};
-                        buffer[11] = Char{'8'};
-                        buffer[12] = Char{'5'};
-                        buffer[13] = Char{'4'};
-                        buffer[14] = Char{'7'};
-                        buffer[15] = Char{'7'};
-                        buffer[16] = Char{'5'};
-                        buffer[17] = Char{'8'};
-                        buffer[18] = Char{'0'};
-                        buffer[19] = Char{'8'};
-                        buffer[20] = Char{'\0'};
+                        IToA_FillMinI64(buffer);
                     }
                     return 20;
                 }
@@ -441,7 +428,7 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
             {
                 if constexpr(BufferSize > 1)
                 {
-                    buffer[0] = Char{'-'};
+                    buffer[0] = Char{ '-' };
                 }
                 val = -val;
                 writeIndex = 1;
@@ -473,11 +460,11 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize])
         {
             ReverseBuffer(buffer, writeIndex);
         }
-        buffer[writeIndex] = Char{'\0'};
+        buffer[writeIndex] = Char{ '\0' };
     }
     else
     {
-        buffer[0] = Char{'\0'};
+        buffer[0] = Char{ '\0' };
     }
     
     return static_cast<i32>(writeIndex);
@@ -492,8 +479,7 @@ inline constexpr i32 XtoA(const Int val, Char* const buffer, const uSys bufferSi
     {
         if(bufferSize >= 2)
         {
-            buffer[0] = Char{'0'};
-            buffer[1] = Char{'\0'};
+            IToA_Fill0(buffer);
         }
         return 2;
     }
@@ -518,11 +504,11 @@ inline constexpr i32 XtoA(const Int val, Char* const buffer, const uSys bufferSi
     if(writeIndex < bufferSize)
     {
         ReverseBuffer(buffer, writeIndex);
-        buffer[writeIndex] = Char{'\0'};
+        buffer[writeIndex] = Char{ '\0' };
     }
     else
     {
-        buffer[0] = Char{'\0'};
+        buffer[0] = Char{ '\0' };
     }
     
     return static_cast<i32>(writeIndex);
@@ -537,8 +523,7 @@ inline constexpr i32 XtoA(const Int val, Char(&buffer)[BufferSize])
     {
         if constexpr(BufferSize >= 2)
         {
-            buffer[0] = Char{'0'};
-            buffer[1] = Char{'\0'};
+            IToA_Fill0(buffer);
         }
         return 2;
     }
@@ -563,11 +548,11 @@ inline constexpr i32 XtoA(const Int val, Char(&buffer)[BufferSize])
     if(writeIndex < BufferSize)
     {
         ReverseBuffer(buffer, writeIndex);
-        buffer[writeIndex] = Char{'\0'};
+        buffer[writeIndex] = Char{ '\0' };
     }
     else
     {
-        buffer[0] = Char{'\0'};
+        buffer[0] = Char{ '\0' };
     }
     
     return static_cast<i32>(writeIndex);
@@ -589,8 +574,8 @@ inline constexpr i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
         {
             buffer[i] = PadChar;
         }
-        buffer[maxCharCount - 1] = Char{'0'};
-        buffer[maxCharCount] = Char{'\0'};
+        buffer[maxCharCount - 1] = Char{ '0' };
+        buffer[maxCharCount] = Char{ '\0' };
         return static_cast<i32>(maxCharCount);
     }
 
@@ -605,63 +590,22 @@ inline constexpr i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
             {
                 if constexpr(::std::is_same_v<Int, i8>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'1'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'8'};
-                    buffer[4] = Char{'\0'};
+                    IToA_FillMinI8(buffer);
                     return 4;
                 }
                 else if constexpr(::std::is_same_v<Int, i16>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'3'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'7'};
-                    buffer[4] = Char{'6'};
-                    buffer[5] = Char{'8'};
-                    buffer[6] = Char{'\0'};
+                    IToA_FillMinI16(buffer);
                     return 6;
                 }
                 else if constexpr(::std::is_same_v<Int, i32>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'2'};
-                    buffer[2] = Char{'1'};
-                    buffer[3] = Char{'4'};
-                    buffer[4] = Char{'7'};
-                    buffer[5] = Char{'4'};
-                    buffer[6] = Char{'8'};
-                    buffer[7] = Char{'3'};
-                    buffer[8] = Char{'6'};
-                    buffer[9] = Char{'4'};
-                    buffer[10] = Char{'8'};
-                    buffer[11] = Char{'\0'};
+                    IToA_FillMinI32(buffer);
                     return 11;
                 }
-                else if constexpr(::std::is_same_v<Int, i32>)
+                else if constexpr(::std::is_same_v<Int, i64>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'9'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'2'};
-                    buffer[4] = Char{'3'};
-                    buffer[5] = Char{'3'};
-                    buffer[6] = Char{'7'};
-                    buffer[7] = Char{'2'};
-                    buffer[8] = Char{'0'};
-                    buffer[9] = Char{'3'};
-                    buffer[10] = Char{'6'};
-                    buffer[11] = Char{'8'};
-                    buffer[12] = Char{'5'};
-                    buffer[13] = Char{'4'};
-                    buffer[14] = Char{'7'};
-                    buffer[15] = Char{'7'};
-                    buffer[16] = Char{'5'};
-                    buffer[17] = Char{'8'};
-                    buffer[18] = Char{'0'};
-                    buffer[19] = Char{'8'};
-                    buffer[20] = Char{'\0'};
+                    IToA_FillMinI64(buffer);
                     return 20;
                 }
                 else
@@ -671,7 +615,7 @@ inline constexpr i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
             }
             else
             {
-                buffer[0] = Char{'-'};
+                buffer[0] = Char{ '-' };
                 val = -val;
                 writeIndex = 1;
                 negative = true;
@@ -702,7 +646,7 @@ inline constexpr i32 ItoAP(Int val, Char* const buffer, const uSys bufferSize)
     {
         ReverseBuffer<MaxCharCount<Int>::Value>(buffer);
     }
-    buffer[maxCharCount] = Char{'\0'};
+    buffer[maxCharCount] = Char{ '\0' };
     
     return static_cast<i32>(maxCharCount);
 }
@@ -723,8 +667,8 @@ inline constexpr i32 ItoAP(Int val, Char(&buffer)[BufferSize])
         {
             buffer[i] = PadChar;
         }
-        buffer[maxCharCount - 1] = Char{'0'};
-        buffer[maxCharCount] = Char{'\0'};
+        buffer[maxCharCount - 1] = Char{ '0' };
+        buffer[maxCharCount] = Char{ '\0' };
         return static_cast<i32>(maxCharCount);
     }
 
@@ -739,63 +683,22 @@ inline constexpr i32 ItoAP(Int val, Char(&buffer)[BufferSize])
             {
                 if constexpr(::std::is_same_v<Int, i8>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'1'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'8'};
-                    buffer[4] = Char{'\0'};
+                    IToA_FillMinI8(buffer);
                     return 4;
                 }
                 else if constexpr(::std::is_same_v<Int, i16>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'3'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'7'};
-                    buffer[4] = Char{'6'};
-                    buffer[5] = Char{'8'};
-                    buffer[6] = Char{'\0'};
+                    IToA_FillMinI16(buffer);
                     return 6;
                 }
                 else if constexpr(::std::is_same_v<Int, i32>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'2'};
-                    buffer[2] = Char{'1'};
-                    buffer[3] = Char{'4'};
-                    buffer[4] = Char{'7'};
-                    buffer[5] = Char{'4'};
-                    buffer[6] = Char{'8'};
-                    buffer[7] = Char{'3'};
-                    buffer[8] = Char{'6'};
-                    buffer[9] = Char{'4'};
-                    buffer[10] = Char{'8'};
-                    buffer[11] = Char{'\0'};
+                    IToA_FillMinI32(buffer);
                     return 11;
                 }
-                else if constexpr(::std::is_same_v<Int, i32>)
+                else if constexpr(::std::is_same_v<Int, i64>)
                 {
-                    buffer[0] = Char{'-'};
-                    buffer[1] = Char{'9'};
-                    buffer[2] = Char{'2'};
-                    buffer[3] = Char{'2'};
-                    buffer[4] = Char{'3'};
-                    buffer[5] = Char{'3'};
-                    buffer[6] = Char{'7'};
-                    buffer[7] = Char{'2'};
-                    buffer[8] = Char{'0'};
-                    buffer[9] = Char{'3'};
-                    buffer[10] = Char{'6'};
-                    buffer[11] = Char{'8'};
-                    buffer[12] = Char{'5'};
-                    buffer[13] = Char{'4'};
-                    buffer[14] = Char{'7'};
-                    buffer[15] = Char{'7'};
-                    buffer[16] = Char{'5'};
-                    buffer[17] = Char{'8'};
-                    buffer[18] = Char{'0'};
-                    buffer[19] = Char{'8'};
-                    buffer[20] = Char{'\0'};
+                    IToA_FillMinI64(buffer);
                     return 20;
                 }
                 else

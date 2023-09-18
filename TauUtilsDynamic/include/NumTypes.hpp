@@ -26,18 +26,42 @@
   typedef unsigned int       u32;
   typedef unsigned long long u64;
 
-  #define INT8_MIN         (-127i8 - 1)
-  #define INT16_MIN        (-32767i16 - 1)
-  #define INT32_MIN        (-2147483647i32 - 1)
-  #define INT64_MIN        (-9223372036854775807i64 - 1)
-  #define INT8_MAX         127i8
-  #define INT16_MAX        32767i16
-  #define INT32_MAX        2147483647i32
-  #define INT64_MAX        9223372036854775807i64
-  #define UINT8_MAX        0xffui8
-  #define UINT16_MAX       0xffffui16
-  #define UINT32_MAX       0xffffffffui32
-  #define UINT64_MAX       0xffffffffffffffffui64
+  #ifndef INT8_MIN
+    #define INT8_MIN         (-127i8 - 1)
+  #endif
+  #ifndef INT16_MIN
+    #define INT16_MIN        (-32767i16 - 1)
+  #endif
+  #ifndef INT32_MIN
+    #define INT32_MIN        (-2147483647i32 - 1)
+  #endif
+  #ifndef INT64_MIN
+    #define INT64_MIN        (-9223372036854775807i64 - 1)
+  #endif
+  #ifndef INT8_MAX
+    #define INT8_MAX         127i8
+  #endif
+  #ifndef INT16_MAX
+    #define INT16_MAX        32767i16
+  #endif
+  #ifndef INT32_MAX
+    #define INT32_MAX        2147483647i32
+  #endif
+  #ifndef INT64_MAX
+    #define INT64_MAX        9223372036854775807i64
+  #endif
+  #ifndef UINT8_MAX
+    #define UINT8_MAX        0xffui8
+  #endif
+  #ifndef UINT16_MAX
+    #define UINT16_MAX       0xffffui16
+  #endif
+  #ifndef UINT32_MAX
+    #define UINT32_MAX       0xffffffffui32
+  #endif
+  #ifndef UINT64_MAX
+    #define UINT64_MAX       0xffffffffffffffffui64
+  #endif
 #endif
 
 // Boolean bit masks
@@ -58,7 +82,7 @@ typedef float  single;
 typedef float  f32;
 typedef double f64;
 
-#if defined(_MSVC_LANG) || defined(TAU_NUMTYPES_USE_CSTDLIB) || 1
+#if defined(_MSVC_LANG) || !defined(TAU_NUMTYPES_USE_CSTDLIB)
   #if defined(_WIN64) || (defined(_M_X64) && _M_X64 == 100)
     typedef i64 iSys;
     typedef u64 uSys;
@@ -80,10 +104,10 @@ typedef double f64;
   typedef ::std::uintptr_t uPtr;
 #endif
 
-constexpr uSys operator "" _uz(const uSys n) noexcept
+inline constexpr uSys operator "" _uz(const uSys n) noexcept
 { return static_cast<uSys>(n); }
 
-constexpr iSys operator "" _iz(const uSys n) noexcept
+inline constexpr iSys operator "" _iz(const uSys n) noexcept
 { return static_cast<iSys>(n); }
 
 template<typename T>

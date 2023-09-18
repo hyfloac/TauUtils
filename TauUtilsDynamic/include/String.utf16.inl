@@ -6,6 +6,11 @@
 
 namespace tau::string::utf16 {
 
+[[nodiscard]] inline constexpr c8 FlipEndian(const c8 codeUnit) noexcept
+{
+    return codeUnit;
+}
+
 [[nodiscard]] inline constexpr c16 FlipEndian(const c16 codeUnit) noexcept
 {
     return static_cast<c16>(
@@ -37,6 +42,15 @@ namespace tau::string::utf16 {
     else
     {
         return codeUnit;
+    }
+}
+
+template<typename Char>
+inline constexpr void FlipEndian(const Char* const inString, Char* const outString, const iSys codeUnits) noexcept
+{
+    for(iSys i = 0; i < codeUnits; ++i)
+    {
+        outString[i] = FlipEndian(inString[i]);
     }
 }
 
@@ -99,6 +113,8 @@ inline constexpr iSys EncodeCodePoint(const c32 c, C16Alias* const outString, iS
         {
             outString[outCodeUnit++] = FlipEndian(static_cast<C16Alias>(c));
         }
+
+        return 1;
     }
     else if(c <= 0x10FFFF)
     {
@@ -120,6 +136,8 @@ inline constexpr iSys EncodeCodePoint(const c32 c, C16Alias* const outString, iS
             outString[outCodeUnit++] = FlipEndian(highBits);
             outString[outCodeUnit++] = FlipEndian(lowBits);
         }
+
+        return 2;
     }
     else
     { return -1; }
@@ -203,8 +221,8 @@ inline constexpr iSys TransformC32ToC16(const C32Alias* const inString, C16Alias
 
             if(priorCodeUnitsModifier == -1)
             { return -1; }
-            else if(priorCodeUnitsModifier != 0)
-            { return CalculateCodeUnits(inString, inCodeUnits, i + 1, outCodeUnit + priorCodeUnitsModifier - 1); }
+            // else if(priorCodeUnitsModifier != 0)
+            // { return CalculateCodeUnits(inString, inCodeUnits, i + 1, outCodeUnit + priorCodeUnitsModifier - 1); }
         }
         return outCodeUnit;
     }

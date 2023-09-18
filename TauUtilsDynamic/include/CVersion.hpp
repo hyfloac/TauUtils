@@ -19,7 +19,7 @@
 
 
 #if CPP_VERSION_DATE > 202002L
-  #define VPP_VERSION_23
+  #define CPP_VERSION_23
 
   #ifndef CPP_VERSION
     #define CPP_VERSION 23

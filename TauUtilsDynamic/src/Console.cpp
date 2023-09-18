@@ -2,42 +2,43 @@
 #include "allocator/PageAllocator.hpp"
 #include "String.hpp"
 
-TAU_LIB Console::CreatedState Console::IsCreated = NotCreated;
-TAU_LIB bool Console::IsInitialized = false;
+TAU_UTILS_LIB Console::CreatedState Console::IsCreated = NotCreated;
+TAU_UTILS_LIB bool Console::IsInitialized = false;
 
-#define ETB_PAGE_COUNT (64)
-
-class EncodingTranslationBuffer final
+class EncodingTransformationBuffer final
 {
-    DELETE_CM(EncodingTranslationBuffer);
+    DELETE_CM(EncodingTransformationBuffer);
 public:
-    EncodingTranslationBuffer() noexcept
-        : m_Buffer(PageAllocator::Alloc(ETB_PAGE_COUNT))
+    inline static constexpr uSys TotalPageCount = 64;
+public:
+    EncodingTransformationBuffer() noexcept
+        : m_Buffer(PageAllocator::Alloc(TotalPageCount))
     { }
 
-    ~EncodingTranslationBuffer() noexcept
+    ~EncodingTransformationBuffer() noexcept
     { PageAllocator::Free(m_Buffer); }
 
     [[nodiscard]] void* Get() const noexcept { return m_Buffer; }
 
     template<typename T>
-    [[nodiscard]] T* GetAs() const noexcept { return reinterpret_cast<T*>(m_Buffer); }
+    [[nodiscard]] T* GetAs() const noexcept { return static_cast<T*>(m_Buffer); }
 
-    [[nodiscard]] uSys GetSize() const noexcept { return ETB_PAGE_COUNT * PageAllocator::PageSize(); }
+    [[nodiscard]] uSys GetSize() const noexcept { return TotalPageCount * PageAllocator::PageSize(); }
 
     template<typename T>
-    [[nodiscard]] uSys GetSizeAs() const noexcept { return (ETB_PAGE_COUNT * PageAllocator::PageSize()) / sizeof(T); }
+    [[nodiscard]] uSys GetSizeAs() const noexcept { return GetSize() / sizeof(T); }
 private:
     void* m_Buffer;
 };
 
 namespace tau::console::internal {
 
-thread_local EncodingTranslationBuffer ETB;
+thread_local EncodingTransformationBuffer ETB;
 
 }
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 namespace tau::console::internal {
@@ -62,7 +63,7 @@ void Console::Create() noexcept
 
 void Console::ForceClose() noexcept
 {
-    FreeConsole();
+    (void) FreeConsole();
 }
 
 #ifndef CP_UTF16LE
@@ -92,32 +93,32 @@ void Console::ReInit() noexcept
     OriginalConsoleOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     OriginalConsoleErrorHandle = GetStdHandle(STD_ERROR_HANDLE);
 
-    GetConsoleMode(OriginalConsoleInputHandle, &OriginalConsoleInputMode);
-    GetConsoleMode(OriginalConsoleOutputHandle, &OriginalConsoleOutputMode);
-    GetConsoleMode(OriginalConsoleErrorHandle, &OriginalConsoleErrorMode);
+    (void) GetConsoleMode(OriginalConsoleInputHandle, &OriginalConsoleInputMode);
+    (void) GetConsoleMode(OriginalConsoleOutputHandle, &OriginalConsoleOutputMode);
+    (void) GetConsoleMode(OriginalConsoleErrorHandle, &OriginalConsoleErrorMode);
 
-    SetConsoleCP(CP_UTF16LE);
-    SetConsoleOutputCP(CP_UTF16LE);
+    (void) SetConsoleCP(CP_UTF16LE);
+    (void) SetConsoleOutputCP(CP_UTF16LE);
 
-    SetConsoleMode(OriginalConsoleInputHandle, CONSOLE_IN_DEFAULT_ARGS);
-    SetConsoleMode(OriginalConsoleOutputHandle, CONSOLE_OUT_DEFAULT_ARGS);
-    SetConsoleMode(OriginalConsoleErrorHandle, CONSOLE_OUT_DEFAULT_ARGS);
+    (void) SetConsoleMode(OriginalConsoleInputHandle, CONSOLE_IN_DEFAULT_ARGS);
+    (void) SetConsoleMode(OriginalConsoleOutputHandle, CONSOLE_OUT_DEFAULT_ARGS);
+    (void) SetConsoleMode(OriginalConsoleErrorHandle, CONSOLE_OUT_DEFAULT_ARGS);
 }
 
 void Console::Reset() noexcept
 {
     using namespace tau::console::internal;
 
-    SetConsoleCP(OriginalConsoleInputCP);
-    SetConsoleCP(OriginalConsoleOutputCP);
+    (void) SetConsoleCP(OriginalConsoleInputCP);
+    (void) SetConsoleCP(OriginalConsoleOutputCP);
 
-    SetStdHandle(STD_INPUT_HANDLE, OriginalConsoleInputHandle);
-    SetStdHandle(STD_OUTPUT_HANDLE, OriginalConsoleOutputHandle);
-    SetStdHandle(STD_ERROR_HANDLE, OriginalConsoleErrorHandle);
+    (void) SetStdHandle(STD_INPUT_HANDLE, OriginalConsoleInputHandle);
+    (void) SetStdHandle(STD_OUTPUT_HANDLE, OriginalConsoleOutputHandle);
+    (void) SetStdHandle(STD_ERROR_HANDLE, OriginalConsoleErrorHandle);
 
-    SetConsoleMode(OriginalConsoleInputHandle, OriginalConsoleInputMode);
-    SetConsoleMode(OriginalConsoleOutputHandle, OriginalConsoleOutputMode);
-    SetConsoleMode(OriginalConsoleErrorHandle, OriginalConsoleErrorMode);
+    (void) SetConsoleMode(OriginalConsoleInputHandle, OriginalConsoleInputMode);
+    (void) SetConsoleMode(OriginalConsoleOutputHandle, OriginalConsoleOutputMode);
+    (void) SetConsoleMode(OriginalConsoleErrorHandle, OriginalConsoleErrorMode);
 }
 
 u32 Console::Write(const char c) noexcept
@@ -130,7 +131,7 @@ u32 Console::Write(const wchar_t c) noexcept
     using namespace tau::console::internal;
     
     DWORD numberOfCharsWritten;
-    WriteConsoleW(OriginalConsoleOutputHandle, &c, 1, &numberOfCharsWritten, nullptr);
+    (void) WriteConsoleW(OriginalConsoleOutputHandle, &c, 1, &numberOfCharsWritten, nullptr);
     return numberOfCharsWritten;
 }
 
@@ -144,7 +145,7 @@ u32 Console::Write(const c16 c) noexcept
     using namespace tau::console::internal;
     
     DWORD numberOfCharsWritten;
-    WriteConsoleW(OriginalConsoleOutputHandle, &c, 1, &numberOfCharsWritten, nullptr);
+    (void) WriteConsoleW(OriginalConsoleOutputHandle, &c, 1, &numberOfCharsWritten, nullptr);
     return numberOfCharsWritten;
 }
 
@@ -157,7 +158,7 @@ u32 Console::Write(const c32 c) noexcept
     const uSys wideLength = ::tau::string::utf16::EncodeCodePoint(c, buf, codeUnit, 2);
 
     DWORD numberOfCharsWritten;
-    WriteConsoleW(OriginalConsoleOutputHandle, buf, static_cast<DWORD>(wideLength - 1), &numberOfCharsWritten, nullptr);
+    (void) WriteConsoleW(OriginalConsoleOutputHandle, buf, static_cast<DWORD>(wideLength), &numberOfCharsWritten, nullptr);
     return numberOfCharsWritten;
 }
 
@@ -176,16 +177,16 @@ u32 Console::Write(const wchar_t* const str, const uSys length) noexcept
     DWORD numberOfCharsWritten;
     if(length > 0 && str[0] == 0xFEFF)
     {
-        WriteConsoleW(OriginalConsoleOutputHandle, str + 1, static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
+        (void) WriteConsoleW(OriginalConsoleOutputHandle, str + 1, static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
     }
     else if(length > 0 && str[0] == 0xFFFE)
     {
-        constexpr wchar_t errorMessage[] = L"[[Attempted to print Big Endian wchar_t string.]]\n";
-        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, static_cast<DWORD>(cexpr::strlen(errorMessage)), &numberOfCharsWritten, nullptr);
+        ::tau::string::utf16::FlipEndian(str + 1, ETB.GetAs<wchar_t>(), static_cast<iSys>(length - 1));
+        (void) WriteConsoleW(OriginalConsoleErrorHandle, ETB.GetAs<wchar_t>(), static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
     }
     else
     {
-        WriteConsoleW(OriginalConsoleOutputHandle, str, static_cast<DWORD>(length), &numberOfCharsWritten, nullptr);
+        (void) WriteConsoleW(OriginalConsoleOutputHandle, str, static_cast<DWORD>(length), &numberOfCharsWritten, nullptr);
     }
     return numberOfCharsWritten;
 }
@@ -194,7 +195,7 @@ u32 Console::Write(const c8* const str, const uSys length) noexcept
 {
     using namespace tau::console::internal;
 
-    const uSys wideLength = tau::string::utf8_16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()));
+    const uSys wideLength = ::tau::string::utf8_16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()), false, true);
     return Write(ETB.GetAs<c16>(), wideLength);
 }
 
@@ -205,16 +206,16 @@ u32 Console::Write(const c16* const str, const uSys length) noexcept
     DWORD numberOfCharsWritten;
     if(length > 0 && str[0] == 0xFEFF)
     {
-        WriteConsoleW(OriginalConsoleOutputHandle, str + 1, static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
+        (void) WriteConsoleW(OriginalConsoleOutputHandle, str + 1, static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
     }
     else if(length > 0 && str[0] == 0xFFFE)
     {
-        constexpr wchar_t errorMessage[] = L"[[Attempted to print Big Endian UTF16 string.]]\n";
-        WriteConsoleW(OriginalConsoleErrorHandle, errorMessage, static_cast<DWORD>(cexpr::strlen(errorMessage)), &numberOfCharsWritten, nullptr);
+        ::tau::string::utf16::FlipEndian(str + 1, ETB.GetAs<c16>(), static_cast<iSys>(length - 1));
+        (void) WriteConsoleW(OriginalConsoleErrorHandle, ETB.GetAs<c16>(), static_cast<DWORD>(length - 1), &numberOfCharsWritten, nullptr);
     }
     else
     {
-        WriteConsoleW(OriginalConsoleOutputHandle, str, static_cast<DWORD>(length), &numberOfCharsWritten, nullptr);
+        (void) WriteConsoleW(OriginalConsoleOutputHandle, str, static_cast<DWORD>(length), &numberOfCharsWritten, nullptr);
     }
     return numberOfCharsWritten;
 }
@@ -223,7 +224,7 @@ u32 Console::Write(const c32* const str, const uSys length) noexcept
 {
     using namespace tau::console::internal;
     
-    const uSys wideLength = tau::string::utf16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()), false, true);
+    const uSys wideLength = ::tau::string::utf16::Transform(str, ETB.GetAs<c16>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c16>()), false, true);
     return Write(ETB.GetAs<c16>(), wideLength);
 }
 

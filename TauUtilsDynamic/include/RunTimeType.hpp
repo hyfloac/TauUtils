@@ -1,9 +1,11 @@
+// ReSharper disable CppClangTidyCertDcl58Cpp
+// ReSharper disable CppRedundantNamespaceDefinition
 #pragma once
 
 #include "Objects.hpp"
 #include "NumTypes.hpp"
 #include "Safeties.hpp"
-#include <atomic>
+#include <type_traits>
 #include <functional>
 
 #ifndef TAU_RTTI_DEBUG
@@ -60,22 +62,25 @@ class RunTimeType final
 {
     DEFAULT_DESTRUCT(RunTimeType);
     DEFAULT_CM_PU(RunTimeType);
-private:
-    void* _uid;
-    const char* _name;
-    const RunTimeType<T>* _parent;
 public:
     RunTimeType(const char* const name, const RunTimeType<T>* const parent = nullptr) noexcept
-        : _uid(this)
-        , _name(name)
-        , _parent(parent)
+        : m_Uid(this)
+        , m_Name(name)
+        , m_Parent(parent)
     { }
 
-    [[nodiscard]] const char* name() const noexcept { return _name; }
-    [[nodiscard]] const RunTimeType<T>* parent() const noexcept { return _parent; }
+    [[nodiscard]] const char* Name() const noexcept { return m_Name; }
+    [[nodiscard]] const RunTimeType<T>* Parent() const noexcept { return m_Parent; }
 
-    [[nodiscard]] bool operator ==(const RunTimeType<T>& other) const noexcept { return _uid == other._uid; }
-    [[nodiscard]] bool operator !=(const RunTimeType<T>& other) const noexcept { return _uid != other._uid; }
+    [[nodiscard]] const char* name() const noexcept { return m_Name; }
+    [[nodiscard]] const RunTimeType<T>* parent() const noexcept { return m_Parent; }
+
+    [[nodiscard]] bool operator ==(const RunTimeType<T>& other) const noexcept { return m_Uid == other.m_Uid; }
+    [[nodiscard]] bool operator !=(const RunTimeType<T>& other) const noexcept { return m_Uid != other.m_Uid; }
+private:
+    void* m_Uid;
+    const char* m_Name;
+    const RunTimeType<T>* m_Parent;
 private:
     friend struct std::hash<RunTimeType<T>>;
 };
@@ -85,18 +90,21 @@ class RunTimeType final
 {
     DEFAULT_DESTRUCT(RunTimeType);
     DEFAULT_CM_PU(RunTimeType);
-private:
-    void* _uid;
 public:
     inline RunTimeType() noexcept
-        : _uid(this)
+        : m_Uid(this)
     { }
+
+    [[nodiscard]] const char* Name() const noexcept { return nullptr; }
+    [[nodiscard]] const RunTimeType<T>* Parent() const noexcept { return nullptr; }
 
     [[nodiscard]] const char* name() const noexcept { return nullptr; }
     [[nodiscard]] const RunTimeType<T>* parent() const noexcept { return nullptr; }
 
-    [[nodiscard]] bool operator ==(const RunTimeType<T>& other) const noexcept { return _uid == other._uid; }
-    [[nodiscard]] bool operator !=(const RunTimeType<T>& other) const noexcept { return _uid != other._uid; }
+    [[nodiscard]] bool operator ==(const RunTimeType<T>& other) const noexcept { return m_Uid == other.m_Uid; }
+    [[nodiscard]] bool operator !=(const RunTimeType<T>& other) const noexcept { return m_Uid != other.m_Uid; }
+private:
+    void* m_Uid;
 private:
     friend struct std::hash<RunTimeType<T>>;
 };
@@ -104,7 +112,7 @@ private:
 
 template<typename T>
 [[nodiscard]] inline ::std::size_t std::hash<RunTimeType<T>>::operator()(const RunTimeType<T>& rtt) const noexcept
-{ return static_cast<::std::size_t>(rtt._uid); }
+{ return static_cast<::std::size_t>(rtt.m_Uid); }
 
 #define TAU_RTTI_STRING0(X) #X
 #define TAU_RTTI_STRING(X) TAU_RTTI_STRING0(X)
@@ -309,45 +317,17 @@ template<typename T>
         [[nodiscard]] static const T* _castRTType_##TYPE(const WeakRef<TYPE>& obj) noexcept   \
         { return obj->_isRTType_##TYPE<T>() ? RefStaticCast<T>(obj) : nullptr; }
 
-namespace RTT_Utils
-{
-    template<typename T> struct remove_reference      { typedef T type; };
-    template<typename T> struct remove_reference<T&>  { typedef T type; };
-    template<typename T> struct remove_reference<T&&> { typedef T type; };
 
-    template<typename T>
-    using remove_reference_t = typename remove_reference<T>::type;
-
-    template<typename T> struct remove_pointer                      { typedef T type; };
-    template<typename T> struct remove_pointer<T*>                  { typedef T type; };
-    template<typename T> struct remove_pointer<T* const>            { typedef T type; };
-    template<typename T> struct remove_pointer<T* volatile>         { typedef T type; };
-    template<typename T> struct remove_pointer<T* const volatile>   { typedef T type; };
-    template<typename T> struct remove_pointer<CPPRef<T>>           { typedef T type; };
-    template<typename T> struct remove_pointer<CPPWeakRef<T>>       { typedef T type; };
-    template<typename T> struct remove_pointer<Ref<T>>              { typedef T type; };
-    template<typename T> struct remove_pointer<StrongRef<T>>        { typedef T type; };
-    template<typename T> struct remove_pointer<WeakRef<T>>          { typedef T type; };
-    template<typename T> struct remove_pointer<const CPPRef<T>>     { typedef T type; };
-    template<typename T> struct remove_pointer<const CPPWeakRef<T>> { typedef T type; };
-    template<typename T> struct remove_pointer<const Ref<T>>        { typedef T type; };
-    template<typename T> struct remove_pointer<const StrongRef<T>>  { typedef T type; };
-    template<typename T> struct remove_pointer<const WeakRef<T>>    { typedef T type; };
-
-    template<typename T>
-    using remove_pointer_t = typename remove_pointer<T>::type;
-}
-
-template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>, TargetType>, int> = 0>
+template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::std::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
 [[nodiscard]] bool rtt_check(const InputType& in) noexcept
-{ return ::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>::template _isRTType<TargetType>(in); }
+{ return ::std::remove_pointer_t<::std::remove_reference_t<InputType>>::template _isRTType<TargetType>(in); }
 
-template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>, TargetType>, int> = 0>
+template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::std::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
 [[nodiscard]] TargetType* rtt_cast(const InputType& in) noexcept
-{ return ::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<InputType>>::template _castRTType<TargetType>(in); }
+{ return ::std::remove_pointer_t<::std::remove_reference_t<InputType>>::template _castRTType<TargetType>(in); }
 
-#define RTT_CHECK(VAR, T) (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_isRTType<T>(VAR))
-#define RTT_CAST(VAR, T)  (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_castRTType<T>(VAR))
+#define RTT_CHECK(VAR, T) (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_isRTType<T>(VAR))
+#define RTT_CAST(VAR, T)  (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_castRTType<T>(VAR))
 
-#define RTTD_CHECK(VAR, T, BASE_TYPE) (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_isRTType_##BASE_TYPE<T>(VAR))
-#define RTTD_CAST(VAR, T, BASE_TYPE)  (::RTT_Utils::remove_pointer_t<::RTT_Utils::remove_reference_t<decltype(VAR)>>::_castRTType_##BASE_TYPE<T>(VAR))                   
+#define RTTD_CHECK(VAR, T, BASE_TYPE) (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_isRTType_##BASE_TYPE<T>(VAR))
+#define RTTD_CAST(VAR, T, BASE_TYPE)  (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_castRTType_##BASE_TYPE<T>(VAR))                   

@@ -6,10 +6,56 @@
 #include "IntToString.hpp"
 #include "StringFormat.GlobalHandlers.hpp"
 
+// template<typename Context, typename Char>
+// inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSys length) noexcept
+// {
+//
+//
+//     return FormatContext::HandlerLength(context, fmt, length);
+// }
+
 template<typename Context, typename Char>
 inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSys length) noexcept
 {
-    return FormatContext::HandlerLength(context, fmt, length);
+    u32 count = 0;
+    iSys blockBegin = 0;
+
+    for(iSys i = 0; i < length; ++i)
+    {
+        if(fmt[i] == Char { '\'' })
+        {
+            if(fmt[i + 1] == Char { '\'' })
+            {
+                FormatContext::HandlerLength(context, fmt + blockBegin, i - blockBegin + 1);
+                blockBegin = i + 2;
+                ++count;
+                ++i;
+            }
+            else if(fmt[i + 1] == Char { '{' })
+            {
+                if(fmt[i + 2] == Char { '\'' })
+                {
+                    FormatContext::HandlerLength(context, fmt + blockBegin, i - blockBegin);
+                    FormatContext::Handler(context, Char { '{' });
+                    blockBegin = i + 3;
+                    ++count;
+                    i += 2;
+                }
+            }
+            else
+            {
+                return count;
+            }
+        }
+        else
+        {
+            ++count;
+        }
+    }
+
+    FormatContext::HandlerLength(context, fmt + blockBegin, length - blockBegin);
+
+    return count;
 }
 
 template<typename Context, typename Char, typename CurrArg, typename... Args>
@@ -17,6 +63,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
 {
     u32 count = 0;
     iSys blockBegin = 0;
+    bool handledFormat = false;
 
     for(iSys i = 0; i < length; ++i)
     {
@@ -28,6 +75,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
             {
                 count += FormatContext::Handler(context, currArg);
                 count += InternalFormat(context, fmt + i + 2, length - i - 2, args...);
+                handledFormat = true;
                 break;
             }
             // Capital Hex
@@ -37,7 +85,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                 {
                     if(fmt[i + 3] == Char{ '0' })
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                         {
                             count += FormatContext::HandlerHexPad0<Context, true>(context, currArg);
                         }
@@ -46,10 +94,11 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 5, length - i - 5, args...);
+                        handledFormat = true;
                     }
                     else
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                         {
                             count += FormatContext::HandlerHexPad<Char, Context, true>(context, currArg);
                         }
@@ -58,12 +107,13 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 4, length - i - 4, args...);
+                        handledFormat = true;
                     }
                     break;
                 }
                 else
                 {
-                    if constexpr(::std::is_integral_v<CurrArg>)
+                    if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                     {
                         count += FormatContext::HandlerHex<Context, true>(context, currArg);
                     }
@@ -72,6 +122,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                         count += FormatContext::Handler(context, currArg);
                     }
                     count += InternalFormat(context, fmt + i + 3, length - i - 3, args...);
+                    handledFormat = true;
                     break;
                 }
             }
@@ -82,7 +133,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                 {
                     if(fmt[i + 3] == Char{ '0' })
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                         {
                             count += FormatContext::HandlerHexPad0<Context, false>(context, currArg);
                         }
@@ -91,10 +142,11 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 5, length - i - 5, args...);
+                        handledFormat = true;
                     }
                     else
                     {
-                        if constexpr(::std::is_integral_v<CurrArg>)
+                        if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                         {
                             count += FormatContext::HandlerHexPad<Char, Context, false>(context, currArg);
                         }
@@ -103,12 +155,13 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 4, length - i - 4, args...);
+                        handledFormat = true;
                     }
                     break;
                 }
                 else
                 {
-                    if constexpr(::std::is_integral_v<CurrArg>)
+                    if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                     {
                         count += FormatContext::HandlerHex<Context, false>(context, currArg);
                     }
@@ -117,6 +170,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                         count += FormatContext::Handler(context, currArg);
                     }
                     count += InternalFormat(context, fmt + i + 3, length - i - 3, args...);
+                    handledFormat = true;
                     break;
                 }
             }
@@ -125,7 +179,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
             {
                 if(fmt[i + 2] == Char{ '0' })
                 {
-                    if constexpr(::std::is_integral_v<CurrArg>)
+                    if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                     {
                         count += FormatContext::HandlerIntPad0(context, currArg);
                     }
@@ -134,10 +188,11 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                         count += FormatContext::Handler(context, currArg);
                     }
                     count += InternalFormat(context, fmt + i + 4, length - i - 4, args...);
+                    handledFormat = true;
                 }
                 else
                 {
-                    if constexpr(::std::is_integral_v<CurrArg>)
+                    if constexpr(::std::is_integral_v<CurrArg> && !::std::is_same_v<CurrArg, bool>)
                     {
                         count += FormatContext::HandlerIntPadS(context, currArg);
                     }
@@ -146,6 +201,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                         count += FormatContext::Handler(context, currArg);
                     }
                     count += InternalFormat(context, fmt + i + 3, length - i - 3, args...);
+                    handledFormat = true;
                 }
                 break;
             }
@@ -157,6 +213,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                 {
                     count += FormatContext::Handler(context, currArg);
                     count += InternalFormat(context, fmt + i + 3, length - i - 3, args...);
+                    handledFormat = true;
                     break;
                 }
                 else
@@ -190,6 +247,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 4, length - i - 4, args...);
+                        handledFormat = true;
                     }
                     // Dual Precision Specifier.
                     else
@@ -220,6 +278,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 5, length - i - 5, args...);
+                        handledFormat = true;
                     }
                 }
             }
@@ -238,6 +297,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                         count += FormatContext::Handler(context, currArg);
                     }
                     count += InternalFormat(context, fmt + i + 3, length - i - 3, args...);
+                    handledFormat = true;
                     break;
                 }
                 else
@@ -271,6 +331,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 4, length - i - 4, args...);
+                        handledFormat = true;
                     }
                     // Dual Precision Specifier.
                     else
@@ -301,6 +362,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
                             count += FormatContext::Handler(context, currArg);
                         }
                         count += InternalFormat(context, fmt + i + 5, length - i - 5, args...);
+                        handledFormat = true;
                     }
                 }
             }
@@ -309,7 +371,7 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
         {
             if(fmt[i + 1] == Char{ '\'' })
             {
-                FormatContext::HandlerLength(context, fmt + blockBegin, i - blockBegin);
+                FormatContext::HandlerLength(context, fmt + blockBegin, i - blockBegin + 1);
                 blockBegin = i + 2;
                 ++count;
                 ++i;
@@ -334,6 +396,11 @@ inline constexpr u32 InternalFormat(Context& context, const Char* fmt, const iSy
         {
             ++count;
         }
+    }
+
+    if(!handledFormat)
+    {
+        FormatContext::HandlerLength(context, fmt + blockBegin, length - blockBegin);
     }
 
     return count;

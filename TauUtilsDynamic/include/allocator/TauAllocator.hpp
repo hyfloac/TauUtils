@@ -7,6 +7,7 @@
 #include <cassert>
 #include <memory>
 #include <bit>
+#include <type_traits>
 
 namespace TauAllocatorUtils {
 
@@ -102,8 +103,8 @@ enum class AllocationTracking
     DoubleDeleteCount
 };
 
-extern "C" TAU_LIB void* TauUtilsAllocateNonConst(uSys size) noexcept;
-extern "C" TAU_LIB void TauUtilsDeallocateNonConst(void* obj) noexcept;
+extern "C" TAU_UTILS_LIB void* TauUtilsAllocateNonConst(uSys size) noexcept;
+extern "C" TAU_UTILS_LIB void TauUtilsDeallocateNonConst(void* obj) noexcept;
 
 template<typename T>
 inline constexpr void TauUtilsDestructTArr(T* const obj, const uSys elementCount) noexcept
@@ -124,11 +125,11 @@ constexpr T* TauUtilsAllocateT(Args&&... args) noexcept
 {
     if(std::is_constant_evaluated())
     {
-        return new T(TauAllocatorUtils::Forward<Args>(args)...);
+        return new T(::std::forward<Args>(args)...);
     }
     else
     {
-        return ::new(TauUtilsAllocateNonConst(sizeof(T))) T(TauAllocatorUtils::Forward<Args>(args)...);
+        return ::new(TauUtilsAllocateNonConst(sizeof(T))) T(::std::forward<Args>(args)...);
     }
 }
 
@@ -182,6 +183,7 @@ constexpr void TauUtilsDeallocateTArr(T* obj, const uSys elementCount) noexcept
         TauUtilsDeallocateNonConst(obj);
     }
 }
+
 constexpr void* TauUtilsAllocate(uSys size) noexcept
 {
     if(std::is_constant_evaluated())
@@ -213,7 +215,7 @@ constexpr void TauUtilsDeallocate(void* obj) noexcept
 #define TU_DELETE_ARR(PTR) ::TauUtilsDeallocate(PTR)
 #define TU_DELETE_T_ARR(PTR, COUNT) ::TauUtilsDeallocateTArr(PTR, COUNT)
 
-class TAU_LIB TauAllocator
+class TAU_UTILS_LIB TauAllocator
 {
     DEFAULT_CONSTRUCT_PO(TauAllocator);
     DEFAULT_DESTRUCT_VI(TauAllocator);
@@ -228,7 +230,7 @@ public:
     {
         void* const allocation = Allocate(sizeof(T));
         if(!allocation) { return nullptr; }
-        return ::new(allocation) T(TauAllocatorUtils::Forward<Args>(args)...);
+        return ::new(allocation) T(::std::forward<Args>(args)...);
     }
 
     template<typename T>
@@ -244,7 +246,7 @@ public:
     
     template<typename T, typename... Args>
     [[nodiscard]] T* allocateT(Args&&... args) noexcept
-    { return AllocateT(TauAllocatorUtils::Forward<Args>(args)...); }
+    { return AllocateT(::std::forward<Args>(args)...); }
     
     template<typename T>
     void deallocateT(T* const obj) noexcept
@@ -266,7 +268,7 @@ public:
 };
 
 template<>
-class TAU_LIB BasicTauAllocator<AllocationTracking::None> final : public TauAllocator
+class TAU_UTILS_LIB BasicTauAllocator<AllocationTracking::None> final : public TauAllocator
 {
     DEFAULT_CONSTRUCT_PI(BasicTauAllocator);
     DEFAULT_DESTRUCT(BasicTauAllocator);
@@ -285,7 +287,7 @@ private:
 };
 
 template<>
-class TAU_LIB BasicTauAllocator<AllocationTracking::Count> final : public TauAllocator
+class TAU_UTILS_LIB BasicTauAllocator<AllocationTracking::Count> final : public TauAllocator
 {
     DEFAULT_DESTRUCT(BasicTauAllocator);
     DELETE_CM(BasicTauAllocator);
@@ -323,7 +325,7 @@ private:
 };
 
 template<>
-class TAU_LIB BasicTauAllocator<AllocationTracking::DoubleDeleteCount> final : public TauAllocator
+class TAU_UTILS_LIB BasicTauAllocator<AllocationTracking::DoubleDeleteCount> final : public TauAllocator
 {
     DEFAULT_DESTRUCT(BasicTauAllocator);
     DELETE_CM(BasicTauAllocator);
@@ -357,7 +359,7 @@ public:
 
         --m_Count;
 
-        iSys* const allocationCount = reinterpret_cast<iSys*>(obj) - 1;
+        iSys* const allocationCount = static_cast<iSys*>(obj) - 1;
 
         if(*allocationCount == 0)
         {
@@ -377,4 +379,3 @@ private:
 using DefaultTauAllocator = BasicTauAllocator<AllocationTracking::None>;
 using DefaultCountingTauAllocator = BasicTauAllocator<AllocationTracking::Count>;
 using DefaultDoubleDeleteTauAllocator = BasicTauAllocator<AllocationTracking::DoubleDeleteCount>;
-

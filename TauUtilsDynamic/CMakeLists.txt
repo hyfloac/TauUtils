@@ -30,6 +30,11 @@ target_sources(TauUtilsDynamicStatic PUBLIC ${SOURCES})
 target_sources(TauUtilsDynamicShared PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
 target_sources(TauUtilsDynamicStatic PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
 
+
+if(NOT ${NO_GEN_TEST})
+    add_custom_command(TARGET TauUtilsDynamicShared POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:TauUtilsTest>)
+endif()
+
 # Set the include directory.
 target_include_directories(TauUtilsDynamicShared PUBLIC include)
 target_include_directories(TauUtilsDynamicStatic PUBLIC include)

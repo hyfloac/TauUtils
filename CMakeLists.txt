@@ -6,7 +6,7 @@ include(CTest)
 add_subdirectory(TauUtilsDynamic)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    if(${GEN_TEST})
+    if(NOT ${NO_GEN_TEST})
         add_subdirectory(TauUtilsTest)
     endif()
 endif()

@@ -50,9 +50,6 @@ public:
     };
 public:
     static constexpr uSys BIT_COUNT = sizeof(uSys) * CHAR_BIT;
-private:
-    uSys m_BitCount;
-    DynArray<uSys> m_Bits;
 public:
     BitSet(const uSys bitCount, const bool initialValue = false) noexcept
         : m_BitCount(bitCount)
@@ -131,5 +128,8 @@ public:
     [[nodiscard]] bool at(const uSys index) const noexcept { return At(index); }
     void set(const uSys index, bool value = true) noexcept { Set(index, value); }
     void unset(const uSys index) noexcept { Unset(index); }
-    void flip(const uSys index) noexcept { Flip(index);  }
+    void flip(const uSys index) noexcept { Flip(index); }
+private:
+    uSys m_BitCount;
+    DynArray<uSys> m_Bits;
 };

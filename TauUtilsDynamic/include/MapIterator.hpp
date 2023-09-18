@@ -148,14 +148,14 @@ struct IteratorBundle final
     DEFAULT_DESTRUCT(IteratorBundle);
     DEFAULT_CM_PU(IteratorBundle);
 public:
-    Iter _begin;
-    Iter _end;
+    Iter m_Begin;
+    Iter m_End;
 public:
     IteratorBundle(const Iter& begin, const Iter& end) noexcept
-        : _begin(begin)
-        , _end(end)
+        : m_Begin(begin)
+        , m_End(end)
     { }
 
-    [[nodiscard]] Iter begin() const noexcept { return _begin; }
-    [[nodiscard]] Iter   end() const noexcept { return _end;   }
+    [[nodiscard]] Iter begin() const noexcept { return m_Begin; }
+    [[nodiscard]] Iter   end() const noexcept { return m_End;   }
 };

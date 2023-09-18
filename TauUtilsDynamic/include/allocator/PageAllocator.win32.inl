@@ -7,6 +7,7 @@
 #endif
 
 #pragma warning(push, 0)
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #pragma warning(pop)
 
@@ -45,35 +46,35 @@ inline void* PageAllocator::CommitPages(void* const page, const uSys pageCount) 
 
 inline void PageAllocator::DecommitPage(void* const page) noexcept
 {
-    VirtualFree(page, 1, MEM_DECOMMIT);
+    (void) VirtualFree(page, 1, MEM_DECOMMIT);
 }
 
 inline void PageAllocator::DecommitPages(void* const page, const uSys pageCount) noexcept
 {
-    VirtualFree(page, pageCount * m_PageSize, MEM_DECOMMIT);
+    (void) VirtualFree(page, pageCount * m_PageSize, MEM_DECOMMIT);
 }
 
 inline void PageAllocator::Free(void* const page) noexcept
 {
-    VirtualFree(page, 0, MEM_RELEASE);
+    (void) VirtualFree(page, 0, MEM_RELEASE);
 }
 
 inline void PageAllocator::SetReadWrite(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * m_PageSize, PAGE_READWRITE, &oldProtect);
+    (void) VirtualProtect(page, pageCount * m_PageSize, PAGE_READWRITE, &oldProtect);
 }
 
 inline void PageAllocator::SetReadOnly(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * m_PageSize, PAGE_READONLY, &oldProtect);
+    (void) VirtualProtect(page, pageCount * m_PageSize, PAGE_READONLY, &oldProtect);
 }
 
 inline void PageAllocator::SetExecute(void* const page, const uSys pageCount) noexcept
 {
     DWORD oldProtect;
-    VirtualProtect(page, pageCount * m_PageSize, PAGE_EXECUTE_READ, &oldProtect);
+    (void) VirtualProtect(page, pageCount * m_PageSize, PAGE_EXECUTE_READ, &oldProtect);
 }
 
 #endif

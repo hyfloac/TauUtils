@@ -10,6 +10,8 @@ extern void DragonTests();
 extern void MathTests();
 extern void Base64Tests();
 extern void JsonTests();
+extern void SemVerTests();
+extern void SemVerParserTests();
 
 int main(int argCount, char* args[]){
     Console::Create();
@@ -20,6 +22,8 @@ int main(int argCount, char* args[]){
     MathTests();
     Base64Tests();
     // JsonTests();
+    SemVerTests();
+    SemVerParserTests();
 
     ::tau::TestContainer::Instance().PrintTotals();
 

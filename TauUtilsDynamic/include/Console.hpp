@@ -3,7 +3,7 @@
 #include "NumTypes.hpp"
 #include "TUConfig.hpp"
 
-class TAU_LIB Console final
+class TAU_UTILS_LIB Console final
 {
 public:
     static void Create() noexcept;
