@@ -246,11 +246,11 @@ public:
     
     template<typename T, typename... Args>
     [[nodiscard]] T* allocateT(Args&&... args) noexcept
-    { return AllocateT(::std::forward<Args>(args)...); }
+    { return AllocateT<T>(::std::forward<Args>(args)...); }
     
     template<typename T>
     void deallocateT(T* const obj) noexcept
-    { DeallocateT(obj); }
+    { DeallocateT<T>(obj); }
 };
 
 template<AllocationTracking AllocTracking = AllocationTracking::None>
