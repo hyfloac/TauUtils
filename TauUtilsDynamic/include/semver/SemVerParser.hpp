@@ -179,7 +179,7 @@ private:
                     {
                         if(CurrentToken().Char != U'=')
                         {
-                            m_Error = u8"Found '<>>' in version constraint, but was not followed by '=' or a version.";
+                            m_Error = u8"Found '<' in version constraint, but was not followed by '=' or a version.";
                             return nullptr;
                         }
 
@@ -374,5 +374,33 @@ private:
     uSys m_CurrentIndex;
     C8DynString m_Error;
 };
+
+/**
+ * \brief Quickly checks a version against a constraint.
+ * \param version The current version.
+ * \param checkString The constraint string that version must match.
+ * \param errorString An optional pointer to receive the error message.
+ * \return -1 if there is an error, 1 if the version matches the check
+ *   string, and 0 if the version does not match the check string.
+ */
+[[nodiscard]] inline i32 CheckVersion(const SemVer& version, const C8DynString& checkString, C8DynString* const errorString = nullptr) noexcept
+{
+    const auto tokens = LexSemVer(checkString);
+    SemVerParser parser(tokens);
+
+    const auto ast = parser.Parse();
+    if(!ast)
+    {
+        if(errorString)
+        {
+            *errorString = parser.Error();
+        }
+        return -1;
+    }
+
+    SemVerConstraintExecutor executor(version);
+
+    return executor.Execute(ast) ? 1 : 0;
+}
 
 }

@@ -424,3 +424,7 @@ constexpr u64 DeBruijnTable64[64] = {
 
 [[nodiscard]] constexpr inline u32 log2i(const u64 v) noexcept
 { return 63 - static_cast<u32>(CountLeadingZeroC(v)); }
+
+template<typename T>
+[[nodiscard]] constexpr inline T DivCeil(const T dividend, const T divisor) noexcept
+{ return 1 + ((dividend - 1) / divisor); }

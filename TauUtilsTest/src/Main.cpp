@@ -12,6 +12,7 @@ extern void Base64Tests();
 extern void JsonTests();
 extern void SemVerTests();
 extern void SemVerParserTests();
+extern void HashMapTests();
 
 int main(int argCount, char* args[]){
     Console::Create();
@@ -24,6 +25,7 @@ int main(int argCount, char* args[]){
     // JsonTests();
     SemVerTests();
     SemVerParserTests();
+    HashMapTests();
 
     ::tau::TestContainer::Instance().PrintTotals();
 

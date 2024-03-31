@@ -16,7 +16,9 @@ inline DynStringT<char> StringCast<char, c8>(const DynStringT<c8>& string) noexc
     return DynString(string.Length(), reinterpret_cast<const char*>(string.String()));
 }
 
-#ifdef _WIN32
+
+
+#if defined(_WIN32)
 template<>
 inline DynStringT<c16> StringCast<c16, wchar_t>(const DynStringT<wchar_t>& string) noexcept
 {
@@ -91,6 +93,175 @@ inline DynStringT<wchar_t> StringCast<wchar_t, c8>(const DynStringT<c8>& string)
     return StringCast<wchar_t>(StringCast<c32>(string));
 }
 #endif
+
+
+
+template<>
+inline DynStringT<c16> StringCastFlipEndian(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCastFlipEndian<c16>(StringCast<c16>(string));
+}
+
+template<>
+inline DynStringT<c32> StringCastFlipEndian(const DynStringT<c16>& string) noexcept
+{
+    return StringCastFlipEndian<c32>(StringCast<c32>(string));
+}
+
+
+
+template<>
+inline DynStringT<c16> StringCastSkipBom(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCastSkipBom<c16>(StringCast<c16>(string));
+}
+
+
+
+#if defined(_WIN32)
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c16>(StringCast<c16>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c16>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c16>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c32>& string) noexcept
+{
+    const C16DynString tmp = StringCastFlipEndian<c16>(string);
+    return StringCast<wchar_t>(StringCastFlipEndian<c16>(string));
+}
+
+template<>
+inline DynStringT<c32> StringCastFlipEndian(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCastFlipEndian<c32>(StringCast<c16>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c8>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c16>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<char>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c16>(StringCast<c8>(string)));
+}
+
+
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c16>(StringCast<c16>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c32>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c16>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c16>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c16>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c8>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c16>(string));
+}
+
+
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndianSkipBom(const DynStringT<c32>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndianSkipBom<c16>(string));
+}
+#else
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(StringCast<c32>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c16>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c32>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(string));
+}
+
+template<>
+inline DynStringT<c32> StringCastFlipEndian(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCastFlipEndian<c32>(StringCast<c32>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<c8>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(StringCast<c32>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndian(const DynStringT<char>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(StringCast<c32>(string)));
+}
+
+
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<wchar_t>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c32>(StringCast<c32>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c32>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c32>(string));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c16>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c32>(StringCast<c32>(string)));
+}
+
+template<>
+inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c8>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastSkipBom<c32>(string));
+}
+
+
+
+template<>
+inline DynStringT<wchar_t> StringCastFlipEndianSkipBom(const DynStringT<c32>& string) noexcept
+{
+    return StringCast<wchar_t>(StringCastFlipEndian<c32>(StringCastSkipBom<c32>(string)));
+}
+#endif
+
+
 
 template<>
 inline DynStringT<c16> StringCast<c16, char>(const DynStringT<char>& string) noexcept

@@ -24,11 +24,11 @@ endforeach()
 
 source_group("src" FILES ${SOURCES})
 
-target_sources(TauUtilsDynamicShared PUBLIC ${SOURCES})
-target_sources(TauUtilsDynamicStatic PUBLIC ${SOURCES})
+target_sources(TauUtilsDynamicShared PRIVATE ${SOURCES})
+target_sources(TauUtilsDynamicStatic PRIVATE ${SOURCES})
 
-target_sources(TauUtilsDynamicShared PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
-target_sources(TauUtilsDynamicStatic PUBLIC FILE_SET HEADERS BASE_DIRS include FILES ${HEADERS})
+target_sources(TauUtilsDynamicShared PUBLIC FILE_SET "HEADERS" BASE_DIRS "include" FILES ${HEADERS})
+target_sources(TauUtilsDynamicStatic PUBLIC FILE_SET "HEADERS" BASE_DIRS "include" FILES ${HEADERS})
 
 
 if(NOT ${NO_GEN_TEST})

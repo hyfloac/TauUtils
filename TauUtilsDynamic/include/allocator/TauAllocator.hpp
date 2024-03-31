@@ -3,11 +3,14 @@
 #include "Objects.hpp"
 #include "NumTypes.hpp"
 #include "TUConfig.hpp"
+#include "PageAllocator.hpp"
 #include <atomic>
 #include <cassert>
 #include <memory>
 #include <bit>
 #include <type_traits>
+
+#include "TUMaths.hpp"
 
 namespace TauAllocatorUtils {
 
@@ -374,6 +377,25 @@ private:
     ::std::atomic<iSys> m_Count;
 private:
     static BasicTauAllocator s_Instance;
+};
+
+class TAU_UTILS_LIB PageTauAllocator final : public TauAllocator
+{
+    DEFAULT_CONSTRUCT_PI(PageTauAllocator);
+    DEFAULT_DESTRUCT(PageTauAllocator);
+    DELETE_CM(PageTauAllocator);
+public:
+    static PageTauAllocator& Instance() noexcept
+    {
+        static PageTauAllocator instance;
+        return instance;
+    }
+public:
+    [[nodiscard]] void* Allocate(const uSys size) noexcept override
+    { return PageAllocator::Alloc(DivCeil(size, PageAllocator::PageSize())); }
+
+    void Deallocate(void* const obj) noexcept override
+    { ::PageAllocator::Free(obj); }
 };
 
 using DefaultTauAllocator = BasicTauAllocator<AllocationTracking::None>;

@@ -2573,8 +2573,7 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Backspace(const uSys c
 }
 
 template<typename CTo, typename CFrom>
-DynStringT<CTo> StringCast(const DynStringT<CFrom>&) noexcept
-{ return DynStringT<CTo>(); }
+DynStringT<CTo> StringCast(const DynStringT<CFrom>&) noexcept = delete;
 
 template<>
 inline DynStringT<char> StringCast(const DynStringT<char>& string) noexcept
@@ -2687,6 +2686,41 @@ inline DynStringT<char> StringCast<char, wchar_t>(const DynStringT<wchar_t>& str
         return DynStringT<Char>::passControl(refCount, newStr, len, [](const Char* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
     }
 }
+
+
+
+template<typename CTo, typename CFrom>
+DynStringT<CTo> StringCastFlipEndian(const DynStringT<CFrom>&) noexcept = delete;
+
+template<>
+inline DynStringT<char> StringCastFlipEndian(const DynStringT<char>& string) noexcept
+{ return string; }
+
+template<>
+inline DynStringT<c8> StringCastFlipEndian(const DynStringT<c8>& string) noexcept
+{ return string; }
+
+
+
+template<typename CTo, typename CFrom>
+DynStringT<CTo> StringCastSkipBom(const DynStringT<CFrom>&) noexcept = delete;
+
+template<>
+inline DynStringT<c32> StringCastSkipBom(const DynStringT<c32>& string) noexcept
+{ return string; }
+
+template<>
+inline DynStringT<char> StringCastSkipBom(const DynStringT<char>& string) noexcept
+{ return string; }
+
+
+
+template<typename CTo, typename CFrom>
+DynStringT<CTo> StringCastFlipEndianSkipBom(const DynStringT<CFrom>&) noexcept = delete;
+
+template<>
+inline DynStringT<char> StringCastFlipEndianSkipBom(const DynStringT<char>&string) noexcept
+{ return string; }
 
 namespace std
 {

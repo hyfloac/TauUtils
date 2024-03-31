@@ -1,5 +1,4 @@
 #include "allocator/TauAllocator.hpp"
-#include <type_traits>
 #include <bit>
 
 TAU_UTILS_LIB BasicTauAllocator<AllocationTracking::None> BasicTauAllocator<AllocationTracking::None>::s_Instance;

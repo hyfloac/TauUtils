@@ -4,6 +4,7 @@
 #include "NumTypes.hpp"
 #include "allocator/TauAllocator.hpp"
 #include "TreeUtils.hpp"
+#include <type_traits>
 
 template<typename T, typename HeightT>
 struct AVLNode final
@@ -11,407 +12,411 @@ struct AVLNode final
     DEFAULT_DESTRUCT(AVLNode);
     DEFAULT_CM_PU(AVLNode);
 public:
-    AVLNode* left;
-    AVLNode* right;
-    HeightT height;
-    T value;
+    AVLNode* Left;
+    AVLNode* Right;
+    HeightT Height;
+    T Value;
 public:
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, const T& _value) noexcept
-        : left(_left)
-        , right(_right)
-        , height(_height)
-        , value(_value)
+    AVLNode(AVLNode* const left, AVLNode* const right, const HeightT height, const T& value) noexcept
+        : Left(left)
+        , Right(right)
+        , Height(height)
+        , Value(value)
     { }
 
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, T&& _value) noexcept
-        : left(_left)
-        , right(_right)
-        , height(_height)
-        , value(::TauAllocatorUtils::Move(_value))
+    AVLNode(AVLNode* const left, AVLNode* const right, const HeightT height, T&& value) noexcept
+        : Left(left)
+        , Right(right)
+        , Height(height)
+        , Value(::std::move(value))
     { }
 
-    template<typename... _Args>
-    AVLNode(AVLNode* const _left, AVLNode* const _right, const HeightT _height, _Args&&... args) noexcept
-        : left(_left)
-        , right(_right)
-        , height(_height)
-        , value(TauAllocatorUtils::Forward<_Args>(args)...)
+    template<typename... Args>
+    AVLNode(AVLNode* const left, AVLNode* const right, const HeightT height, Args&&... args) noexcept
+        : Left(left)
+        , Right(right)
+        , Height(height)
+        , Value(::std::forward<Args>(args)...)
     { }
 };
 
-template<typename T, typename HeightT, InsertMethod _InsertMethod = InsertMethod::Ignore>
+template<typename T, typename HeightT, InsertMethod InsertMethod = InsertMethod::Ignore>
 class AVLTree final
 {
     DELETE_CM(AVLTree);
 public:
     using Node = AVLNode<T, HeightT>;
 private:
-    TauAllocator& _allocator;
-    Node* _root;
+    TauAllocator& m_Allocator;
+    Node* m_Root;
 public:
     AVLTree(TauAllocator& allocator = DefaultTauAllocator::Instance()) noexcept
-        : _allocator(allocator)
-        , _root(nullptr)
+        : m_Allocator(allocator)
+        , m_Root(nullptr)
     { }
 
     ~AVLTree() noexcept
-    { disposeTree(); }
+    { DisposeTree(); }
 
-    [[nodiscard]]       Node* root()       noexcept { return _root; }
-    [[nodiscard]] const Node* root() const noexcept { return _root; }
+    [[nodiscard]]       Node* Root()       noexcept { return m_Root; }
+    [[nodiscard]] const Node* Root() const noexcept { return m_Root; }
 
-    template<typename _Search>
-    [[nodiscard]] T* find(const _Search& search) noexcept
+    template<typename SearchT>
+    [[nodiscard]] T* Find(const SearchT& search) noexcept
     {
-        Node* const node = find(_root, search);
+        Node* const node = Find(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+
+        return &node->Value;
     }
 
-    template<typename _Search>
-    [[nodiscard]] const T* find(const _Search& search) const noexcept
+    template<typename SearchT>
+    [[nodiscard]] const T* Find(const SearchT& search) const noexcept
     {
-        const Node* const node = find(_root, search);
+        const Node* const node = Find(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+
+        return &node->Value;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] T* findClosestMatchAbove(const _SearchT& search) noexcept
+    template<typename SearchT>
+    [[nodiscard]] T* FindClosestMatchAbove(const SearchT& search) noexcept
     {
-        Node* const node = findClosestMatchAbove(_root, search);
+        Node* const node = FindClosestMatchAbove(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+        return &node->Value;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] const T* findClosestMatchAbove(const _SearchT& search) const noexcept
+    template<typename SearchT>
+    [[nodiscard]] const T* FindClosestMatchAbove(const SearchT& search) const noexcept
     {
-        const Node* const node = findClosestMatchAbove(_root, search);
+        const Node* const node = FindClosestMatchAbove(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+        return &node->Value;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] T* findClosestMatchBelow(const _SearchT& search) noexcept
+    template<typename SearchT>
+    [[nodiscard]] T* FindClosestMatchBelow(const SearchT& search) noexcept
     {
-        Node* const node = findClosestMatchBelow(_root, search);
+        Node* const node = FindClosestMatchBelow(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+        return &node->Value;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] const T* findClosestMatchBelow(const _SearchT& search) const noexcept
+    template<typename SearchT>
+    [[nodiscard]] const T* FindClosestMatchBelow(const SearchT& search) const noexcept
     {
-        const Node* const node = findClosestMatchBelow(_root, search);
+        const Node* const node = FindClosestMatchBelow(m_Root, search);
         if(!node)
         { return nullptr; }
-        return &node->value;
+        return &node->Value;
     }
     
-    template<typename _Search>
-    [[nodiscard]] Node* get(const _Search& search) noexcept
-    { return find(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] Node* Get(const SearchT& search) noexcept
+    { return Find(m_Root, search); }
 
-    template<typename _Search>
-    [[nodiscard]] const Node* get(const _Search& search) const noexcept
-    { return find(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] const Node* Get(const SearchT& search) const noexcept
+    { return Find(m_Root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] Node* getClosestMatchAbove(const _SearchT& search) noexcept
-    { return findClosestMatchAbove(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] Node* GetClosestMatchAbove(const SearchT& search) noexcept
+    { return FindClosestMatchAbove(m_Root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] const Node* getClosestMatchAbove(const _SearchT& search) const noexcept
-    { return findClosestMatchAbove(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] const Node* GetClosestMatchAbove(const SearchT& search) const noexcept
+    { return FindClosestMatchAbove(m_Root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] Node* getClosestMatchBelow(const _SearchT& search) noexcept
-    { return findClosestMatchBelow(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] Node* GetClosestMatchBelow(const SearchT& search) noexcept
+    { return FindClosestMatchBelow(m_Root, search); }
 
-    template<typename _SearchT>
-    [[nodiscard]] const Node* getClosestMatchBelow(const _SearchT& search) const noexcept
-    { return findClosestMatchBelow(_root, search); }
+    template<typename SearchT>
+    [[nodiscard]] const Node* GetClosestMatchBelow(const SearchT& search) const noexcept
+    { return FindClosestMatchBelow(m_Root, search); }
 
-    Node* insert(const T& value) noexcept
+    Node* Insert(const T& value) noexcept
     {
-        if(!_root)
+        if(!m_Root)
         {
-            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
-            return _root;
+            m_Root = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
+            return m_Root;
         }
         else
         {
-            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
-            _root = insert(_root, newNode, _allocator);
+            Node* newNode = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, value);
+            m_Root = Insert(m_Root, newNode, m_Allocator);
             return newNode;
         }
     }
 
-    Node* insert(T&& value) noexcept
+    Node* Insert(T&& value) noexcept
     {
-        if(!_root)
+        if(!m_Root)
         {
-            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
-            return _root;
+            m_Root = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
+            return m_Root;
         }
         else
         {
-            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
-            _root = insert(_root, newNode, _allocator);
+            Node* newNode = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Move(value));
+            m_Root = Insert(m_Root, newNode, m_Allocator);
             return newNode;
         }
     }
     
-    template<typename... _Args>
-    Node* emplace(_Args&&... args) noexcept
+    template<typename... Args>
+    Node* Emplace(Args&&... args) noexcept
     {
-        if(!_root)
+        if(!m_Root)
         {
-            _root = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<_Args>(args)...);
-            return _root;
+            m_Root = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<Args>(args)...);
+            return m_Root;
         }
         else
         {
-            Node* newNode = _allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<_Args>(args)...);
-            _root = insert(_root, newNode, _allocator);
+            Node* newNode = m_Allocator.AllocateT<Node>(nullptr, nullptr, 0, TauAllocatorUtils::Forward<Args>(args)...);
+            m_Root = Insert(m_Root, newNode, m_Allocator);
             return newNode;
         }
     }
 
-    template<typename _SearchT>
-    void remove(const _SearchT& search) noexcept
-    { _root = remove(&_root, search, _allocator); }
+    template<typename SearchT>
+    void Remove(const SearchT& search) noexcept
+    { m_Root = Remove(&m_Root, search, m_Allocator); }
 
-    void remove(const Node* search) noexcept
-    { _root = remove(&_root, search, _allocator); }
+    void Remove(const Node* search) noexcept
+    { m_Root = Remove(&m_Root, search, m_Allocator); }
 
-    void disposeTree() noexcept
-    { disposeTree(_root, _allocator); }
+    void DisposeTree() noexcept
+    { DisposeTree(m_Root, m_Allocator); }
 
-    template<typename _F, IteratorMethod _IteratorMethod = IteratorMethod::TopDownLR>
-    void iterate(const _F& func) noexcept
-    { Iterate<Node, _F, _IteratorMethod>(_root, func); }
+    template<typename FuncT, IteratorMethod IteratorMethod = IteratorMethod::TopDownLR>
+    void Iterate(const FuncT& func) noexcept
+    { IterateStatic<Node, FuncT, IteratorMethod>(m_Root, func); }
 
-    template<typename _F, IteratorMethod _IteratorMethod = IteratorMethod::TopDownLR>
-    void iterate(const _F& func) const noexcept
-    { Iterate<Node, _F, _IteratorMethod>(_root, func); }
+    template<typename FuncT, IteratorMethod IteratorMethod = IteratorMethod::TopDownLR>
+    void Iterate(const FuncT& func) const noexcept
+    { IterateStatic<Node, FuncT, IteratorMethod>(m_Root, func); }
 
-    template<typename _C, typename _F, IteratorMethod _IteratorMethod = IteratorMethod::TopDownLR>
-    void iterate(_C* instance, const _F& func) noexcept
-    { Iterate<Node, _C, _F, _IteratorMethod>(_root, instance, func); }
+    template<typename ClassC, typename FuncT, IteratorMethod IteratorMethod = IteratorMethod::TopDownLR>
+    void Iterate(ClassC* instance, const FuncT& func) noexcept
+    { IterateStatic<Node, ClassC, FuncT, IteratorMethod>(m_Root, instance, func); }
 
-    template<typename _C, typename _F, IteratorMethod _IteratorMethod = IteratorMethod::TopDownLR>
-    void iterate(_C* instance, const _F& func) const noexcept
-    { Iterate<Node, _C, _F, _IteratorMethod>(_root, instance, func); }
+    template<typename ClassC, typename FuncT, IteratorMethod IteratorMethod = IteratorMethod::TopDownLR>
+    void Iterate(ClassC* instance, const FuncT& func) const noexcept
+    { IterateStatic<Node, ClassC, FuncT, IteratorMethod>(m_Root, instance, func); }
 private:
-    template<typename _NodeT, typename _SearchT>
-    [[nodiscard]] static _NodeT* find(_NodeT* const tree, const _SearchT& search) noexcept
+    template<typename NodeT, typename SearchT>
+    [[nodiscard]] static NodeT* Find(NodeT* const tree, const SearchT& search) noexcept
     {
-        _NodeT* node = tree;
+        NodeT* node = tree;
 
         while(node)
         {
-            if(search == node->value)
+            if(search == node->Value)
             { return node; }
 
-            if(search > node->value)
-            { node = node->right; }
+            if(search > node->Value)
+            { node = node->Right; }
             else
-            { node = node->left; }
+            { node = node->Left; }
         }
 
         return nullptr;
     }
 
-    template<typename _NodeT, typename _SearchT>
-    [[nodiscard]] static _NodeT* findClosestMatchAbove(_NodeT* const tree, const _SearchT& search) noexcept
+    template<typename NodeT, typename SearchT>
+    [[nodiscard]] static NodeT* FindClosestMatchAbove(NodeT* const tree, const SearchT& search) noexcept
     {
-        _NodeT* contender = tree;
-        _NodeT* node = tree;
+        NodeT* contender = tree;
+        NodeT* node = tree;
 
         while(node)
         {
-            if(search == node->value)
+            if(search == node->Value)
             { return node; }
 
-            if(search > node->value)
-            { node = node->right; }
+            if(search > node->Value)
+            { node = node->Right; }
             else
             {
-                if(contender->value > node->value)
+                if(contender->Value > node->Value)
                 { contender = node; }
-                node = node->left;
+                node = node->Left;
             }
         }
 
         return contender;
     }
 
-    template<typename _NodeT, typename _SearchT>
-    [[nodiscard]] static _NodeT* findClosestMatchBelow(_NodeT* const tree, const _SearchT& search) noexcept
+    template<typename NodeT, typename SearchT>
+    [[nodiscard]] static NodeT* FindClosestMatchBelow(NodeT* const tree, const SearchT& search) noexcept
     {
-        _NodeT* contender = tree;
-        _NodeT* node = tree;
+        NodeT* contender = tree;
+        NodeT* node = tree;
 
         while(node)
         {
-            if(search == node->value)
+            if(search == node->Value)
             { return node; }
 
-            if(search > node->value)
+            if(search > node->Value)
             {
-                if(contender->value < node->value)
+                if(contender->Value < node->Value)
                 { contender = node; }
-                node = node->right;
+                node = node->Right;
             }
             else
-            { node = node->left; }
+            { node = node->Left; }
         }
 
         return contender;
     }
 
-    [[nodiscard]] static Node* rotateRight(Node* const pivot) noexcept
+    [[nodiscard]] static Node* RotateRight(Node* const pivot) noexcept
     {
-        Node* newRoot = pivot->left;
-        Node* transferNode = newRoot->right;
+        Node* newRoot = pivot->Left;
+        Node* transferNode = newRoot->Right;
 
-        newRoot->right = pivot;
-        pivot->left = transferNode;
+        newRoot->Right = pivot;
+        pivot->Left = transferNode;
 
-        pivot->height = maxT(height(pivot->left), height(pivot->right)) + 1;
-        newRoot->height = maxT(height(newRoot->left), height(newRoot->right)) + 1;
+        pivot->Height = maxT(Height(pivot->Left), Height(pivot->Right)) + 1;
+        newRoot->Height = maxT(Height(newRoot->Left), Height(newRoot->Right)) + 1;
 
         return newRoot;
     }
 
-    [[nodiscard]] static Node* rotateLeft(Node* const pivot) noexcept
+    [[nodiscard]] static Node* RotateLeft(Node* const pivot) noexcept
     {
-        Node* newRoot = pivot->right;
-        Node* transferNode = newRoot->left;
+        Node* newRoot = pivot->Right;
+        Node* transferNode = newRoot->Left;
 
-        newRoot->left = pivot;
-        pivot->right = transferNode;
+        newRoot->Left = pivot;
+        pivot->Right = transferNode;
 
-        pivot->height = maxT(height(pivot->left), height(pivot->right)) + 1;
-        newRoot->height = maxT(height(newRoot->left), height(newRoot->right)) + 1;
+        pivot->Height = maxT(Height(pivot->Left), Height(pivot->Right)) + 1;
+        newRoot->Height = maxT(Height(newRoot->Left), Height(newRoot->Right)) + 1;
 
         return newRoot;
     }
 
-    [[nodiscard]] static HeightT height(const Node* const tree) noexcept
+    [[nodiscard]] static HeightT Height(const Node* const tree) noexcept
     {
         if(!tree)
         { return 0; }
-        return tree->height;
+        return tree->Height;
     }
 
-    [[nodiscard]] static int computeBalance(const Node* const tree) noexcept
+    [[nodiscard]] static int ComputeBalance(const Node* const tree) noexcept
     {
         if(!tree)
         { return 0; }
-        return static_cast<int>(height(tree->left) - height(tree->right));
+
+        return static_cast<int>(Height(tree->Left) - Height(tree->Right));
     }
 
-    [[nodiscard]] static Node* insert(Node* const tree, Node* const newNode, TauAllocator& allocator) noexcept
+    [[nodiscard]] static Node* Insert(Node* const tree, Node* const newNode, TauAllocator& allocator) noexcept
     {
         if(!tree)
         { return newNode; }
 
-        if(newNode->value < tree->value)
-        { tree->left = insert(tree->left, newNode, allocator); }
-        else if(newNode->value > tree->value)
-        { tree->right = insert(tree->right, newNode, allocator); }
+        if(newNode->Value < tree->Value)
+        { tree->Left = Insert(tree->Left, newNode, allocator); }
+        else if(newNode->Value > tree->Value)
+        { tree->Right = Insert(tree->Right, newNode, allocator); }
         else
         {
-            if constexpr(_InsertMethod == InsertMethod::Ignore)
+            if constexpr(InsertMethod == InsertMethod::Ignore)
             {
                 allocator.DeallocateT(newNode);
                 return tree;
             }
-            else if constexpr(_InsertMethod == InsertMethod::Replace)
+            else if constexpr(InsertMethod == InsertMethod::Replace)
             {
-                newNode->left = tree->left;
-                newNode->right = tree->right;
-                newNode->height = tree->height;
+                newNode->Left = tree->Left;
+                newNode->Right = tree->Right;
+                newNode->Height = tree->Height;
                 allocator.DeallocateT(tree);
                 return newNode;
             }
-            else if constexpr(_InsertMethod == InsertMethod::Greater)
-            { tree->right = insert(tree->right, newNode, allocator); }
-            else if constexpr(_InsertMethod == InsertMethod::Lesser)
-            { tree->left = insert(tree->left, newNode, allocator); }
+            else if constexpr(InsertMethod == InsertMethod::Greater)
+            { tree->Right = Insert(tree->Right, newNode, allocator); }
+            else if constexpr(InsertMethod == InsertMethod::Lesser)
+            { tree->Left = Insert(tree->Left, newNode, allocator); }
             else
             { return tree; }
         }
 
-        tree->height = maxT(height(tree->left), height(tree->right)) + 1;
+        tree->Height = maxT(Height(tree->Left), Height(tree->Right)) + 1;
 
-        const HeightT balance = computeBalance(tree);
+        const HeightT balance = ComputeBalance(tree);
 
         // Left Left
-        if(balance > 1 && newNode->value < tree->left->value)
-        { return rotateRight(tree); }
+        if(balance > 1 && newNode->Value < tree->Left->Value)
+        { return RotateRight(tree); }
 
         // Right Right
-        if(balance < -1 && newNode->value > tree->right->value)
-        { return rotateLeft(tree); }
+        if(balance < -1 && newNode->Value > tree->Right->Value)
+        { return RotateLeft(tree); }
 
         // Left Right
-        if(balance > 1 && newNode->value > tree->left->value)
+        if(balance > 1 && newNode->Value > tree->Left->Value)
         {
-            tree->left = rotateLeft(tree->left);
-            return rotateRight(tree);
+            tree->Left = RotateLeft(tree->Left);
+            return RotateRight(tree);
         }
 
         // Right Left
-        if(balance < -1 && newNode->value < tree->right->value)
+        if(balance < -1 && newNode->Value < tree->Right->Value)
         {
-            tree->right = rotateRight(tree->right);
-            return rotateLeft(tree);
+            tree->Right = RotateRight(tree->Right);
+            return RotateLeft(tree);
         }
 
         return tree;
     }
 
-    [[nodiscard]] static Node** minValueNode(Node** const tree) noexcept
+    [[nodiscard]] static Node** MinValueNode(Node** const tree) noexcept
     {
         Node* parent = nullptr;
         Node* current = *tree;
-        while(current->left)
+        while(current->Left)
         {
             parent = current;
-            current = current->left;
+            current = current->Left;
         }
 
         if(!parent)
         { return tree; }
-        return &parent->left;
+
+        return &parent->Left;
     }
 
-    template<typename _SearchT>
-    [[nodiscard]] static Node* remove(Node** const rootHolder, const _SearchT& search, TauAllocator& allocator) noexcept
+    template<typename SearchT>
+    [[nodiscard]] static Node* Remove(Node** const rootHolder, const SearchT& search, TauAllocator& allocator) noexcept
     {
         if(!rootHolder || !(*rootHolder))
         { return nullptr; }
 
         Node* root = *rootHolder;
 
-        if(search < root->value)
-        { root->left = remove(&root->left, search, allocator); }
-        else if(search > root->value)
-        { root->right = remove(&root->right, search, allocator);}
+        if(search < root->Value)
+        { root->Left = Remove(&root->Left, search, allocator); }
+        else if(search > root->Value)
+        { root->Right = Remove(&root->Right, search, allocator);}
         else
         {
-            if(!root->left || !root->right)
+            if(!root->Left || !root->Right)
             {
-                Node* tmp = root->left ? root->left : root->right;
+                Node* tmp = root->Left ? root->Left : root->Right;
                 if(!tmp)
                 { *rootHolder = nullptr; }
                 else
@@ -421,12 +426,12 @@ private:
             }
             else
             {
-                Node** tmp = minValueNode(&root->right);
+                Node** tmp = MinValueNode(&root->Right);
 
                 *rootHolder = *tmp;                 // Replace root
-                *tmp = (*tmp)->right;               // Store tmp's right branch in tmp's parent left branch
-                (*rootHolder)->left = root->left;   // Set tmp's left branch to the old root's left branch
-                (*rootHolder)->right = root->right; // Set tmp's right branch to the old root's right branch
+                *tmp = (*tmp)->Right;               // Store tmp's right branch in tmp's parent left branch
+                (*rootHolder)->Left = root->Left;   // Set tmp's left branch to the old root's left branch
+                (*rootHolder)->Right = root->Right; // Set tmp's right branch to the old root's right branch
                 allocator.DeallocateT(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
@@ -435,60 +440,60 @@ private:
         if(!root)
         { return nullptr; }
         
-        root->height = maxT(height(root->left), height(root->right)) + 1;
+        root->Height = maxT(Height(root->Left), Height(root->Right)) + 1;
 
-        const HeightT balance = computeBalance(root);
+        const HeightT balance = ComputeBalance(root);
 
         // Left Left
-        if(balance > 1 && computeBalance(root->left) >= 0)
-        { return rotateRight(root); }
+        if(balance > 1 && ComputeBalance(root->Left) >= 0)
+        { return RotateRight(root); }
 
         // Left Right
-        if(balance > 1 && computeBalance(root->left) < 0)
+        if(balance > 1 && ComputeBalance(root->Left) < 0)
         {
-            root->left = rotateLeft(root->left);
-            return rotateRight(root);
+            root->Left = RotateLeft(root->Left);
+            return RotateRight(root);
         }
 
         // Right Right
-        if(balance < -1 && computeBalance(root->right) <= 0)
-        { return rotateLeft(root); }
+        if(balance < -1 && ComputeBalance(root->Right) <= 0)
+        { return RotateLeft(root); }
 
         // Right Left
-        if(balance < -1 && computeBalance(root->right) > 0)
+        if(balance < -1 && ComputeBalance(root->Right) > 0)
         {
-            root->right = rotateRight(root->right);
-            return rotateLeft(root);
+            root->Right = RotateRight(root->Right);
+            return RotateLeft(root);
         }
 
         return root;
     }
 
-    [[nodiscard]] static Node* remove(Node** const rootHolder, const Node* const search, TauAllocator& allocator) noexcept
+    [[nodiscard]] static Node* Remove(Node** const rootHolder, const Node* const search, TauAllocator& allocator) noexcept
     {
         if(!rootHolder || !(*rootHolder))
         { return nullptr; }
 
         Node* root = *rootHolder;
 
-        if(search->value < root->value)
-        { root->left = remove(&root->left, search, allocator); }
-        else if(search->value > root->value)
-        { root->right = remove(&root->right, search, allocator); }
+        if(search->Value < root->Value)
+        { root->Left = Remove(&root->Left, search, allocator); }
+        else if(search->Value > root->Value)
+        { root->Right = Remove(&root->Right, search, allocator); }
         else if(search != root)
         {
-            if constexpr(_InsertMethod == InsertMethod::Ignore || _InsertMethod == InsertMethod::Replace)
+            if constexpr(InsertMethod == InsertMethod::Ignore || InsertMethod == InsertMethod::Replace)
             { return root; }
-            else if constexpr(_InsertMethod == InsertMethod::Greater)
-            { root->right = remove(&root->right, search, allocator); }
-            else if constexpr(_InsertMethod == InsertMethod::Lesser)
-            { root->left = remove(&root->left, search, allocator); }
+            else if constexpr(InsertMethod == InsertMethod::Greater)
+            { root->Right = Remove(&root->Right, search, allocator); }
+            else if constexpr(InsertMethod == InsertMethod::Lesser)
+            { root->Left = Remove(&root->Left, search, allocator); }
         }
         else
         {
-            if(!root->left || !root->right)
+            if(!root->Left || !root->Right)
             {
-                Node* tmp = root->left ? root->left : root->right;
+                Node* tmp = root->Left ? root->Left : root->Right;
                 if(!tmp)
                 { *rootHolder = nullptr; }
                 else
@@ -498,12 +503,12 @@ private:
             }
             else
             {
-                Node** tmp = minValueNode(&root->right);
+                Node** tmp = MinValueNode(&root->Right);
 
                 *rootHolder = *tmp;                 // Replace root
-                *tmp = (*tmp)->right;               // Store tmp's right branch in tmp's parent left branch
-                (*rootHolder)->left = root->left;   // Set tmp's left branch to the old root's left branch
-                (*rootHolder)->right = root->right; // Set tmp's right branch to the old root's right branch
+                *tmp = (*tmp)->Right;               // Store tmp's right branch in tmp's parent left branch
+                (*rootHolder)->Left = root->Left;   // Set tmp's left branch to the old root's left branch
+                (*rootHolder)->Right = root->Right; // Set tmp's right branch to the old root's right branch
                 allocator.DeallocateT(root);        // Destroy root 
                 root = *rootHolder;                 // Update the actual root variable
             }
@@ -512,106 +517,106 @@ private:
         if(!root)
         { return nullptr; }
         
-        root->height = maxT(height(root->left), height(root->right)) + 1;
+        root->Height = maxT(Height(root->Left), Height(root->Right)) + 1;
 
-        const HeightT balance = computeBalance(root);
+        const HeightT balance = ComputeBalance(root);
 
         // Left Left
-        if(balance > 1 && computeBalance(root->left) >= 0)
-        { return rotateRight(root); }
+        if(balance > 1 && ComputeBalance(root->Left) >= 0)
+        { return RotateRight(root); }
 
         // Left Right
-        if(balance > 1 && computeBalance(root->left) < 0)
+        if(balance > 1 && ComputeBalance(root->Left) < 0)
         {
-            root->left = rotateLeft(root->left);
-            return rotateRight(root);
+            root->Left = RotateLeft(root->Left);
+            return RotateRight(root);
         }
 
         // Right Right
-        if(balance < -1 && computeBalance(root->right) <= 0)
-        { return rotateLeft(root); }
+        if(balance < -1 && ComputeBalance(root->Right) <= 0)
+        { return RotateLeft(root); }
 
         // Right Left
-        if(balance < -1 && computeBalance(root->right) > 0)
+        if(balance < -1 && ComputeBalance(root->Right) > 0)
         {
-            root->right = rotateRight(root->right);
-            return rotateLeft(root);
+            root->Right = RotateRight(root->Right);
+            return RotateLeft(root);
         }
 
         return root;
     }
 
-    static void disposeTree(Node* const tree, TauAllocator& allocator) noexcept
+    static void DisposeTree(Node* const tree, TauAllocator& allocator) noexcept
     {
         if(!tree)
         { return; }
 
-        disposeTree(tree->left, allocator);
-        disposeTree(tree->right, allocator);
+        DisposeTree(tree->Left, allocator);
+        DisposeTree(tree->Right, allocator);
 
         allocator.DeallocateT(tree);
     }
 
-    template<typename _Node, typename _F, IteratorMethod _IteratorMethod>
-    static void Iterate(_Node* const tree, const _F& func) noexcept
+    template<typename NodeT, typename FuncT, IteratorMethod IteratorMethod>
+    static void IterateStatic(NodeT* const tree, const FuncT& func) noexcept
     {
         if(!tree)
         { return; }
 
-        if constexpr(_IteratorMethod == IteratorMethod::TopDownLR)
+        if constexpr(IteratorMethod == IteratorMethod::TopDownLR)
         {
             func(tree);
-            Iterate<_Node, _F, _IteratorMethod>(tree->left, func);
-            Iterate<_Node, _F, _IteratorMethod>(tree->right, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Left, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Right, func);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::TopDownRL)
+        else if constexpr(IteratorMethod == IteratorMethod::TopDownRL)
         {
             func(tree);
-            Iterate<_Node, _F, _IteratorMethod>(tree->right, func);
-            Iterate<_Node, _F, _IteratorMethod>(tree->left, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Right, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Left, func);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::HighestToLowest)
+        else if constexpr(IteratorMethod == IteratorMethod::HighestToLowest)
         {
-            Iterate<_Node, _F, _IteratorMethod>(tree->right, func);
-            Iterate<_Node, _F, _IteratorMethod>(tree->left, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Right, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Left, func);
             func(tree);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::LowestToHighest)
+        else if constexpr(IteratorMethod == IteratorMethod::LowestToHighest)
         {
-            Iterate<_Node, _F, _IteratorMethod>(tree->left, func);
-            Iterate<_Node, _F, _IteratorMethod>(tree->right, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Left, func);
+            IterateStatic<NodeT, FuncT, IteratorMethod>(tree->Right, func);
             func(tree);
         }
     }
 
-    template<typename _Node, typename _C, typename _F, IteratorMethod _IteratorMethod>
-    static void Iterate(_Node* const tree, _C* const instance, const _F& func) noexcept
+    template<typename NodeT, typename ClassC, typename FuncT, IteratorMethod IteratorMethod>
+    static void IterateStatic(NodeT* const tree, ClassC* const instance, const FuncT& func) noexcept
     {
         if(!tree)
         { return; }
 
-        if constexpr(_IteratorMethod == IteratorMethod::TopDownLR)
+        if constexpr(IteratorMethod == IteratorMethod::TopDownLR)
         {
             (instance->*func)(tree);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->left, func);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->right, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Left, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Right, func);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::TopDownRL)
+        else if constexpr(IteratorMethod == IteratorMethod::TopDownRL)
         {
             (instance->*func)(tree);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->right, func);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->left, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Right, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Left, func);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::HighestToLowest)
+        else if constexpr(IteratorMethod == IteratorMethod::HighestToLowest)
         {
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->right, func);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->left, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Right, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Left, func);
             (instance->*func)(tree);
         }
-        else if constexpr(_IteratorMethod == IteratorMethod::LowestToHighest)
+        else if constexpr(IteratorMethod == IteratorMethod::LowestToHighest)
         {
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->left, func);
-            Iterate<_Node, _C, _F, _IteratorMethod>(tree->right, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Left, func);
+            IterateStatic<NodeT, ClassC, FuncT, IteratorMethod>(tree->Right, func);
             (instance->*func)(tree);
         }
     }
@@ -623,8 +628,8 @@ using PackedAVLNode = AVLNode<T, i8>;
 template<typename T>
 using FastAVLNode = AVLNode<T, iSys>;
 
-template<typename T, InsertMethod _InsertMethod = InsertMethod::Ignore>
-using PackedAVLTree = AVLTree<T, i8, _InsertMethod>;
+template<typename T, InsertMethod InsertMethod = InsertMethod::Ignore>
+using PackedAVLTree = AVLTree<T, i8, InsertMethod>;
 
-template<typename T, InsertMethod _InsertMethod = InsertMethod::Ignore>
-using FastAVLTree = AVLTree<T, iSys, _InsertMethod>;
+template<typename T, InsertMethod InsertMethod = InsertMethod::Ignore>
+using FastAVLTree = AVLTree<T, iSys, InsertMethod>;
