@@ -7,19 +7,19 @@
 /**
 * Converts radians to degrees (single precision).
 */
-#define RAD_2_DEG_F(F) (float)  ((F) * RADIANS_TO_DEGREES_CONVERTER_VAL)
+#define RAD_2_DEG_F(F) (float)  ((F) * RADIANS_TO_DEGREES_CONVERTER_VAL<float>)
 /**
 * Converts degrees to radians (single precision).
 */
-#define DEG_2_RAD_F(F) (float)  ((F) * DEGREES_TO_RADIANS_CONVERTER_VAL)
+#define DEG_2_RAD_F(F) (float)  ((F) * DEGREES_TO_RADIANS_CONVERTER_VAL<float>)
 /**
  * Converts radians to degrees (double precision).
  */
-#define RAD_2_DEG_D(D) (double) ((D) * RADIANS_TO_DEGREES_CONVERTER_VAL)
+#define RAD_2_DEG_D(D) (double) ((D) * RADIANS_TO_DEGREES_CONVERTER_VAL<double>)
  /**
   * Converts degrees to radians (double precision).
   */
-#define DEG_2_RAD_D(D) (double) ((D) * DEGREES_TO_RADIANS_CONVERTER_VAL)
+#define DEG_2_RAD_D(D) (double) ((D) * DEGREES_TO_RADIANS_CONVERTER_VAL<double>)
 
 #define RAD_2_DEG(F) RAD_2_DEG_F(F)
 #define DEG_2_RAD(F) DEG_2_RAD_F(F)

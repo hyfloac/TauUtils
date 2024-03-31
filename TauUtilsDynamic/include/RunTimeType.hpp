@@ -121,7 +121,7 @@ template<typename T>
   #define RTT_BASE_IMPL(TYPE) \
     public:                                                                       \
         [[nodiscard]] static RunTimeType<TYPE> _getStaticRTType() noexcept;       \
-        [[nodiscard]] virtual RunTimeType<_TYPE> _getRTType() const noexcept = 0; \
+        [[nodiscard]] virtual RunTimeType<TYPE> _getRTType() const noexcept = 0; \
 
   #define RTT_BASE_IMPL_TU(TYPE) \
         RunTimeType<TYPE> TYPE::_getStaticRTType() noexcept      \
@@ -144,7 +144,7 @@ template<typename T>
 
   #define RTT_BASE_IMPL_TU(TYPE)
 
-  #define RTTD_BASE_IMPL(_TYPE) \
+  #define RTTD_BASE_IMPL(TYPE) \
     public:                     \
         [[nodiscard]] virtual RunTimeType<TYPE> _getRTType_##TYPE() const noexcept = 0;
 
@@ -287,7 +287,7 @@ template<typename T>
 #define RTTD_BASE_CAST(TYPE) \
     public:                                                                                   \
         template<typename T>                                                                  \
-        [[nodiscard]]_T* _castRTType_##TYPE() noexcept                                        \
+        [[nodiscard]] T* _castRTType_##TYPE() noexcept                                        \
         { return _isRTType_##TYPE<T>() ? static_cast<T*>(this) : nullptr; }                   \
         template<typename T>                                                                  \
         [[nodiscard]] const T* _castRTType_##TYPE() const noexcept                            \
@@ -318,16 +318,48 @@ template<typename T>
         { return obj->_isRTType_##TYPE<T>() ? RefStaticCast<T>(obj) : nullptr; }
 
 
-template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::std::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
+namespace RTT_Utils {
+
+template<typename T> struct remove_reference { typedef T type; };
+template<typename T> struct remove_reference<T&> { typedef T type; };
+template<typename T> struct remove_reference<T&&> { typedef T type; };
+
+template<typename T>
+using remove_reference_t = typename remove_reference<T>::Type;
+
+template<typename T> struct remove_pointer                      { typedef T type; };
+template<typename T> struct remove_pointer<T*>                  { typedef T type; };
+template<typename T> struct remove_pointer<T* const>            { typedef T type; };
+template<typename T> struct remove_pointer<T* volatile>         { typedef T type; };
+template<typename T> struct remove_pointer<T* const volatile>   { typedef T type; };
+template<typename T> struct remove_pointer<CPPRef<T>>           { typedef T type; };
+template<typename T> struct remove_pointer<CPPWeakRef<T>>       { typedef T type; };
+template<typename T> struct remove_pointer<Ref<T>>              { typedef T type; };
+template<typename T> struct remove_pointer<StrongRef<T>>        { typedef T type; };
+template<typename T> struct remove_pointer<WeakRef<T>>          { typedef T type; };
+template<typename T> struct remove_pointer<const CPPRef<T>>     { typedef T type; };
+template<typename T> struct remove_pointer<const CPPWeakRef<T>> { typedef T type; };
+template<typename T> struct remove_pointer<const Ref<T>>        { typedef T type; };
+template<typename T> struct remove_pointer<const StrongRef<T>>  { typedef T type; };
+template<typename T> struct remove_pointer<const WeakRef<T>>    { typedef T type; };
+
+template<typename T>
+using remove_pointer_t = typename remove_pointer<T>::type;
+
+}
+
+
+
+template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
 [[nodiscard]] bool rtt_check(const InputType& in) noexcept
-{ return ::std::remove_pointer_t<::std::remove_reference_t<InputType>>::template _isRTType<TargetType>(in); }
+{ return ::RTT_Utils::remove_pointer_t<::std::remove_reference_t<InputType>>::template _isRTType<TargetType>(in); }
 
-template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::std::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
+template<typename TargetType, typename InputType, ::std::enable_if_t<::std::is_base_of_v<::RTT_Utils::remove_pointer_t<::std::remove_reference_t<InputType>>, TargetType>, int> = 0>
 [[nodiscard]] TargetType* rtt_cast(const InputType& in) noexcept
-{ return ::std::remove_pointer_t<::std::remove_reference_t<InputType>>::template _castRTType<TargetType>(in); }
+{ return ::RTT_Utils::remove_pointer_t<::std::remove_reference_t<InputType>>::template _castRTType<TargetType>(in); }
 
-#define RTT_CHECK(VAR, T) (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_isRTType<T>(VAR))
-#define RTT_CAST(VAR, T)  (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_castRTType<T>(VAR))
+#define RTT_CHECK(VAR, T) (::RTT_Utils::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::template _isRTType<T>(VAR))
+#define RTT_CAST(VAR, T)  (::RTT_Utils::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::template _castRTType<T>(VAR))
 
-#define RTTD_CHECK(VAR, T, BASE_TYPE) (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_isRTType_##BASE_TYPE<T>(VAR))
-#define RTTD_CAST(VAR, T, BASE_TYPE)  (::std::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::_castRTType_##BASE_TYPE<T>(VAR))                   
+#define RTTD_CHECK(VAR, T, BASE_TYPE) (::RTT_Utils::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::template _isRTType_##BASE_TYPE<T>(VAR))
+#define RTTD_CAST(VAR, T, BASE_TYPE)  (::RTT_Utils::remove_pointer_t<::std::remove_reference_t<decltype(VAR)>>::template _castRTType_##BASE_TYPE<T>(VAR))                   

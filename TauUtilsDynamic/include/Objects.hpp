@@ -93,12 +93,12 @@
 #define DECL_OPAQUE_TYPE(TYPE)                      \
     struct TYPE final {                             \
         DEFAULT_CONSTRUCT_PUCV(TYPE);               \
-        DEFAULT_DESTRUCT_CV(TYPE);                  \
-        DEFAULT_CM_PUCV(TYPE);                      \
+        DEFAULT_DESTRUCT_C(TYPE);                   \
+        DEFAULT_CM_PUC(TYPE);                       \
     public:                                         \
         void* raw;                                  \
     public:                                         \
-        constexpr _TYPE(void* const _raw) noexcept  \
+        constexpr TYPE(void* const _raw) noexcept   \
             : raw(_raw)                             \
         { }                                         \
         template<typename T>                        \

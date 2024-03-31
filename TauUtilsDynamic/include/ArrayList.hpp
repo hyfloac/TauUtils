@@ -66,6 +66,7 @@ class ArrayListIterator final
 {
 public:
     using ControlBlock = ArrayListUtils::ControlBlock;
+    using value_type = T;
 private:
     ControlBlock* _ctrlBlock;
     T* _arr;
@@ -165,6 +166,7 @@ class ConstArrayListIterator final
 {
 public:
     using ControlBlock = ArrayListUtils::ControlBlock;
+    using value_type = T;
 private:
     ControlBlock* _ctrlBlock;
     const T* _arr;
@@ -299,7 +301,7 @@ public:
         {
             for(uSys i = 0; i < _ctrlBlock->data.elementCount; ++i)
             {
-                _arr[i].~_T();
+                _arr[i].~T();
             }
 
             PageAllocator::Free(_ctrlBlock);
@@ -383,7 +385,7 @@ public:
         if(index + 1 > _ctrlBlock->data.elementCount)
         { return; }
 
-        _arr[index].~_T();
+        _arr[index].~T();
 
         --_ctrlBlock->data.elementCount;
         if(index == _ctrlBlock->data.elementCount)
