@@ -1765,6 +1765,70 @@ inline constexpr void StringBuilderT<char>::Append<c32>(const c32* string, const
     m_String[m_Length] = '\0';
 }
 
+#if !defined(_MSVC_LANG)
+errno_t mbsrtowcs_s(
+   uSys* const pReturnValue,
+   wchar_t* const wcstr,
+   const uSys sizeInWords,
+   const char** const mbstr,
+   const uSys count,
+   mbstate_t* const mbstate
+)
+{
+    (void) sizeInWords;
+
+    const uSys retValue = ::std::mbsrtowcs(wcstr, mbstr, count, mbstate);
+
+    if(pReturnValue)
+    {
+        *pReturnValue = retValue;
+    }
+
+    if(retValue == static_cast<uSys>(-1))
+    {
+        return errno;
+    }
+
+    if(retValue > sizeInWords)
+    {
+        return ERANGE;
+    }
+
+    return 0;
+}
+
+errno_t wcsrtombs_s(
+   uSys* const pReturnValue,
+   char* const mbstr,
+   const uSys sizeInBytes,
+   const wchar_t** const wcstr,
+   const uSys count,
+   mbstate_t* const mbstate
+)
+{
+    (void) sizeInBytes;
+
+    const uSys retValue = ::std::wcsrtombs(mbstr, wcstr, count, mbstate);
+
+    if(pReturnValue)
+    {
+        *pReturnValue = retValue;
+    }
+
+    if(retValue == static_cast<uSys>(-1))
+    {
+        return errno;
+    }
+
+    if(retValue > sizeInBytes)
+    {
+        return ERANGE;
+    }
+
+    return 0;
+}
+#endif
+
 template<>
 template<>
 inline constexpr void StringBuilderT<wchar_t>::Append<char>(const char* string, const uSys length) noexcept
@@ -2572,8 +2636,8 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Backspace(const uSys c
     return ConstEvalStringBuilderT(newString);
 }
 
-template<typename CTo, typename CFrom>
-DynStringT<CTo> StringCast(const DynStringT<CFrom>&) noexcept = delete;
+// template<typename CTo, typename CFrom>
+// DynStringT<CTo> StringCast(const DynStringT<CFrom>&) noexcept = delete;
 
 template<>
 inline DynStringT<char> StringCast(const DynStringT<char>& string) noexcept

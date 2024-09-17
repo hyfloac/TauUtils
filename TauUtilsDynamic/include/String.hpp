@@ -869,7 +869,7 @@ private:
 };
 
 template<typename CharTo, typename CharFrom>
-DynStringT<CharTo> StringCast(const DynStringT<CharFrom>& string) noexcept;
+DynStringT<CharTo> StringCast(const DynStringT<CharFrom>& string) noexcept = delete;
 
 using StringBase = StringBaseT<char>;
 using WStringBase = StringBaseT<wchar_t>;

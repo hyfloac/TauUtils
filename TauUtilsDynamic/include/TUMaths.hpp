@@ -361,16 +361,28 @@ constexpr u64 DeBruijnTable64[64] = {
 { return __builtin_ctzll(v); }
 
 [[nodiscard]] inline u8 CountLeadingZero(const u8 v) noexcept
-{ return static_cast<u8>(__builtin_clz(static_cast<u32>(v))); }
+{ return static_cast<u8>(__builtin_clz(static_cast<u32>(v))) - 24; }
 
 [[nodiscard]] inline u16 CountLeadingZero(const u16 v) noexcept
-{ return static_cast<u16>(__builtin_clz(static_cast<u32>(v))); }
+{ return static_cast<u16>(__builtin_clz(static_cast<u32>(v))) - 16; }
 
 [[nodiscard]] inline u32 CountLeadingZero(const u32 v) noexcept
 { return __builtin_clz(v); }
 
 [[nodiscard]] inline u32 CountLeadingZero(const u64 v) noexcept
 { return __builtin_clzll(v); }
+
+[[nodiscard]] constexpr inline u8 CountTrailingZeroC(const u8 v) noexcept
+{ return static_cast<u8>(__builtin_ctz(static_cast<u32>(v))); }
+
+[[nodiscard]] constexpr inline u8 CountLeadingZeroC(const u8 v) noexcept
+{ return static_cast<u8>(__builtin_clz(static_cast<u32>(v))) - 24; }
+
+[[nodiscard]] constexpr inline u16 CountTrailingZeroC(const u16 v) noexcept
+{ return static_cast<u16>(__builtin_ctz(static_cast<u32>(v))); }
+
+[[nodiscard]] constexpr inline u16 CountLeadingZeroC(const u16 v) noexcept
+{ return static_cast<u16>(__builtin_clz(static_cast<u32>(v))) - 16; }
 
 [[nodiscard]] constexpr inline u32 CountTrailingZeroC(const u32 v) noexcept
 { return __builtin_ctz(v); }

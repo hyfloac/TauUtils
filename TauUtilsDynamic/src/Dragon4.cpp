@@ -29,7 +29,9 @@
 #include <cmath>
 #include <climits>
 #include <cstring>
+#if (defined(_M_X64) && _M_X64 == 100)
 #include <immintrin.h>
+#endif
 
 #define BIG_INT_MAX_BLOCKS (35)
 

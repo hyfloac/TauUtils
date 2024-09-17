@@ -26,41 +26,92 @@
   typedef unsigned int       u32;
   typedef unsigned long long u64;
 
-  #ifndef INT8_MIN
-    #define INT8_MIN         (-127i8 - 1)
-  #endif
-  #ifndef INT16_MIN
-    #define INT16_MIN        (-32767i16 - 1)
-  #endif
-  #ifndef INT32_MIN
-    #define INT32_MIN        (-2147483647i32 - 1)
-  #endif
-  #ifndef INT64_MIN
-    #define INT64_MIN        (-9223372036854775807i64 - 1)
-  #endif
-  #ifndef INT8_MAX
-    #define INT8_MAX         127i8
-  #endif
-  #ifndef INT16_MAX
-    #define INT16_MAX        32767i16
-  #endif
-  #ifndef INT32_MAX
-    #define INT32_MAX        2147483647i32
-  #endif
-  #ifndef INT64_MAX
-    #define INT64_MAX        9223372036854775807i64
-  #endif
-  #ifndef UINT8_MAX
-    #define UINT8_MAX        0xffui8
-  #endif
-  #ifndef UINT16_MAX
-    #define UINT16_MAX       0xffffui16
-  #endif
-  #ifndef UINT32_MAX
-    #define UINT32_MAX       0xffffffffui32
-  #endif
-  #ifndef UINT64_MAX
-    #define UINT64_MAX       0xffffffffffffffffui64
+  #if defined(_MSVC_LANG)
+    #ifndef INT8_MIN
+      #define INT8_MIN         (-127i8 - 1)
+    #endif
+    #ifndef INT16_MIN
+      #define INT16_MIN        (-32767i16 - 1)
+    #endif
+    #ifndef INT32_MIN
+      #define INT32_MIN        (-2147483647i32 - 1)
+    #endif
+    #ifndef INT64_MIN
+      #define INT64_MIN        (-9223372036854775807i64 - 1)
+    #endif
+    #ifndef INT8_MAX
+      #define INT8_MAX         127i8
+    #endif
+    #ifndef INT16_MAX
+      #define INT16_MAX        32767i16
+    #endif
+    #ifndef INT32_MAX
+      #define INT32_MAX        2147483647i32
+    #endif
+    #ifndef INT64_MAX
+      #define INT64_MAX        9223372036854775807i64
+    #endif
+    #ifndef UINT8_MAX
+      #define UINT8_MAX        0xffui8
+    #endif
+    #ifndef UINT16_MAX
+      #define UINT16_MAX       0xffffui16
+    #endif
+    #ifndef UINT32_MAX
+      #define UINT32_MAX       0xffffffffui32
+    #endif
+    #ifndef UINT64_MAX
+      #define UINT64_MAX       0xffffffffffffffffui64
+    #endif
+  #else
+    #ifndef INT8_MIN
+      #define INT8_MIN         (-128)
+    #endif
+    #ifndef INT16_MIN
+      #define INT16_MIN        (-32768)
+    #endif
+    #ifndef INT32_MIN
+      /*
+         Note:  the literal "most negative int" cannot be written in C --
+         the rules in the standard (section 6.4.4.1 in C99) will give it
+         an unsigned type, so INT32_MIN (and the most negative member of
+         any larger signed type) must be written via a constant expression.
+      */
+      #define INT32_MIN        (-INT32_MAX - 1)
+    #endif
+    #ifndef INT64_MIN
+      /*
+         Note:  the literal "most negative int" cannot be written in C --
+         the rules in the standard (section 6.4.4.1 in C99) will give it
+         an unsigned type, so INT32_MIN (and the most negative member of
+         any larger signed type) must be written via a constant expression.
+      */
+      #define INT64_MIN        (-INT64_MAX - 1)
+    #endif
+    #ifndef INT8_MAX
+      #define INT8_MAX         127
+    #endif
+    #ifndef INT16_MAX
+      #define INT16_MAX        32767
+    #endif
+    #ifndef INT32_MAX
+      #define INT32_MAX        2147483647
+    #endif
+    #ifndef INT64_MAX
+      #define INT64_MAX        9223372036854775807LL
+    #endif
+    #ifndef UINT8_MAX
+      #define UINT8_MAX        0xff
+    #endif
+    #ifndef UINT16_MAX
+      #define UINT16_MAX       0xffff
+    #endif
+    #ifndef UINT32_MAX
+      #define UINT32_MAX       0xffffffffU
+    #endif
+    #ifndef UINT64_MAX
+      #define UINT64_MAX       0xffffffffffffffffULL
+    #endif
   #endif
 #endif
 
@@ -83,7 +134,7 @@ typedef float  f32;
 typedef double f64;
 
 #if defined(_MSVC_LANG) || !defined(TAU_NUMTYPES_USE_CSTDLIB)
-  #if defined(_WIN64) || (defined(_M_X64) && _M_X64 == 100)
+  #if defined(_WIN64) || (defined(_M_X64) && _M_X64 == 100) || (defined(__aarch64__) && __aarch64__)
     typedef i64 iSys;
     typedef u64 uSys;
 

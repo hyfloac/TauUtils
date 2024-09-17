@@ -64,6 +64,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
         # using clang with regular front end
 
+        target_compile_options(TauUtilsDynamicShared PRIVATE -Wno-unknown-attributes)
+        target_compile_options(TauUtilsDynamicStatic PRIVATE -Wno-unknown-attributes)
+
         # Disable RTTI and exceptions
         target_compile_options(TauUtilsDynamicShared PRIVATE -fno-rtti -fno-exceptions)
         target_compile_options(TauUtilsDynamicStatic PRIVATE -fno-rtti -fno-exceptions)
