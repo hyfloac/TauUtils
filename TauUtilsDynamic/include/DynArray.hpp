@@ -726,12 +726,11 @@ public:
 public:
     static RefDynArray<T> MakeRaw(const uSys length) noexcept
     {
-        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * size);
+        void* const placement = ::TauUtilsAllocate(sizeof(ReferenceCounter::Type) + sizeof(T) * length);
         ReferenceCounter::Type* const refCount = new(placement) ReferenceCounter::Type(1);
-        m_RefCount = ReferenceCounter(refCount);
-        m_Array = static_cast<T*>(refCount + 1);
+        T* const array = static_cast<T*>(refCount + 1);
 
-        return RefDynArray(m_Array, length, m_RefCount);
+        return RefDynArray(array, length, refCount);
     }
 private:
     RefDynArray(T* const array, const uSys length, ReferenceCounter::Type* const refCount) noexcept

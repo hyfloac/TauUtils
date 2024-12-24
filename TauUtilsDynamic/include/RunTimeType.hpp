@@ -213,7 +213,10 @@ template<typename T>
         { return obj->_isRTType<T>(); }                                           \
         template<typename T>                                                      \
         [[nodiscard]] static bool _isRTType(const CPPWeakRef<TYPE>& obj) noexcept \
-        { return obj->_isRTType<T>(); }                                           \
+        {                                                                         \
+            if(auto objL = obj.lock())                                            \
+            { return objL->_isRTType<T>(); }                                       \
+        }                                                                         \
         template<typename T>                                                      \
         [[nodiscard]] static bool _isRTType(const Ref<TYPE>& obj) noexcept        \
         { return obj->_isRTType<T>(); }                                           \
@@ -240,7 +243,10 @@ template<typename T>
         { return obj->_isRTType_##TYPE<T>(); }                                           \
         template<typename T>                                                             \
         [[nodiscard]] static bool _isRTType_##TYPE(const CPPWeakRef<TYPE>& obj) noexcept \
-        { return obj->_isRTType_##TYPE<T>(); }                                           \
+        {                                                                                \
+            if(auto objL = obj.lock())                                                   \
+            { return objL->_isRTType_##TYPE<T>(); }                                      \
+        }                                                                                \
         template<typename T>                                                             \
         [[nodiscard]] static bool _isRTType_##TYPE(const Ref<TYPE>& obj) noexcept        \
         { return obj->_isRTType_##TYPE<T>(); }                                           \
