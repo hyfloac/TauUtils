@@ -619,12 +619,12 @@ inline constexpr uSys cexpr::strlen(const Char(&str)[Len]) noexcept
 template<typename Char, uSys Len>
 inline constexpr bool cexpr::streq(const Char(&lhs)[Len], const Char(&rhs)[Len])
 {
-    while(*lhs != '\0' && *rhs != '\0')
+    i32 i = 0;
+    while(lhs[i] != '\0' && rhs[i] != '\0')
     {
-        if(*lhs != *rhs)
+        if(lhs[i] != rhs[i])
         { return false; }
-        ++lhs;
-        ++rhs;
+        ++i;
     }
 
     return *lhs == '\0' && *rhs == '\0';
@@ -633,12 +633,12 @@ inline constexpr bool cexpr::streq(const Char(&lhs)[Len], const Char(&rhs)[Len])
 template<typename Char, uSys Len>
 inline constexpr bool cexpr::streqIgnoreCase(const Char(&lhs)[Len], const Char(&rhs)[Len])
 {
-    while(*lhs != '\0' && *rhs != '\0')
+    i32 i = 0;
+    while(lhs[i] != '\0' && rhs[i] != '\0')
     {
-        if(toLower(*lhs) != toLower(*rhs))
+        if(toLower(lhs[i]) != toLower(rhs[i]))
         { return false; }
-        ++lhs;
-        ++rhs;
+        ++i;
     }
 
     return *lhs == '\0' && *rhs == '\0';
@@ -1595,9 +1595,9 @@ inline constexpr StringBuilderT<Char>::StringBuilderT() noexcept
 
 template<typename Char>
 inline constexpr StringBuilderT<Char>::StringBuilderT(const uSys initialSize) noexcept
-    : m_String(::TauUtilsAllocateTArr<Char>(maxT(initialSize, 1)))
+    : m_String(::TauUtilsAllocateTArr<Char>(maxT(initialSize, static_cast<uSys>(1))))
     , m_Length(0)
-    , m_Size(maxT(initialSize, 2))
+    , m_Size(maxT(initialSize, static_cast<uSys>(2)))
 {
     m_String[0] = Char { '\0' };
     // TODO: Fix the buffer overrun so this isn't necessary.

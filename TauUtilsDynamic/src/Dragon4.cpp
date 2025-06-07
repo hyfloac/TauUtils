@@ -1067,15 +1067,15 @@ static constexpr uSys Dragon4T(const u64 mantissa, const i32 exponent, const i32
     return static_cast<u32>(currDigit - outBuffer);
 }
 
-TAU_UTILS_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_UTILS_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, char* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_UTILS_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, wchar_t* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_UTILS_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, wchar_t* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_UTILS_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c8* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_UTILS_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c8* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_UTILS_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c16* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_UTILS_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c16* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
-TAU_UTILS_LIB constexpr uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c32* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
+TAU_UTILS_LIB uSys Dragon4(const u64 mantissa, const i32 exponent, const i32 mantissaHighBitIndex, const bool hasUnequalMargins, const CutoffMode cutoffMode, const u32 cutoffNumber, c32* const outBuffer, const uSys bufferSize, i32* const outExponent) noexcept
 { return Dragon4T(mantissa,exponent, mantissaHighBitIndex, hasUnequalMargins, cutoffMode, cutoffNumber, outBuffer, bufferSize, outExponent); }
 
 template<typename Char>
@@ -1504,24 +1504,24 @@ static constexpr uSys PrintFloat64T(Char* outBuffer, uSys bufferSize, const f64 
     }
 }
 
-TAU_UTILS_LIB constexpr uSys PrintFloat32(char* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat32(char* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat32(wchar_t* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat32(wchar_t* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat32(c8* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat32(c8* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat32(c16* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat32(c16* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat32(c32* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat32(c32* const outBuffer, const uSys bufferSize, const f32 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat32T(outBuffer, bufferSize, value, format, precision); }
 
-TAU_UTILS_LIB constexpr uSys PrintFloat64(char* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat64(char* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat64(wchar_t* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat64(wchar_t* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat64(c8* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat64(c8* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat64(c16* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat64(c16* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }
-TAU_UTILS_LIB constexpr uSys PrintFloat64(c32* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
+TAU_UTILS_LIB uSys PrintFloat64(c32* const outBuffer, const uSys bufferSize, const f64 value, const PrintFloatFormat format, const i32 precision) noexcept
 { return PrintFloat64T(outBuffer, bufferSize, value, format, precision); }

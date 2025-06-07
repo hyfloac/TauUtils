@@ -621,7 +621,7 @@ struct StringFormatContext final
     constexpr u32 Handler(const          long d) noexcept { return HandlerInt(d); }
     constexpr u32 Handler(const unsigned long d) noexcept { return HandlerInt(d); }
 
-    constexpr u32 Handler(const f32 f, const PrintFloatFormat format, const i32 precision = 6) noexcept
+    constexpr u32 Handler(const f32 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 6) noexcept
     {
         CharOut buffer[192];
         const uSys writeLen = PrintFloat32(buffer, ::std::size(buffer), f, format, precision);
@@ -629,7 +629,7 @@ struct StringFormatContext final
         return writeLen;
     }
 
-    constexpr u32 Handler(const f64 f, const PrintFloatFormat format, const i32 precision = 17) noexcept
+    constexpr u32 Handler(const f64 f, const PrintFloatFormat format = PrintFloatFormat::Positional, const i32 precision = 17) noexcept
     {
         CharOut buffer[256];
         const uSys writeLen = PrintFloat64(buffer, ::std::size(buffer), f, format, precision);
@@ -661,7 +661,7 @@ inline consteval auto FormatConstEval(const CharIn(&fmt)[FmtLen], const CurrArg&
 {
     StringFormatContext<CharOut> context;
     InternalFormat0(context, fmt, currArg, args...);
-    return context.Builder.ToStringC<static_cast<uSys>(OutLen)>();
+    return context.Builder.template ToStringC<CharOut, static_cast<uSys>(OutLen)>();
 }
 
 template<typename CharOut, iSys OutLen, typename CharIn, iSys FmtLen, typename CurrArg, typename... Args>
@@ -669,6 +669,6 @@ inline consteval auto FormatConstEval(const ConstExprStackStringT<CharIn, FmtLen
 {
     StringFormatContext<CharOut> context;
     InternalFormat0(context, fmt, currArg, args...);
-    return context.Builder.ToStringC<static_cast<uSys>(OutLen)>();
+    return context.Builder.template ToStringC<CharOut, static_cast<uSys>(OutLen)>();
 }
 
