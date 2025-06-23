@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BackendCodeEditorSettings">
-    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
     <option name="/Default/CodeStyle/CppIncludeDirective/SortIncludeDirectives/@EntryValue" value="true" type="bool" />
     <option name="/Default/CodeStyle/CppIncludeDirective/UseAngleBracketsInsteadOfQuotes/@EntryValue" value="ForNonProjectFiles" type="string" />
     <option name="/Default/CodeStyle/CodeFormatting/CppCodeStyle/OverridingDestructorStyle/@EntryValue" value="VirtualAndOverride" type="string" />
@@ -38,8 +37,7 @@
     <option name="/Default/CodeStyle/Naming/CppNaming/Rules/=Properties/@EntryIndexedValue" value="&lt;NamingElement Priority=&quot;20&quot;&gt;&lt;Descriptor Static=&quot;Indeterminate&quot; Constexpr=&quot;Indeterminate&quot; Const=&quot;Indeterminate&quot; Volatile=&quot;Indeterminate&quot; Accessibility=&quot;NOT_APPLICABLE&quot;&gt;&lt;type Name=&quot;property&quot; /&gt;&lt;/Descriptor&gt;&lt;Policy Inspect=&quot;True&quot; Prefix=&quot;&quot; Suffix=&quot;&quot; Style=&quot;AaBb_AaBb&quot; /&gt;&lt;/NamingElement&gt;" type="string" />
     <option name="/Default/CodeStyle/Naming/CppNaming/Rules/=Enums/@EntryIndexedValue" value="&lt;NamingElement Priority=&quot;3&quot;&gt;&lt;Descriptor Static=&quot;Indeterminate&quot; Constexpr=&quot;Indeterminate&quot; Const=&quot;Indeterminate&quot; Volatile=&quot;Indeterminate&quot; Accessibility=&quot;NOT_APPLICABLE&quot;&gt;&lt;type Name=&quot;enum&quot; /&gt;&lt;/Descriptor&gt;&lt;Policy Inspect=&quot;True&quot; Prefix=&quot;&quot; Suffix=&quot;&quot; Style=&quot;AaBb_AaBb&quot; /&gt;&lt;/NamingElement&gt;" type="string" />
     <option name="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003A_005F_005Flocale_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003FLibrary_003FDeveloper_003FCommandLineTools_003FSDKs_003FMacOSX14_002E4_002Esdk_003Fusr_003Finclude_003Fc_002B_002B_003Fv1_003F_005F_005Flocale/@EntryIndexedValue" value="ExplicitlyExcluded" type="string" />
-    <option name="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003A_005F_005Flocale_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003FLibrary_003FDeveloper_003FCommandLineTools_003FSDKs_003FMacOSX14_002E4_002Esdk_003Fusr_003Finclude_003Fc_002B_002B_003Fv1_003F_005F_005Flocale/@EntryIndexRemoved" />
     <option name="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003Awchar_002Eh_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003FLibrary_003FDeveloper_003FCommandLineTools_003FSDKs_003FMacOSX14_002E4_002Esdk_003Fusr_003Finclude_003Fwchar_002Eh/@EntryIndexedValue" value="ExplicitlyExcluded" type="string" />
-    <option name="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003Awchar_002Eh_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003FLibrary_003FDeveloper_003FCommandLineTools_003FSDKs_003FMacOSX14_002E4_002Esdk_003Fusr_003Finclude_003Fwchar_002Eh/@EntryIndexRemoved" />
+    <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/NAMESPACE_DECLARATION_BRACES/@EntryValue" value="END_OF_LINE" type="string" />
   </component>
 </project>
