@@ -117,6 +117,32 @@ inline DynStringT<c16> StringCastSkipBom(const DynStringT<wchar_t>& string) noex
 }
 
 
+template<>
+inline DynStringT<c16> StringCast<c16, char>(const DynStringT<char>& string) noexcept
+{
+    return StringCast<c16>(C8DynString(string.Length(), reinterpret_cast<const c8*>(string.String())));
+}
+
+template<>
+inline DynStringT<char> StringCast<char, c16>(const DynStringT<c16>& string) noexcept
+{
+    const C8DynString tmp = StringCast<c8>(string);
+    return DynString(tmp.Length(), reinterpret_cast<const char*>(tmp.String()));
+}
+
+template<>
+inline DynStringT<c32> StringCast<c32, char>(const DynStringT<char>& string) noexcept
+{
+    return StringCast<c32>(C8DynString(string.Length(), reinterpret_cast<const c8*>(string.String())));
+}
+
+template<>
+inline DynStringT<char> StringCast<char, c32>(const DynStringT<c32>& string) noexcept
+{
+    const C8DynString tmp = StringCast<c8>(string);
+    return DynString(tmp.Length(), reinterpret_cast<const char*>(tmp.String()));
+}
+
 
 #if defined(_WIN32)
 template<>
@@ -249,7 +275,7 @@ inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c16>& string) noex
 template<>
 inline DynStringT<wchar_t> StringCastSkipBom(const DynStringT<c8>& string) noexcept
 {
-    return StringCast<wchar_t>(StringCastSkipBom<c32>(string));
+    return StringCast<wchar_t>(StringCastSkipBom<c32>(StringCast<c32>(string)));
 }
 
 
@@ -262,29 +288,3 @@ inline DynStringT<wchar_t> StringCastFlipEndianSkipBom(const DynStringT<c32>& st
 #endif
 
 
-
-template<>
-inline DynStringT<c16> StringCast<c16, char>(const DynStringT<char>& string) noexcept
-{
-    return StringCast<c16>(C8DynString(string.Length(), reinterpret_cast<const c8*>(string.String())));
-}
-
-template<>
-inline DynStringT<char> StringCast<char, c16>(const DynStringT<c16>& string) noexcept
-{
-    const C8DynString tmp = StringCast<c8>(string);
-    return DynString(tmp.Length(), reinterpret_cast<const char*>(tmp.String()));
-}
-
-template<>
-inline DynStringT<c32> StringCast<c32, char>(const DynStringT<char>& string) noexcept
-{
-    return StringCast<c32>(C8DynString(string.Length(), reinterpret_cast<const c8*>(string.String())));
-}
-
-template<>
-inline DynStringT<char> StringCast<char, c32>(const DynStringT<c32>& string) noexcept
-{
-    const C8DynString tmp = StringCast<c8>(string);
-    return DynString(tmp.Length(), reinterpret_cast<const char*>(tmp.String()));
-}
