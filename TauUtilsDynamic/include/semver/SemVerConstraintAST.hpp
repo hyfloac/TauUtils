@@ -17,7 +17,7 @@ namespace tau::semver::ast {
 class SemVerConstraintAST
 {
     DEFAULT_CONSTRUCT_POC(SemVerConstraintAST);
-    DEFAULT_DESTRUCT_VI(SemVerConstraintAST);
+    DEFAULT_DESTRUCT_VIC(SemVerConstraintAST);
     DEFAULT_CM_POC(SemVerConstraintAST);
 public:
     virtual void Visit(SemVerConstraintVisitor& visitor) const noexcept { }
@@ -26,13 +26,15 @@ public:
 
 class SemVerConstraintEqualAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintEqualAST);
-    DEFAULT_CM_PUC(SemVerConstraintEqualAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintEqualAST);
+    DEFAULT_CM_PU(SemVerConstraintEqualAST);
 public:
-    SemVerConstraintEqualAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintEqualAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintEqualAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintEqualAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -46,13 +48,15 @@ private:
 
 class SemVerConstraintNotEqualAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintNotEqualAST);
-    DEFAULT_CM_PUC(SemVerConstraintNotEqualAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintNotEqualAST);
+    DEFAULT_CM_PU(SemVerConstraintNotEqualAST);
 public:
-    SemVerConstraintNotEqualAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintNotEqualAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintNotEqualAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintNotEqualAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -66,13 +70,15 @@ private:
 
 class SemVerConstraintLessAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintLessAST);
-    DEFAULT_CM_PUC(SemVerConstraintLessAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintLessAST);
+    DEFAULT_CM_PU(SemVerConstraintLessAST);
 public:
-    SemVerConstraintLessAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintLessAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintLessAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintLessAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -86,13 +92,15 @@ private:
 
 class SemVerConstraintLessEqualAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintLessEqualAST);
-    DEFAULT_CM_PUC(SemVerConstraintLessEqualAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintLessEqualAST);
+    DEFAULT_CM_PU(SemVerConstraintLessEqualAST);
 public:
-    SemVerConstraintLessEqualAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintLessEqualAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintLessEqualAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintLessEqualAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -106,13 +114,15 @@ private:
 
 class SemVerConstraintGreaterAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintGreaterAST);
-    DEFAULT_CM_PUC(SemVerConstraintGreaterAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintGreaterAST);
+    DEFAULT_CM_PU(SemVerConstraintGreaterAST);
 public:
-    SemVerConstraintGreaterAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintGreaterAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintGreaterAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintGreaterAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -126,13 +136,15 @@ private:
 
 class SemVerConstraintGreaterEqualAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintGreaterEqualAST);
-    DEFAULT_CM_PUC(SemVerConstraintGreaterEqualAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintGreaterEqualAST);
+    DEFAULT_CM_PU(SemVerConstraintGreaterEqualAST);
 public:
-    SemVerConstraintGreaterEqualAST(const SemVer& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintGreaterEqualAST(const SemVer& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(target)
     { }
-    SemVerConstraintGreaterEqualAST(SemVer&& target) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintGreaterEqualAST(SemVer&& target) noexcept // NOLINT(*-explicit-constructor)
         : m_Target(::std::move(target))
     { }
 
@@ -146,8 +158,8 @@ private:
 
 class SemVerConstraintAndAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintAndAST);
-    DEFAULT_CM_PUC(SemVerConstraintAndAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintAndAST);
+    DEFAULT_CM_PU(SemVerConstraintAndAST);
 public:
     SemVerConstraintAndAST(const Ref<SemVerConstraintAST>& left, const Ref<SemVerConstraintAST>& right) noexcept
         : m_Left(left)
@@ -166,8 +178,8 @@ private:
 
 class SemVerConstraintOrAST final : public SemVerConstraintAST
 {
-    DEFAULT_DESTRUCT_C(SemVerConstraintOrAST);
-    DEFAULT_CM_PUC(SemVerConstraintOrAST);
+    DEFAULT_DESTRUCT_O(SemVerConstraintOrAST);
+    DEFAULT_CM_PU(SemVerConstraintOrAST);
 public:
     SemVerConstraintOrAST(const Ref<SemVerConstraintAST>& left, const Ref<SemVerConstraintAST>& right) noexcept
         : m_Left(left)
@@ -269,7 +281,7 @@ namespace tau::semver {
 class SemVerConstraintVisitor
 {
     DEFAULT_CONSTRUCT_POC(SemVerConstraintVisitor);
-    DEFAULT_DESTRUCT_VI(SemVerConstraintVisitor);
+    DEFAULT_DESTRUCT_VIC(SemVerConstraintVisitor);
     DEFAULT_CM_POC(SemVerConstraintVisitor);
 public:
     virtual void Visit(const Ref<ast::SemVerConstraintAST>& ast) noexcept
@@ -324,13 +336,15 @@ public:
 class SemVerConstraintExecutor
 {
     DEFAULT_DESTRUCT_VI(SemVerConstraintExecutor);
-    DEFAULT_CM_PUC(SemVerConstraintExecutor);
+    DEFAULT_CM_PU(SemVerConstraintExecutor);
 public:
-    SemVerConstraintExecutor(const SemVer& currentVersion) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintExecutor(const SemVer& currentVersion) noexcept // NOLINT(*-explicit-constructor)
         : m_CurrentVersion(currentVersion)
     { }
 
-    SemVerConstraintExecutor(SemVer&& currentVersion) noexcept
+    // ReSharper disable once CppNonExplicitConvertingConstructor
+    SemVerConstraintExecutor(SemVer&& currentVersion) noexcept // NOLINT(*-explicit-constructor)
         : m_CurrentVersion(::std::move(currentVersion))
     { }
 
