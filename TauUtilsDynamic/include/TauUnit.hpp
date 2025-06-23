@@ -112,7 +112,7 @@ public:
 private:
     void Init() noexcept
     {
-        ConPrinter::PrintLn("\x1B[96mStart\x1B[0m {}", m_TestName);
+        ConPrinter::PrintLn(u"\x1B[96mStart\x1B[0m {}", m_TestName);
     }
 private:
     C8DynString m_TestName;
