@@ -152,7 +152,7 @@ Char toUpper(Char c) noexcept = delete;
  *      The number of characters that are, or would need to be stored.
  */
 template<typename Char>
-uSys toLower(const Char* str, [[tau::nullable]] Char* store) noexcept;
+uSys toLower(const Char* str, NULLABLE Char* store) noexcept;
 
 /**
  * Converts a string to upper case.
@@ -161,22 +161,22 @@ uSys toLower(const Char* str, [[tau::nullable]] Char* store) noexcept;
  *      The number of characters that are, or would need to be stored.
  */
 template<typename Char>
-uSys toUpper(const Char* str, [[tau::nullable]] Char* store) noexcept;
+uSys toUpper(const Char* str, NULLABLE Char* store) noexcept;
 
 template<typename Char>
-constexpr uSys findHashCode([[tau::nonnull]] const Char* str) noexcept;
+constexpr uSys findHashCode(NONNULL const Char* str) noexcept;
 
 template<typename Char>
-constexpr uSys findHashCode([[tau::nonnull]] const Char* str, uSys len) noexcept;
+constexpr uSys findHashCode(NONNULL const Char* str, uSys len) noexcept;
 
 template<typename Char>
-constexpr uSys strLength([[tau::nonnull]] const Char* str) noexcept;
+constexpr uSys strLength(NONNULL const Char* str) noexcept;
 
 template<typename Char>
-constexpr i32 strCompare([[tau::nonnull]] const Char* lhs, [[tau::nonnull]] const Char* rhs) noexcept;
+constexpr i32 strCompare(NONNULL const Char* lhs, NONNULL const Char* rhs) noexcept;
 
 template<typename Char>
-constexpr i32 strCompare([[tau::nonnull]] const Char* lhs, [[tau::nonnull]] const Char* rhs, uSys length) noexcept;
+constexpr i32 strCompare(NONNULL const Char* lhs, NONNULL const Char* rhs, uSys length) noexcept;
 
 inline bool equalsIgnoreCase(const char* RESTRICT lhs, const char* RESTRICT rhs) noexcept
 {
@@ -235,7 +235,7 @@ class StringBaseT
     DEFAULT_DESTRUCT_VI(StringBaseT);
     DEFAULT_CM_PO(StringBaseT);
 public:
-    [[nodiscard]] [[tau::nonnull]] virtual const Char* String() const noexcept = 0;
+    [[nodiscard]] NONNULL virtual const Char* String() const noexcept = 0;
     [[nodiscard]] virtual uSys Length() const noexcept = 0;
     [[nodiscard]] virtual uSys HashCode() const noexcept = 0;
 
@@ -251,10 +251,10 @@ public:
     [[nodiscard]] virtual i32 CompareTo(const DynStringViewT<Char>& other) const noexcept = 0;
     [[nodiscard]] virtual i32 CompareTo(const Char* other) const noexcept = 0;
 
-    [[nodiscard]] [[tau::nonnull]] const Char* c_str() const noexcept { return String(); }
+    [[nodiscard]] NONNULL const Char* c_str() const noexcept { return String(); }
     [[nodiscard]] uSys length() const noexcept { return Length(); }
 
-    [[nodiscard]] [[tau::nonnull]] operator const Char* () const noexcept { return String(); }
+    [[nodiscard]] NONNULL operator const Char* () const noexcept { return String(); }
     [[nodiscard]] uSys operator()() const noexcept { return HashCode(); }
     [[nodiscard]] uSys hashCode() const noexcept { return HashCode(); }
 
@@ -543,7 +543,7 @@ public:
     // ReSharper disable once CppHidingFunction
     constexpr DynStringT<Char>& operator=(const StringBaseT<Char>& string) noexcept;
 
-    [[nodiscard]] [[tau::nonnull]] constexpr const Char* String() const noexcept override { return m_Data.String(); }
+    [[nodiscard]] NONNULL constexpr const Char* String() const noexcept override { return m_Data.String(); }
     [[nodiscard]] constexpr uSys Length() const noexcept override { return m_Data.Length; }
     [[nodiscard]] constexpr uSys HashCode() const noexcept override { return m_Hash; }
     
@@ -580,9 +580,9 @@ public:
     [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>&   other) const noexcept { return concat(other); }
     [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
 
-    [[nodiscard]] constexpr DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
-    [[nodiscard]] constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
-    [[nodiscard]] constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubStringLen(INCLUSIVE uSys begin, uSys length) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubString(INCLUSIVE uSys begin, EXCLUSIVE uSys end) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> SubString(INCLUSIVE uSys from) const noexcept;
     
     [[nodiscard]] constexpr Char operator [](uSys index) const noexcept;
     [[nodiscard]] constexpr Char At(uSys index) const noexcept;
@@ -671,9 +671,9 @@ public:
     [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>& other) const noexcept { return concat(other); }
     [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
 
-    [[nodiscard]] inline constexpr DynStringT<Char> SubStringLen([[tau::inclusive]] uSys begin, uSys length) const noexcept;
-    [[nodiscard]] inline constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys begin, [[tau::exclusive]] uSys end) const noexcept;
-    [[nodiscard]] inline constexpr DynStringT<Char> SubString([[tau::inclusive]] uSys from) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubStringLen(INCLUSIVE uSys begin, uSys length) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubString(INCLUSIVE uSys begin, EXCLUSIVE uSys end) const noexcept;
+    [[nodiscard]] inline constexpr DynStringT<Char> SubString(INCLUSIVE uSys from) const noexcept;
     
     [[nodiscard]] inline constexpr Char operator [](uSys index) const noexcept;
     [[nodiscard]] inline constexpr Char At(uSys index) const noexcept;

@@ -61,7 +61,7 @@
   #define NOVTABLE
 #endif
 
-#if defined(__clang__) && defined(CPP_VERSION_11)
+#if defined(__clang__) && defined(CPP_VERSION_11) && 0
     #define DYNAMIC_EXPORT [[gnu::dllexport]]
     #define DYNAMIC_IMPORT [[gnu::dllimport]]
 #elif defined(_WIN32)
@@ -73,6 +73,22 @@
 #else
   #define DYNAMIC_EXPORT
   #define DYNAMIC_IMPORT
+#endif
+
+#ifdef USE_TAU_NULLABLE
+  #define NULLABLE [[tau::nullable]]
+  #define NONNULL [[tau::nonnull]]
+#else
+  #define NULLABLE
+  #define NONNULL
+#endif
+
+#ifdef USE_TAU_INCLUSIVE
+  #define INCLUSIVE [[tau::inclusive]]
+  #define EXCLUSIVE [[tau::exclusive]]
+#else
+  #define EXCLUSIVE
+  #define INCLUSIVE
 #endif
 
 #define UNUSED(X0)                  ((void) (X0))
