@@ -54,8 +54,9 @@ inline void PageAllocator::DecommitPages(void* const page, const uSys pageCount)
     (void) VirtualFree(page, pageCount * m_PageSize, MEM_DECOMMIT);
 }
 
-inline void PageAllocator::Free(void* const page) noexcept
+inline void PageAllocator::Free(void* const page, const uSys pageCount) noexcept
 {
+    (void) pageCount;
     (void) VirtualFree(page, 0, MEM_RELEASE);
 }
 

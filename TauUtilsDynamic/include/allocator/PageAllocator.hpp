@@ -25,7 +25,7 @@ public:
     static void DecommitPage(void* page) noexcept;
     static void DecommitPages(void* page, uSys pageCount) noexcept;
 
-    static void Free(void* page) noexcept;
+    static void Free(void* page, uSys pageCount = 1) noexcept;
 
     static void SetReadWrite(void* page, uSys pageCount = 1) noexcept;
     static void SetReadOnly(void* page, uSys pageCount = 1) noexcept;
@@ -55,7 +55,7 @@ public:
     static void decommitPage(void* const page) noexcept { DecommitPage(page); }
     static void decommitPages(void* const page, const uSys pageCount) noexcept { DecommitPages(page, pageCount); }
     
-    static void free(void* const page) noexcept { Free(page); }
+    static void free(void* const page, uSys pageCount = 1) noexcept { Free(page, pageCount); }
     
     static void setReadWrite(void* const page, const uSys pageCount = 1) noexcept { SetReadWrite(page, pageCount); }
     static void setReadOnly(void* const page, const uSys pageCount = 1) noexcept { SetReadOnly(page, pageCount); }
@@ -68,3 +68,4 @@ private:
 };
 
 #include "PageAllocator.win32.inl"
+#include "PageAllocator.nix.inl"
