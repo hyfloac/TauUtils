@@ -9,25 +9,27 @@ class EncodingTransformationBuffer final
 {
     DELETE_CM(EncodingTransformationBuffer);
 public:
-    inline static constexpr uSys TotalPageCount = 64;
+    static constexpr uSys TotalPageCount = 64;
 public:
-    EncodingTransformationBuffer() noexcept
-        : m_Buffer(PageAllocator::Alloc(TotalPageCount))
+    explicit EncodingTransformationBuffer(const uSys totalPageCount = TotalPageCount) noexcept
+        : m_TotalPageCount(totalPageCount)
+        , m_Buffer(PageAllocator::Alloc(m_TotalPageCount))
     { }
 
     ~EncodingTransformationBuffer() noexcept
-    { PageAllocator::Free(m_Buffer); }
+    { PageAllocator::Free(m_Buffer, TotalPageCount); }
 
     [[nodiscard]] void* Get() const noexcept { return m_Buffer; }
 
     template<typename T>
     [[nodiscard]] T* GetAs() const noexcept { return static_cast<T*>(m_Buffer); }
 
-    [[nodiscard]] uSys GetSize() const noexcept { return TotalPageCount * PageAllocator::PageSize(); }
+    [[nodiscard]] uSys GetSize() const noexcept { return m_TotalPageCount * PageAllocator::PageSize(); }
 
     template<typename T>
     [[nodiscard]] uSys GetSizeAs() const noexcept { return GetSize() / sizeof(T); }
 private:
+    uSys m_TotalPageCount;
     void* m_Buffer;
 };
 
