@@ -336,6 +336,7 @@ template<>
 inline wchar_t toLower<wchar_t>(const wchar_t c) noexcept
 { return static_cast<wchar_t>(::std::towlower(c)); }
 
+#ifdef _WIN32
 template<>
 inline c8 toLower<c8>(const c8 c) noexcept
 { return ::std::tolower(c, ::std::locale()); }
@@ -347,6 +348,19 @@ inline c16 toLower<c16>(const c16 c) noexcept
 template<>
 inline c32 toLower<c32>(const c32 c) noexcept
 { return ::std::tolower(c, ::std::locale()); }
+#else
+template<>
+inline c8 toLower<c8>(const c8 c) noexcept
+{ return static_cast<c8>(::std::tolower(static_cast<char>(c), ::std::locale())); }
+
+template<>
+inline c16 toLower<c16>(const c16 c) noexcept
+{ return static_cast<c16>(::std::tolower(static_cast<wchar_t>(c), ::std::locale())); }
+
+template<>
+inline c32 toLower<c32>(const c32 c) noexcept
+{ return static_cast<c32>(::std::tolower(static_cast<wchar_t>(c), ::std::locale())); }
+#endif
 
 template<>
 inline char toUpper<char>(const char c) noexcept
@@ -362,6 +376,7 @@ template<>
 inline wchar_t toUpper<wchar_t>(const wchar_t c) noexcept
 { return static_cast<wchar_t>(::std::towupper(c)); }
 
+#ifdef _WIN32
 template<>
 inline c8 toUpper<c8>(const c8 c) noexcept
 { return ::std::toupper(c, ::std::locale()); }
@@ -373,6 +388,19 @@ inline c16 toUpper<c16>(const c16 c) noexcept
 template<>
 inline c32 toUpper<c32>(const c32 c) noexcept
 { return ::std::toupper(c, ::std::locale()); }
+#else
+template<>
+inline c8 toUpper<c8>(const c8 c) noexcept
+{ return static_cast<c8>(::std::toupper(static_cast<char>(c), ::std::locale())); }
+
+template<>
+inline c16 toUpper<c16>(const c16 c) noexcept
+{ return static_cast<c16>(::std::toupper(static_cast<wchar_t>(c), ::std::locale())); }
+
+template<>
+inline c32 toUpper<c32>(const c32 c) noexcept
+{ return static_cast<c32>(::std::toupper(static_cast<wchar_t>(c), ::std::locale())); }
+#endif
 
 template<typename C>
 inline uSys toLower(const C* const str, C* const store) noexcept
