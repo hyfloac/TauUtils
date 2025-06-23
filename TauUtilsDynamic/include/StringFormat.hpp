@@ -661,7 +661,7 @@ inline consteval auto FormatConstEval(const CharIn(&fmt)[FmtLen], const CurrArg&
 {
     StringFormatContext<CharOut> context;
     InternalFormat0(context, fmt, currArg, args...);
-    return context.Builder.template ToStringC<CharOut, static_cast<uSys>(OutLen)>();
+    return context.Builder.template ToStringC<static_cast<uSys>(OutLen)>();
 }
 
 template<typename CharOut, iSys OutLen, typename CharIn, iSys FmtLen, typename CurrArg, typename... Args>
@@ -669,6 +669,6 @@ inline consteval auto FormatConstEval(const ConstExprStackStringT<CharIn, FmtLen
 {
     StringFormatContext<CharOut> context;
     InternalFormat0(context, fmt, currArg, args...);
-    return context.Builder.template ToStringC<CharOut, static_cast<uSys>(OutLen)>();
+    return context.Builder.template ToStringC<static_cast<uSys>(OutLen)>();
 }
 
