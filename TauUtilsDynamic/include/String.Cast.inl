@@ -152,7 +152,7 @@ inline DynStringT<c16> StringCast(const DynStringT<c32>& string) noexcept
         c16 newStr[16];
         newStr[len] = u'\0';
 
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16) <= 0)
+        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), 16, false, false) <= 0)
         {
             return DynStringT<c16>();
         }
@@ -167,7 +167,7 @@ inline DynStringT<c16> StringCast(const DynStringT<c32>& string) noexcept
         c16* const newStr = ::new(refCount + 1) c16[len + 1];
         newStr[len] = u'\0';
 
-        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len) <= 0)
+        if(tau::string::utf16::Transform(rawStr, newStr, static_cast<iSys>(string.Length()), len, false, false) <= 0)
         {
             ::TauUtilsDeallocate(placement);
             return DynStringT<c16>();
