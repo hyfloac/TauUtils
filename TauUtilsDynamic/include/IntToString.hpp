@@ -271,7 +271,7 @@ inline constexpr i32 ItoA(Int val, Char* const buffer, const uSys bufferSize) no
         {
             IToA_Fill0(buffer);
         }
-        return 2;
+        return 1;
     }
 
     bool negative = false;
@@ -375,7 +375,7 @@ inline constexpr i32 ItoA(Int val, Char(&buffer)[BufferSize]) noexcept
         {
             IToA_Fill0(buffer);
         }
-        return 2;
+        return 1;
     }
 
     bool negative = false;
@@ -481,7 +481,7 @@ inline constexpr i32 XtoA(const Int val, Char* const buffer, const uSys bufferSi
         {
             IToA_Fill0(buffer);
         }
-        return 2;
+        return 1;
     }
 
     ::std::make_unsigned_t<UInt> uVal = static_cast<::std::make_unsigned_t<UInt>>(val);
@@ -525,7 +525,7 @@ inline constexpr i32 XtoA(const Int val, Char(&buffer)[BufferSize])
         {
             IToA_Fill0(buffer);
         }
-        return 2;
+        return 1;
     }
 
     ::std::make_unsigned_t<UInt> uVal = static_cast<::std::make_unsigned_t<UInt>>(val);
