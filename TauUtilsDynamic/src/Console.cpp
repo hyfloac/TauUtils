@@ -264,5 +264,130 @@ bool Console::ReadLine(c32* buffer, uSys maxLength, uSys* lineLengthCodePoints)
 
     return false;
 }
+#elif defined(__APPLE__) || defined(__linux__)
+#include <unistd.h>
+#include <clocale>
 
+namespace tau::console::internal {
+
+DynString OriginalLocale;
+
+}
+
+void Console::Create() noexcept
+{
+}
+
+void Console::ForceClose() noexcept
+{
+}
+
+void Console::ReInit() noexcept
+{
+    // using namespace tau::console::internal;
+    //
+    // OriginalLocale = setlocale(LC_CTYPE, nullptr);
+    //
+    // setlocale(LC_CTYPE, "en_US.UTF-8");
+}
+
+void Console::Reset() noexcept
+{
+    using namespace tau::console::internal;
+
+    setlocale(LC_CTYPE, OriginalLocale.c_str());
+}
+
+u32 Console::Write(const char c) noexcept
+{
+    return Write(static_cast<c8>(c));
+}
+
+u32 Console::Write(const wchar_t c) noexcept
+{
+    using namespace tau::console::internal;
+
+    return Write(&c, 1);
+}
+
+u32 Console::Write(const c8 c) noexcept
+{
+    return static_cast<u32>(write(STDOUT_FILENO, &c, 1));
+}
+
+u32 Console::Write(const c16 c) noexcept
+{
+    return Write(&c, 1);
+}
+
+u32 Console::Write(const c32 c) noexcept
+{
+    return Write(&c, 1);
+}
+
+u32 Console::Write(const char* const str, const uSys length) noexcept
+{
+    return Write(reinterpret_cast<const c8*>(str), length);
+}
+
+u32 Console::Write(const wchar_t* const str, const uSys length) noexcept
+{
+    return Write(reinterpret_cast<const c32*>(str), length);
+}
+
+u32 Console::Write(const c8* const str, const uSys length) noexcept
+{
+    return static_cast<u32>(write(STDOUT_FILENO, str, length));
+}
+
+u32 Console::Write(const c16* const str, const uSys length) noexcept
+{
+    using namespace tau::console::internal;
+
+    const iSys outCodeUnits = ::tau::string::utf8_16::TransformC16ToC8(str, ETB.GetAs<c8>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c8>()), true);
+    return static_cast<u32>(write(STDOUT_FILENO, ETB.GetAs<c8>(), outCodeUnits));
+}
+
+u32 Console::Write(const c32* const str, const uSys length) noexcept
+{
+    using namespace tau::console::internal;
+
+    const uSys outCodeUnits = ::tau::string::utf8::Transform(str, ETB.GetAs<c8>(), static_cast<iSys>(length), static_cast<iSys>(ETB.GetSizeAs<c8>()));
+    return static_cast<u32>(write(STDOUT_FILENO, ETB.GetAs<c8>(), outCodeUnits));
+}
+
+bool Console::ReadLine(char* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+    using namespace tau::console::internal;
+
+    return false;
+}
+
+bool Console::ReadLine(wchar_t* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+    using namespace tau::console::internal;
+
+    return false;
+}
+
+bool Console::ReadLine(c8* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+    using namespace tau::console::internal;
+
+    return false;
+}
+
+bool Console::ReadLine(c16* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+    using namespace tau::console::internal;
+
+    return false;
+}
+
+bool Console::ReadLine(c32* buffer, uSys maxLength, uSys* lineLengthCodePoints)
+{
+    using namespace tau::console::internal;
+
+    return false;
+}
 #endif
