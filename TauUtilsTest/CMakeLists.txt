@@ -13,7 +13,7 @@ source_group("src" FILES ${TEST_SOURCES})
 
 target_sources(${PROJECT_NAME} PRIVATE ${TEST_SOURCES})
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 
@@ -81,3 +81,20 @@ endif()
 if(HAS_CLANG_PRAGMA_WARNING)
     target_compile_options(${PROJECT_NAME} PRIVATE /wd4068)
 endif()
+
+install(
+    TARGETS ${PROJECT_NAME}
+    RUNTIME_DEPENDENCY_SET TauUtilsDeps
+)
+
+install(
+    RUNTIME_DEPENDENCY_SET TauUtilsDeps
+    PRE_EXCLUDE_REGEXES
+        [=[api-ms-]=]
+        [=[ext-ms-]=]
+        [[kernel32\.dll]]
+        [[libc\.so\..*]] [[libgcc_s\.so\..*]] [[libm\.so\..*]] [[libstdc\+\+\.so\..*]]
+    POST_EXCLUDE_REGEXES
+        [=[.*system32\/.*\.dll]=]
+        [=[^\/(lib|usr\/lib|usr\/local\/lib)]=]
+)
