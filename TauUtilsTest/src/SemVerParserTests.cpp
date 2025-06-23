@@ -48,26 +48,26 @@ static void SemVerLexerTests()
         ::std::vector<SemVerToken> checkTokens;
         {
             checkTokens.emplace_back(U'>');
-            checkTokens.emplace_back(1ui32);
+            checkTokens.emplace_back(1_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(0ui32);
+            checkTokens.emplace_back(0_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(0ui32);
+            checkTokens.emplace_back(0_u32);
             checkTokens.emplace_back(U'<');
             checkTokens.emplace_back(U'=');
-            checkTokens.emplace_back(2ui32);
+            checkTokens.emplace_back(2_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(0ui32);
+            checkTokens.emplace_back(0_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(0ui32);
+            checkTokens.emplace_back(0_u32);
             checkTokens.emplace_back(U'|');
             checkTokens.emplace_back(U'|');
             checkTokens.emplace_back(U'^');
-            checkTokens.emplace_back(3ui32);
+            checkTokens.emplace_back(3_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(15ui32);
+            checkTokens.emplace_back(15_u32);
             checkTokens.emplace_back(U'.');
-            checkTokens.emplace_back(0ui32);
+            checkTokens.emplace_back(0_u32);
             checkTokens.emplace_back(U'-');
             checkTokens.push_back(SemVerToken::MakeString(u8"rc"));
         }
