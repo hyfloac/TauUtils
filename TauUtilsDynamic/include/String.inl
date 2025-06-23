@@ -1794,7 +1794,7 @@ inline constexpr void StringBuilderT<char>::Append<c32>(const c32* string, const
 }
 
 #if !defined(_MSVC_LANG)
-errno_t mbsrtowcs_s(
+inline errno_t mbsrtowcs_s(
    uSys* const pReturnValue,
    wchar_t* const wcstr,
    const uSys sizeInWords,
@@ -1825,7 +1825,7 @@ errno_t mbsrtowcs_s(
     return 0;
 }
 
-errno_t wcsrtombs_s(
+inline errno_t wcsrtombs_s(
    uSys* const pReturnValue,
    char* const mbstr,
    const uSys sizeInBytes,
@@ -1897,12 +1897,12 @@ inline constexpr void StringBuilderT<wchar_t>::Append<char>(const char* string, 
         uSys len;
         errno_t error = mbsrtowcs_s(&len, nullptr, 0, &stringReal, 0, &state);
 
-        if(error != 0)
+        if(error != 0 && error != ERANGE)
         {
             return;
         }
 
-        const uSys newLen = m_Length + len - 1;
+        const uSys newLen = m_Length + len;
         AssertSize(newLen);
 
         error = mbsrtowcs_s(&len, m_String + m_Length, len + 1, &stringReal, len, &state);
@@ -2237,12 +2237,12 @@ inline constexpr void StringBuilderT<char>::Append<wchar_t>(const wchar_t* strin
         uSys len;
         errno_t error = wcsrtombs_s(&len, nullptr, 0, &stringReal, 0, &state);
 
-        if(error != 0)
+        if(error != 0 && error != ERANGE)
         {
             return;
         }
 
-        const uSys newLen = m_Length + len - 1;
+        const uSys newLen = m_Length + len;
         AssertSize(newLen);
 
         (void) ::std::memset(&state, 0, sizeof(state));
@@ -2698,7 +2698,7 @@ inline DynStringT<wchar_t> StringCast<wchar_t, char>(const DynStringT<char>& str
     uSys len;
     errno_t error = mbsrtowcs_s(&len, nullptr, 0, &rawStr, 0, &state);
 
-    if(error != 0)
+    if(error != 0 && error != ERANGE)
     {
         return DynStringT<Char>();
     }
@@ -2744,7 +2744,7 @@ inline DynStringT<char> StringCast<char, wchar_t>(const DynStringT<wchar_t>& str
     uSys len;
     errno_t error = wcsrtombs_s(&len, nullptr, 0, &rawStr, 0, &state);
     
-    if(error != 0)
+    if(error != 0 && error != ERANGE)
     {
         return DynStringT<Char>();
     }
