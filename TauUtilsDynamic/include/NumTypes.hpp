@@ -244,3 +244,44 @@ struct IntMaxMin<c32> final
     static constexpr c32 Min = 0;
     static constexpr c32 Max = UINT32_MAX;
 };
+
+constexpr i8 operator ""_i8(const unsigned long long x)
+{
+    return static_cast<i8>(x);
+}
+
+constexpr i16 operator ""_i16(const unsigned long long x)
+{
+    return static_cast<i16>(x);
+}
+
+constexpr i32 operator ""_i32(const unsigned long long x)
+{
+    return static_cast<i32>(x);
+}
+
+constexpr i64 operator ""_i64(const unsigned long long x)
+{
+    return static_cast<i64>(x);
+}
+
+constexpr u8 operator ""_u8(const unsigned long long x)
+{
+    return static_cast<u8>(x);
+}
+
+constexpr u16 operator ""_u16(const unsigned long long x)
+{
+    return static_cast<u16>(x);
+}
+
+constexpr u32 operator ""_u32(const unsigned long long x)
+{
+    return static_cast<u32>(x);
+}
+
+constexpr u64 operator ""_u64(const unsigned long long x)
+{
+    // ReSharper disable once CppRedundantCastExpression
+    return static_cast<u64>(x);
+}
