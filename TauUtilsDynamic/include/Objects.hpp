@@ -71,10 +71,15 @@
 #define DEFAULT_CM_PIC(TYPE)   private:   DEFAULT_CM_C(TYPE)
 #define DEFAULT_CM_POC(TYPE)   protected: DEFAULT_CM_C(TYPE)
 
-#define DELETE_DESTRUCT(TYPE)     public: inline           ~TYPE() noexcept = delete
-#define DEFAULT_DESTRUCT(TYPE)    public: inline           ~TYPE() noexcept = default
-#define DEFAULT_DESTRUCT_C(TYPE)  public: inline constexpr ~TYPE() noexcept = default
-#define DEFAULT_DESTRUCT_VI(TYPE) public: inline virtual   ~TYPE() noexcept = default
+#define DELETE_DESTRUCT(TYPE)       public: inline                   ~TYPE() noexcept = delete
+#define DEFAULT_DESTRUCT(TYPE)      public: inline                   ~TYPE() noexcept = default
+#define DEFAULT_DESTRUCT_C(TYPE)    public: inline constexpr         ~TYPE() noexcept = default
+#define DEFAULT_DESTRUCT_VI(TYPE)   public: inline virtual           ~TYPE() noexcept = default
+#define DEFAULT_DESTRUCT_VIC(TYPE)  public: inline virtual constexpr ~TYPE() noexcept = default
+#define DEFAULT_DESTRUCT_O(TYPE)    public: inline virtual           ~TYPE() noexcept override = default
+#define DEFAULT_DESTRUCT_CO(TYPE)   public: inline virtual constexpr ~TYPE() noexcept override = default
+#define DEFAULT_DESTRUCT_VIO(TYPE)  public: inline virtual           ~TYPE() noexcept override = default
+#define DEFAULT_DESTRUCT_VICO(TYPE) public: inline virtual constexpr ~TYPE() noexcept override = default
 
 #define DELETE_CONSTRUCT(TYPE) private: inline TYPE() noexcept = delete
 #define DEFAULT_CONSTRUCT(TYPE)    inline           TYPE() noexcept = default
