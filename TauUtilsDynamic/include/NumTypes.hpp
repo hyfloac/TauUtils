@@ -134,7 +134,7 @@ typedef float  f32;
 typedef double f64;
 
 #if defined(_MSVC_LANG) || !defined(TAU_NUMTYPES_USE_CSTDLIB)
-  #if defined(_WIN64) || (defined(_M_X64) && _M_X64 == 100) || (defined(__aarch64__) && __aarch64__)
+  #if defined(_WIN64) || (defined(_M_X64) && _M_X64 == 100) || defined(__x86_64__) || (defined(__aarch64__) && __aarch64__) || defined(__ppc64__)
     typedef i64 iSys;
     typedef u64 uSys;
 
