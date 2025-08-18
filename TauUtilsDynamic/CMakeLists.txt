@@ -1,123 +1,54 @@
 cmake_minimum_required(VERSION 3.23)
+project(TauUtils VERSION 1.4.0 LANGUAGES CXX C)
 
+# Option for building shared or static library
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+message("CMake Source Dir: ${CMAKE_SOURCE_DIR}")
+message("CMake Current Source Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+# We use this to check for some compiler flags, mostly to disable warnings.
 include(CheckCCompilerFlag)
+# This is a helper utility for generating the folder layout in VS.
+include(GenVsFilters)
+include(SetCompileFlags)
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c" "src/*.rc")
 file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h" "include/*.inl")
-file(GLOB HEADERS_BASE "include/*.hpp" "include/*.inl")
-file(GLOB HEADERS_ALLOCATOR "include/allocator/*.hpp" "include/allocator/*.inl")
-file(GLOB HEADERS_DS "include/ds/*.hpp" "include/ds/*.inl")
-file(GLOB HEADERS_JSON "include/json/*.hpp" "include/json/*.inl")
-
-set(TUD_SOURCE_FILES ${SOURCES} ${HEADERS_BASE} ${HEADERS_ALLOCATOR} ${HEADERS_DS} ${HEADERS_JSON})
 
 # Setup the Dynamic and Static libraries with the source files.
-add_library(TauUtilsDynamicShared SHARED ${TUD_SOURCE_FILES})
-add_library(TauUtilsDynamicStatic STATIC ${TUD_SOURCE_FILES})
+add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-foreach(_source IN ITEMS ${HEADERS})
-    get_filename_component(_source_path "${_source}" PATH)
-    string(REPLACE "${CMAKE_SOURCE_DIR}" "" _group_path "${_source_path}")
-    string(REPLACE "/" "\\" _group_path "${_group_path}")
-    source_group("include\\${_group_path}" FILES "${_source}")
-endforeach()
+# Generate the "filters" for VS. This basically just creates an intuitive folder layout.
+GenVsFilters(SOURCES)
+GenVsFilters(HEADERS)
 
-source_group("src" FILES ${SOURCES})
-
-target_sources(TauUtilsDynamicShared PRIVATE ${SOURCES})
-target_sources(TauUtilsDynamicStatic PRIVATE ${SOURCES})
-
-target_sources(TauUtilsDynamicShared PUBLIC FILE_SET "HEADERS" BASE_DIRS "include" FILES ${HEADERS})
-target_sources(TauUtilsDynamicStatic PUBLIC FILE_SET "HEADERS" BASE_DIRS "include" FILES ${HEADERS})
-
+target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
+target_sources(${PROJECT_NAME} PUBLIC FILE_SET "HEADERS" BASE_DIRS "include" FILES ${HEADERS})
 
 if(NOT ${NO_GEN_TEST})
-    add_custom_command(TARGET TauUtilsDynamicShared POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:TauUtilsTest>)
+#    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TauUtilsDynamicShared> $<TARGET_FILE_DIR:TauUtilsTest>)
 endif()
 
 # Set the include directory.
-target_include_directories(TauUtilsDynamicShared PUBLIC include)
-target_include_directories(TauUtilsDynamicStatic PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 # Set the source directory.
-target_include_directories(TauUtilsDynamicShared PRIVATE src)
-target_include_directories(TauUtilsDynamicStatic PRIVATE src)
+target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-# # Include TauUtilsStatic
-# target_link_libraries(TauUtilsDynamicShared PUBLIC TauUtilsStatic)
-# target_link_libraries(TauUtilsDynamicStatic PUBLIC TauUtilsStatic)
+SetCompileFlags(${PROJECT_NAME} PUBLIC PRIVATE ${BUILD_SHARED_LIBS})
 
-# Set C++20
-target_compile_features(TauUtilsDynamicShared PUBLIC cxx_std_20)
-target_compile_features(TauUtilsDynamicStatic PUBLIC cxx_std_20)
-
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-        # using clang with clang-cl front end
-
-        # Disable RTTI and exceptions
-        # target_compile_options(TauUtilsDynamicShared PRIVATE -fno-rtti -fno-exceptions)
-        # target_compile_options(TauUtilsDynamicStatic PRIVATE -fno-rtti -fno-exceptions)
-        
-        target_compile_options(TauUtilsDynamicShared PRIVATE -Wno-unknown-attributes)
-        target_compile_options(TauUtilsDynamicStatic PRIVATE -Wno-unknown-attributes)
-    elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
-        # using clang with regular front end
-
-        target_compile_options(TauUtilsDynamicShared PRIVATE -Wno-unknown-attributes)
-        target_compile_options(TauUtilsDynamicStatic PRIVATE -Wno-unknown-attributes)
-
-        # Disable RTTI and exceptions
-        target_compile_options(TauUtilsDynamicShared PRIVATE -fno-rtti -fno-exceptions)
-        target_compile_options(TauUtilsDynamicStatic PRIVATE -fno-rtti -fno-exceptions)
-
-        # Enable PIC
-        set_target_properties(TauUtilsDynamicShared PROPERTIES POSITION_INDEPENDENT_CODE ON)
-        set_target_properties(TauUtilsDynamicStatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-        # Attempt to enable Link Time Optimization
-        set_target_properties(TauUtilsDynamicShared PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
-        set_target_properties(TauUtilsDynamicStatic PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
-    endif()
-endif()
-
-target_compile_definitions(TauUtilsDynamicShared PRIVATE -DTAU_UTILS_BUILD_SHARED)
-target_compile_definitions(TauUtilsDynamicStatic PRIVATE -DTAU_UTILS_BUILD_STATIC)
-
-if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-    # Disable exceptions and ignore some CRT warnings
-    target_compile_definitions(TauUtilsDynamicShared PRIVATE -D_CRT_SECURE_NO_WARNINGS -D_HAS_EXCEPTIONS=1)
-    target_compile_definitions(TauUtilsDynamicStatic PRIVATE -D_CRT_SECURE_NO_WARNINGS -D_HAS_EXCEPTIONS=1)
-
-    set_target_properties(TauUtilsDynamicShared PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-    set_target_properties(TauUtilsDynamicStatic PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    
-    target_compile_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/Zi>")
-    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/DEBUG>")
-    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:REF>")
-    target_link_options(TauUtilsDynamicShared PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>")
-    
-    target_compile_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/Zi>")
-    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/DEBUG>")
-    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:REF>")
-    target_link_options(TauUtilsDynamicStatic PRIVATE "$<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>")
-endif()
-
-check_c_compiler_flag(/wd5030 HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
-check_c_compiler_flag(/wd4251 HAS_DLL_INTERFACE_WARNING)
-
-if(HAS_UNRECOGNIZED_ATTRIBUTES_WARNING)
-    target_compile_options(TauUtilsDynamicShared PRIVATE /wd5030)
-endif()
-
-if(HAS_DLL_INTERFACE_WARNING)
-    target_compile_options(TauUtilsDynamicShared PRIVATE /wd4251)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DTAU_UTILS_BUILD_SHARED)
+else()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DTAU_UTILS_BUILD_STATIC)
 endif()
 
 install(
-    TARGETS TauUtilsDynamicShared TauUtilsDynamicStatic
+    TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     FILE_SET HEADERS
 )
+
+add_library(TauUtils::TauUtils ALIAS ${PROJECT_NAME})

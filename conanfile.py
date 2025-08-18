@@ -16,14 +16,20 @@ class TauCOMRecipe(ConanFile):
 
     # Binary configuration
     settings = "os", "compiler", "build_type", "arch"
-    options = { "shared": [True, False] }
-    default_options = { "shared": True }
+    options = {
+        "shared": [True, False],
+        "genTest": [True, False]
+    }
+    default_options = {
+        "shared": True,
+        "genTest": False
+    }
 
     # Sources are located in the same place as this recipe, copy them to the recipe
-    exports_sources = "CMakeLists.txt", "TauUtilsDynamic/*", "TauUtilsTest/*"
+    exports_sources = "CMakeLists.txt", "TauUtilsDynamic/*", "cmake/*"
 
     def set_version(self):
-        self.version = self.conan_data["latest"];
+        self.version = self.conan_data["latest"]
 
     # def source(self):
     #     data = self.conan_data["sources"][self.version];
@@ -51,13 +57,13 @@ class TauCOMRecipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
+        tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
+        tc.variables["GEN_TEST"] = self.options.genTest
         tc.generate()
 
     def build(self):
         cmake = CMake(self)
-        definitions = {};
-        definitions["NO_GEN_TEST"] = "ON";
-        cmake.configure(variables=definitions)
+        cmake.configure()
         cmake.build()
 
     def package(self):
@@ -65,14 +71,4 @@ class TauCOMRecipe(ConanFile):
         cmake.install()
 
     def package_info(self):
-        if self.options.shared:
-            self.cpp_info.libs = ["TauUtilsDynamicShared"]
-            self.cpp_info.set_property("cmake_target_name", "tauutils::TauUtilsDynamicShared")
-        else:
-            self.cpp_info.libs = ["TauUtilsDynamicStatic"]
-            self.cpp_info.set_property("cmake_target_name", "tauutils::TauUtilsDynamicStatic")
-
-    
-
-    
-
+        self.cpp_info.libs = ["TauUtils"]

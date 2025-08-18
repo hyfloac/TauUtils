@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.24)
-project(TauUtils VERSION 1.1.0 LANGUAGES CXX C)
+project(TauUtils VERSION 1.4.0 LANGUAGES CXX C)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# Option for building shared or static library
+option(GEN_TEST "Generate Test Executable" OFF)
 
 include(CTest)
 
 add_subdirectory(TauUtilsDynamic)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    if(NOT ${NO_GEN_TEST})
+    if(${GEN_TEST})
         add_subdirectory(TauUtilsTest)
     endif()
 endif()
