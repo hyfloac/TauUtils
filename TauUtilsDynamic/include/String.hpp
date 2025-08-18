@@ -5,6 +5,7 @@
 #define __STDC_WANT_LIB_EXT1__ 1  // NOLINT(clang-diagnostic-reserved-id-macro, clang-diagnostic-reserved-macro-identifier, modernize-macro-to-enum)
 #pragma warning(push, 0)
 #include <cctype>
+#include <cstring>
 #include <functional>
 #pragma warning(pop)
 
@@ -112,7 +113,7 @@ public:
     uSys Length; // The length in code units
 public:
     constexpr StringData() noexcept;
-    constexpr StringData(nullptr_t) noexcept;
+    constexpr StringData(::std::nullptr_t) noexcept;
     
     template<uSys Len>
     constexpr StringData(const Char (&str)[Len]) noexcept;
@@ -559,7 +560,7 @@ public:
     [[nodiscard]] constexpr i32 CompareTo(const DynStringViewT<Char>& other) const noexcept override;
     [[nodiscard]] constexpr i32 CompareTo(const Char* str) const noexcept override;
 
-    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data, 0_uz); }
+    [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> Begin() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data, uSys{0}); }
     [[nodiscard]] constexpr DynStringCodePointIteratorT<Char>   End() const noexcept { return DynStringCodePointIteratorT<Char>(m_Data, m_Data.Length); }
 
     [[nodiscard]] constexpr DynStringCodePointIteratorT<Char> begin() const noexcept { return begin(); }

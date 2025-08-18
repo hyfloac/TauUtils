@@ -155,11 +155,13 @@ typedef double f64;
   typedef ::std::uintptr_t uPtr;
 #endif
 
+#if defined(TAU_USE_NUMERAL_SUFFIXES)
 inline constexpr uSys operator "" _uz(const uSys n) noexcept
 { return static_cast<uSys>(n); }
 
 inline constexpr iSys operator "" _iz(const uSys n) noexcept
 { return static_cast<iSys>(n); }
+#endif
 
 template<typename T>
 struct IntMaxMin final

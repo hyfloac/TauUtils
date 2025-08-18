@@ -18,7 +18,7 @@ public:
         : m_RefCount(refCount)
     { ++(*m_RefCount); }
 
-    constexpr ReferenceCounter(nullptr_t) noexcept
+    constexpr ReferenceCounter(::std::nullptr_t) noexcept
         : m_RefCount(nullptr)
     { }
 

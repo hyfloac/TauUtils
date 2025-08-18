@@ -594,7 +594,7 @@ inline DynStringT<c8> StringCastSkipBom(const DynStringT<c8>& string) noexcept
         CharOut newStr[16];
         newStr[len] = u8'\0';
 
-        (void) ::std::copy_n(rawStr, len, newStr);
+        (void) ::std::ranges::copy_n(rawStr, len, newStr);
 
         return DynStringT<CharOut>(static_cast<const CharOut*>(newStr));
     }
@@ -606,7 +606,7 @@ inline DynStringT<c8> StringCastSkipBom(const DynStringT<c8>& string) noexcept
         CharOut* const newStr = ::new(refCount + 1) CharOut[len + 1];
         newStr[len] = u8'\0';
 
-        (void) ::std::copy_n(rawStr, len, newStr);
+        (void) ::std::ranges::copy_n(rawStr, len, newStr);
 
         return DynStringT<CharOut>::passControl(refCount, newStr, len, [](const CharOut* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
     }
@@ -649,7 +649,7 @@ inline DynStringT<c16> StringCastSkipBom(const DynStringT<c16>& string) noexcept
         CharOut newStr[16];
         newStr[len] = u'\0';
 
-        (void) ::std::copy_n(rawStr, len, newStr);
+        (void) ::std::ranges::copy_n(rawStr, len, newStr);
 
         return DynStringT<CharOut>(static_cast<const CharOut*>(newStr));
     }
@@ -661,7 +661,7 @@ inline DynStringT<c16> StringCastSkipBom(const DynStringT<c16>& string) noexcept
         CharOut* const newStr = ::new(refCount + 1) CharOut[len + 1];
         newStr[len] = u'\0';
 
-        (void) ::std::copy_n(rawStr, len, newStr);
+        (void) ::std::ranges::copy_n(rawStr, len, newStr);
 
         return DynStringT<CharOut>::passControl(refCount, newStr, len, [](const CharOut* str) { }, [](ReferenceCounter::Type* refCount) { ::TauUtilsDeallocate(refCount); });
     }

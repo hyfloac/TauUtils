@@ -44,7 +44,7 @@ public:
     template<typename... Args>
     ReferenceCountDataObject(TauAllocator& allocator, Args&&... args) noexcept;
 
-    constexpr ReferenceCountDataObject(nullptr_t) noexcept;
+    constexpr ReferenceCountDataObject(::std::nullptr_t) noexcept;
 
     ~ReferenceCountDataObject() noexcept;
 
@@ -83,7 +83,7 @@ public:
     template<typename... Args>
     SWReferenceCount(TauAllocator& allocator, Args&&... args) noexcept;
 
-    constexpr SWReferenceCount(nullptr_t) noexcept;
+    constexpr SWReferenceCount(::std::nullptr_t) noexcept;
 
     [[nodiscard]]       Type* ObjPtr()       noexcept { return reinterpret_cast<Type*>(this + 1); }
     [[nodiscard]] const Type* ObjPtr() const noexcept { return reinterpret_cast<Type*>(this + 1); }
@@ -157,8 +157,8 @@ public:
 
     [[nodiscard]] virtual operator bool() const noexcept = 0;
 
-    [[nodiscard]] virtual bool operator ==(nullptr_t) const noexcept = 0;
-    [[nodiscard]] virtual bool operator !=(nullptr_t) const noexcept = 0;
+    [[nodiscard]] virtual bool operator ==(::std::nullptr_t) const noexcept = 0;
+    [[nodiscard]] virtual bool operator !=(::std::nullptr_t) const noexcept = 0;
 };
 
 template<typename T>
@@ -234,7 +234,7 @@ public:
     template<typename TT>
     ReferenceCountingPointer(ReferenceCountingPointer<TT>&& rcp) noexcept;
 
-    constexpr ReferenceCountingPointer(nullptr_t) noexcept;
+    constexpr ReferenceCountingPointer(::std::nullptr_t) noexcept;
 
     constexpr ReferenceCountingPointer() noexcept;
 
@@ -245,7 +245,7 @@ public:
     ReferenceCountingPointer(const ReferenceCountingPointer<T>& copy) noexcept;
     ReferenceCountingPointer(ReferenceCountingPointer<T>&& move) noexcept;
 
-    ReferenceCountingPointer<T>& operator=(nullptr_t) noexcept;
+    ReferenceCountingPointer<T>& operator=(::std::nullptr_t) noexcept;
 
     ReferenceCountingPointer<T>& operator=(const ReferenceCountingPointer<T>& copy) noexcept;
     ReferenceCountingPointer<T>& operator=(ReferenceCountingPointer<T>&& move) noexcept;
@@ -283,8 +283,8 @@ public:
     [[nodiscard]] bool operator ==(const Type* ptr) const noexcept override;
     [[nodiscard]] bool operator !=(const Type* ptr) const noexcept override;
 
-    [[nodiscard]] bool operator ==(nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_RCDO) || !m_RCDO->m_RefCount.load(); }
-    [[nodiscard]] bool operator !=(nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_RCDO) &&  m_RCDO->m_RefCount.load(); }
+    [[nodiscard]] bool operator ==(::std::nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_RCDO) || !m_RCDO->m_RefCount.load(); }
+    [[nodiscard]] bool operator !=(::std::nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_RCDO) &&  m_RCDO->m_RefCount.load(); }
 private:
     RCDO<T>* m_RCDO;
 private:
@@ -319,7 +319,7 @@ public:
     template<typename TT>
     StrongReferenceCountingPointer(StrongReferenceCountingPointer<TT>&& rcp) noexcept;
 
-    constexpr StrongReferenceCountingPointer(nullptr_t) noexcept;
+    constexpr StrongReferenceCountingPointer(::std::nullptr_t) noexcept;
 
     constexpr StrongReferenceCountingPointer() noexcept;
 
@@ -335,7 +335,7 @@ public:
 
     StrongReferenceCountingPointer<T>& operator=(const WeakReferenceCountingPointer<T>& copy) noexcept;
 
-    StrongReferenceCountingPointer<T>& operator=(nullptr_t) noexcept;
+    StrongReferenceCountingPointer<T>& operator=(::std::nullptr_t) noexcept;
 
     template<typename TT>
     StrongReferenceCountingPointer<T>& operator=(const StrongReferenceCountingPointer<TT>& copy) noexcept;
@@ -378,8 +378,8 @@ public:
     [[nodiscard]] bool operator ==(const Type* ptr) const noexcept override;
     [[nodiscard]] bool operator !=(const Type* ptr) const noexcept override;
 
-    [[nodiscard]] bool operator ==(nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_SWRC) || !m_SWRC->m_StrongRefCount.load(); }
-    [[nodiscard]] bool operator !=(nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_SWRC) &&  m_SWRC->m_StrongRefCount.load(); }
+    [[nodiscard]] bool operator ==(::std::nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_SWRC) || !m_SWRC->m_StrongRefCount.load(); }
+    [[nodiscard]] bool operator !=(::std::nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_SWRC) &&  m_SWRC->m_StrongRefCount.load(); }
 private:
     SWRC<T>* m_SWRC;
 private:
@@ -414,7 +414,7 @@ public:
     template<typename TT>
     WeakReferenceCountingPointer(WeakReferenceCountingPointer<TT>&& rcp) noexcept;
 
-    constexpr WeakReferenceCountingPointer(nullptr_t) noexcept;
+    constexpr WeakReferenceCountingPointer(::std::nullptr_t) noexcept;
 
     constexpr WeakReferenceCountingPointer() noexcept;
 
@@ -463,8 +463,8 @@ public:
     [[nodiscard]] bool operator ==(const T* ptr) const noexcept override;
     [[nodiscard]] bool operator !=(const T* ptr) const noexcept override;
 
-    [[nodiscard]] bool operator ==(const nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_SWRC) || !m_SWRC->m_StrongRefCount.load(); }
-    [[nodiscard]] bool operator !=(const nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_SWRC) &&  m_SWRC->m_StrongRefCount.load(); }
+    [[nodiscard]] bool operator ==(const ::std::nullptr_t) const noexcept override { return !TAU_FORCE_CHECK_RC(m_SWRC) || !m_SWRC->m_StrongRefCount.load(); }
+    [[nodiscard]] bool operator !=(const ::std::nullptr_t) const noexcept override { return  TAU_FORCE_CHECK_RC(m_SWRC) &&  m_SWRC->m_StrongRefCount.load(); }
 private:
     SWRC<T>* m_SWRC;
 private:

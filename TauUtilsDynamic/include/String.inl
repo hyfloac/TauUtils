@@ -56,7 +56,7 @@ constexpr LargeString<Char>::LargeString(const Char* const buffer, const uSys co
 
     cBuffer[codeUnits] = Char { '\0' };
 
-    (void) ::std::copy_n(buffer, codeUnits, cBuffer);
+    (void) ::std::ranges::copy_n(buffer, codeUnits, cBuffer);
     // (void) ::std::memcpy(cBuffer, buffer, codeUnits * sizeof(Char));
     Buffer = cBuffer;
 }
@@ -94,7 +94,7 @@ constexpr StringData<Char>::StringData() noexcept
 { Buffer.StackString[0] = Char{ '\0' }; }
 
 template<typename Char>
-constexpr StringData<Char>::StringData(nullptr_t) noexcept
+constexpr StringData<Char>::StringData(::std::nullptr_t) noexcept
     : Length(0)
 { Buffer.StackString[0] = Char{ '\0' }; }
 
@@ -107,7 +107,7 @@ constexpr StringData<Char>::StringData(const Char(& str)[Len]) noexcept
     if constexpr(Len < 16)
     {
         Buffer.StackString[Len] = Char { '\0' };
-        (void) ::std::copy_n(str, Len, Buffer.StackString);
+        (void) ::std::ranges::copy_n(str, Len, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, buffer, Len * sizeof(Char));
     }
     else
@@ -124,7 +124,7 @@ constexpr StringData<Char>::StringData(const Char* const buffer, const uSys code
     if(codeUnits < 16)
     {
         Buffer.StackString[codeUnits] = Char { '\0' };
-        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        (void) ::std::ranges::copy_n(buffer, codeUnits, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
     }
     else
@@ -140,7 +140,7 @@ constexpr StringData<Char>::StringData(ReferenceCounter::Type* const refCount, c
     if(codeUnits < 16)
     {
         Buffer.StackString[codeUnits] = Char { '\0' };
-        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        (void) ::std::ranges::copy_n(buffer, codeUnits, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
         ::TauUtilsDeallocate(refCount);
     }
@@ -170,7 +170,7 @@ constexpr StringData<Char>::StringData(const StringData& copy) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
+        (void) ::std::ranges::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
     }
     else
     {
@@ -189,7 +189,7 @@ constexpr StringData<Char>::StringData(StringData&& move) noexcept
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
+        (void) ::std::ranges::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
     }
     else
@@ -220,7 +220,7 @@ constexpr StringData<Char>& StringData<Char>::operator=(const StringData& copy) 
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
+        (void) ::std::ranges::copy_n(copy.Buffer.StackString, 16, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, copy.Buffer.StackString, 16 * sizeof(Char));
     }
     else
@@ -248,7 +248,7 @@ constexpr StringData<Char>& StringData<Char>::operator=(StringData&& move) noexc
     else if(Length < 16)
     {
         // If we pass in length we fallback to the slower generic memcpy implementation instead of the intrinsic.
-        (void) ::std::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
+        (void) ::std::ranges::copy_n(move.Buffer.StackString, 16, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, move.Buffer.StackString, 16 * sizeof(Char));
     }
     else
@@ -293,7 +293,7 @@ constexpr void StringData<Char>::Reset(const Char* const buffer, const uSys code
     
     if(codeUnits < 16)
     {
-        (void) ::std::copy_n(buffer, codeUnits, Buffer.StackString);
+        (void) ::std::ranges::copy_n(buffer, codeUnits, Buffer.StackString);
         // (void) ::std::memcpy(Buffer.StackString, buffer, codeUnits * sizeof(Char));
         Buffer.StackString[codeUnits] = Char{ '\0' };
     }
@@ -968,7 +968,7 @@ inline consteval ConstExprStackStringT<Char, Len>::ConstExprStackStringT(const C
     : m_String{ }
     , m_Length(len)
     , m_Hash(findHashCode(str))
-{ ::std::copy_n(str, len, m_String); }
+{ ::std::ranges::copy_n(str, len, m_String); }
 
 template<typename Char, uSys Len>
 template<uSys OLen>
@@ -1306,9 +1306,9 @@ inline constexpr DynStringT<Char> DynStringT<Char>::_concat(const uSys len, cons
     {
         Char* const newStr = ::std::bit_cast<Char*>(::TauUtilsAllocate(sizeof(Char) * (newLen + 1)));
         newStr[newLen] = '\0';
-        (void) ::std::copy_n(String(), m_Data.Length, newStr);
+        (void) ::std::ranges::copy_n(String(), m_Data.Length, newStr);
         // (void) ::std::memcpy(newStr, String(), m_Data.Length * sizeof(Char));
-        (void) ::std::copy_n(str, len, newStr + m_Data.Length);
+        (void) ::std::ranges::copy_n(str, len, newStr + m_Data.Length);
         // (void) ::std::memcpy(newStr + m_Data.Length, str, len * sizeof(Char));
         return DynStringT<Char>(newStr, newLen);
     }
@@ -1317,9 +1317,9 @@ inline constexpr DynStringT<Char> DynStringT<Char>::_concat(const uSys len, cons
         Char buf[16];
         buf[newLen] = Char{ '\0' };
         
-        (void) ::std::copy_n(m_Data.Buffer.StackString, sizeof(buf), buf); // Perform a fast intrinsic copy.
+        (void) ::std::ranges::copy_n(m_Data.Buffer.StackString, sizeof(buf), buf); // Perform a fast intrinsic copy.
         // (void) ::std::memcpy(buf, m_Data.Buffer.StackString, sizeof(buf)); // Perform a fast intrinsic copy.
-        (void) ::std::copy_n(str, len, buf + m_Data.Length);
+        (void) ::std::ranges::copy_n(str, len, buf + m_Data.Length);
         // (void) ::std::memcpy(buf + m_Data.Length, str, len * sizeof(Char));
         return DynStringT<Char>(static_cast<const Char*>(buf), newLen);
     }
@@ -1337,7 +1337,7 @@ inline constexpr DynStringT<Char> DynStringT<Char>::SubStringLen(const uSys begi
     {
         Char* const sub = ::std::bit_cast<Char*>(::TauUtilsAllocate(sizeof(Char) * (length + 1)));
         sub[length] = Char { '\0' };
-        (void) ::std::copy_n(String() + begin, length, sub);
+        (void) ::std::ranges::copy_n(String() + begin, length, sub);
         // (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
         return DynStringT<Char>(sub, length);
     }
@@ -1548,9 +1548,9 @@ inline constexpr DynStringT<Char> DynStringViewT<Char>::_concat(const uSys len, 
     {
         Char* const newStr = ::TauUtilsAllocateTArr<Char>(newLen + 1);
         newStr[newLen] = Char{ '\0' };
-        (void) ::std::copy_n(String(), m_Length, newStr);
+        (void) ::std::ranges::copy_n(String(), m_Length, newStr);
         // (void) ::std::memcpy(newStr, String(), m_Length * sizeof(Char));
-        (void) ::std::copy_n(str, len, newStr + m_Length);
+        (void) ::std::ranges::copy_n(str, len, newStr + m_Length);
         // (void) ::std::memcpy(newStr + m_Length, str, len * sizeof(Char));
         return DynStringT<Char>(newStr, newLen);
     }
@@ -1558,9 +1558,9 @@ inline constexpr DynStringT<Char> DynStringViewT<Char>::_concat(const uSys len, 
     {
         DynStringT<Char> tmp(newLen);
         tmp.String()[newLen] = Char{ '\0' };
-        (void) ::std::copy_n(String(), m_Length, tmp.String());
+        (void) ::std::ranges::copy_n(String(), m_Length, tmp.String());
         // (void) ::std::memcpy(tmp.String(), String(), m_Length * sizeof(Char));
-        (void) ::std::copy_n(str, len, tmp.String() + Length());
+        (void) ::std::ranges::copy_n(str, len, tmp.String() + Length());
         // (void) ::std::memcpy(tmp.String() + Length(), str, len * sizeof(Char));
         tmp.m_Hash = findHashCode(tmp.String());
         return tmp;
@@ -1577,7 +1577,7 @@ inline constexpr DynStringT<Char> DynStringViewT<Char>::SubStringLen(const uSys 
     {
         Char* const sub = ::TauUtilsAllocateTArr<Char>(length + 1);
         sub[length] = Char { '\0' };
-        (void) ::std::copy_n(String() + begin, length, sub);
+        (void) ::std::ranges::copy_n(String() + begin, length, sub);
         // (void) ::std::memcpy(sub, String() + begin, length * sizeof(Char));
         return DynStringT<Char>(sub, length);
     }
@@ -1642,7 +1642,7 @@ inline constexpr StringBuilderT<Char>::StringBuilderT(const Char* const string) 
 
     if(string)
     {
-        (void) ::std::copy_n(string, m_Length + 1, str);
+        (void) ::std::ranges::copy_n(string, m_Length + 1, str);
         // (void) ::std::memcpy(str, string, (m_Length + 1) * sizeof(Char));
     }
 
@@ -1659,7 +1659,7 @@ inline constexpr StringBuilderT<Char>::StringBuilderT(const StringBuilderT<Char>
     , m_Length(copy.m_Length)
     , m_Size(copy.m_Size)
 {
-    (void) ::std::copy_n(copy.m_String, m_Size, m_String);
+    (void) ::std::ranges::copy_n(copy.m_String, m_Size, m_String);
     // (void) ::std::memcpy(m_String, copy.m_String, m_Size);
 }
 
@@ -1682,7 +1682,7 @@ inline constexpr StringBuilderT<Char>& StringBuilderT<Char>::operator=(const Str
     m_Length = copy.m_Length;
     m_Size = copy.m_Size;
 
-    (void) ::std::copy_n(copy.m_String, m_Size, m_String);
+    (void) ::std::ranges::copy_n(copy.m_String, m_Size, m_String);
     // (void) ::std::memcpy(m_String, copy.m_String, m_Size * sizeof(Char));
 
     return *this;
@@ -1728,7 +1728,7 @@ inline constexpr void StringBuilderT<Char>::Append(const Char* const string, con
 {
     const uSys newLen = m_Length + length;
     AssertSize(newLen);
-    (void) ::std::copy_n(string, length, m_String + m_Length);
+    (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
     // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
     m_Length = newLen;
     m_String[m_Length] = '\0';
@@ -1740,7 +1740,7 @@ inline constexpr void StringBuilderT<Char>::Append(const CharFrom* const string,
 {
     const uSys newLen = m_Length + length;
     AssertSize(newLen);
-    (void) ::std::copy_n(string, length, m_String + m_Length);
+    (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
     // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
     m_Length = newLen;
     m_String[m_Length] = Char { '\0' };
@@ -1754,7 +1754,7 @@ inline constexpr void StringBuilderT<char>::Append<c8>(const c8* string, const u
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         m_Length = newLen;
         m_String[m_Length] = '\0';
     }
@@ -1762,7 +1762,7 @@ inline constexpr void StringBuilderT<char>::Append<c8>(const c8* string, const u
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = '\0';
@@ -1794,7 +1794,7 @@ inline constexpr void StringBuilderT<char>::Append<c32>(const c32* string, const
 }
 
 #if !defined(_MSVC_LANG)
-inline errno_t mbsrtowcs_s(
+inline int mbsrtowcs_s(
    uSys* const pReturnValue,
    wchar_t* const wcstr,
    const uSys sizeInWords,
@@ -1825,7 +1825,7 @@ inline errno_t mbsrtowcs_s(
     return 0;
 }
 
-inline errno_t wcsrtombs_s(
+inline int wcsrtombs_s(
    uSys* const pReturnValue,
    char* const mbstr,
    const uSys sizeInBytes,
@@ -1895,7 +1895,7 @@ inline constexpr void StringBuilderT<wchar_t>::Append<char>(const char* string, 
 
         ::std::mbstate_t state;
         uSys len;
-        errno_t error = mbsrtowcs_s(&len, nullptr, 0, &stringReal, 0, &state);
+        int error = mbsrtowcs_s(&len, nullptr, 0, &stringReal, 0, &state);
 
         if(error != 0 && error != ERANGE)
         {
@@ -1944,7 +1944,7 @@ inline constexpr void StringBuilderT<wchar_t>::Append<c16>(const c16* string, co
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = L'\0';
@@ -1979,7 +1979,7 @@ inline constexpr void StringBuilderT<wchar_t>::Append<c32>(const c32* string, co
 #pragma warning(push, 0)
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = L'\0';
@@ -2020,7 +2020,7 @@ inline constexpr void StringBuilderT<c8>::Append<char>(const char* string, const
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         m_Length = newLen;
         m_String[m_Length] = u8'\0';
     }
@@ -2028,7 +2028,7 @@ inline constexpr void StringBuilderT<c8>::Append<char>(const char* string, const
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = u8'\0';
@@ -2060,7 +2060,7 @@ inline constexpr void StringBuilderT<c8>::Append<wchar_t>(const wchar_t* string,
 
     // ::std::mbstate_t state;
     // uSys len;
-    // errno_t error = wcsrtombs_s(&len, nullptr, 0, &string, 0, &state);
+    // int error = wcsrtombs_s(&len, nullptr, 0, &string, 0, &state);
     //
     // if(error != 0)
     // {
@@ -2120,7 +2120,7 @@ inline constexpr void StringBuilderT<c16>::Append<wchar_t>(const wchar_t* string
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = u'\0';
@@ -2189,7 +2189,7 @@ inline constexpr void StringBuilderT<c32>::Append<wchar_t>(const wchar_t* string
     {
         const uSys newLen = m_Length + length;
         AssertSize(newLen);
-        (void) ::std::copy_n(string, length, m_String + m_Length);
+        (void) ::std::ranges::copy_n(string, length, m_String + m_Length);
         // (void) ::std::memcpy(m_String + m_Length, string, length * sizeof(Char));
         m_Length = newLen;
         m_String[m_Length] = U'\0';
@@ -2235,7 +2235,7 @@ inline constexpr void StringBuilderT<char>::Append<wchar_t>(const wchar_t* strin
         ::std::mbstate_t state;
         (void) ::std::memset(&state, 0, sizeof(state));
         uSys len;
-        errno_t error = wcsrtombs_s(&len, nullptr, 0, &stringReal, 0, &state);
+        int error = wcsrtombs_s(&len, nullptr, 0, &stringReal, 0, &state);
 
         if(error != 0 && error != ERANGE)
         {
@@ -2524,7 +2524,7 @@ inline constexpr void StringBuilderT<Char>::AssertSize(const uSys newLength) noe
     {
         const uSys newSize = newLength + (newLength >> 1);
         Char* const newStr = ::TauUtilsAllocateTArr<Char>(newSize);
-        (void) ::std::copy_n(m_String, m_Length + 1, newStr);
+        (void) ::std::ranges::copy_n(m_String, m_Length + 1, newStr);
         // (void) ::std::memcpy(newStr, m_String, (m_Length + 1) * sizeof(Char));
         ::TauUtilsDeallocateTArr(m_String, m_Size);
         m_String = newStr;
@@ -2541,21 +2541,21 @@ template<typename Char, iSys Len>
 inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(const Char(&string)[Len]) noexcept
     : m_String{ }
 {
-    (void) ::std::copy_n(string, Len, m_String);
+    (void) ::std::ranges::copy_n(string, Len, m_String);
 }
 
 template<typename Char, iSys Len>
 inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(const ConstEvalStringBuilderT<Char, Len>& copy) noexcept
     : m_String{ }
 {
-    (void) ::std::copy_n(copy.m_String, Len, m_String);
+    (void) ::std::ranges::copy_n(copy.m_String, Len, m_String);
 }
 
 template<typename Char, iSys Len>
 inline consteval ConstEvalStringBuilderT<Char, Len>::ConstEvalStringBuilderT(ConstEvalStringBuilderT<Char, Len>&& move) noexcept
     : m_String{ }
 {
-    (void) ::std::copy_n(move.m_String, Len, m_String);
+    (void) ::std::ranges::copy_n(move.m_String, Len, m_String);
 }
 
 template<typename Char, iSys Len>
@@ -2563,8 +2563,8 @@ template<iSys OLen>
 inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> ConstEvalStringBuilderT<Char, Len>::Append(const ConstExprStackStringT<Char, OLen>& string) const noexcept
 {
     Char newString[Len + OLen - 1];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
-    (void) ::std::copy_n(string.String(), OLen, &newString[Len]);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(string.String(), OLen, &newString[Len]);
     return ConstEvalStringBuilderT(newString);
 }
 
@@ -2573,8 +2573,8 @@ template<iSys OLen>
 inline consteval ConstEvalStringBuilderT<Char, Len + OLen - 1> ConstEvalStringBuilderT<Char, Len>::Append(const Char(&str)[OLen]) const noexcept
 {
     Char newString[Len + OLen - 1];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
-    (void) ::std::copy_n(str, OLen, &newString[Len]);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(str, OLen, &newString[Len]);
     return ConstEvalStringBuilderT(newString);
 }
 
@@ -2582,8 +2582,8 @@ template<typename Char, iSys Len>
 inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const Char* const str, const iSys oLen) const noexcept
 {
     Char newString[Len + oLen - 1];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
-    (void) ::std::copy_n(str, oLen, &newString[Len]);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(str, oLen, &newString[Len]);
     return ConstEvalStringBuilderT(newString);
 }
 
@@ -2601,7 +2601,7 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(c32 c) const no
     const c32 string[2] = { c, U'\0' };
     return Append(string);
     // Char newString[Len + ::tau::string::CodeUnitCountConst<Char, c32, 1>::Count(&c)];
-    // (void) ::std::copy_n(m_String, Len - 1, newString);
+    // (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
     // newString[Len] = c;
     // newString[Len + 1] = Char { '\0' };
     // return ConstEvalStringBuilderT(newString);
@@ -2614,7 +2614,7 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const ConstExpr
     constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(string.m_String);
     constexpr iSys NewLen = Len + FromLen;
     Char newString[NewLen];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
     (void) ::tau::string::Transform(string.m_String, &newString[Len], OLen, FromLen, false, true);
     newString[NewLen - 1] = Char { '\0' };
     return ConstEvalStringBuilderT(newString);
@@ -2627,7 +2627,7 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const CharFrom(
     constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(str);
     constexpr iSys NewLen = Len + FromLen;
     Char newString[NewLen];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
     (void) ::tau::string::Transform(str, &newString[Len], OLen, FromLen, false, true);
     newString[NewLen - 1] = Char { '\0' };
     return ConstEvalStringBuilderT(newString);
@@ -2640,7 +2640,7 @@ inline consteval auto ConstEvalStringBuilderT<Char, Len>::Append(const CharFrom*
     constexpr iSys FromLen = ::tau::string::CodeUnitCountConst<Char, CharFrom, 1>::Count(str);
     constexpr iSys NewLen = Len + FromLen;
     Char newString[NewLen];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
     (void) ::tau::string::Transform(str, &newString[Len], oLen, FromLen, false, true);
     newString[NewLen - 1] = Char { '\0' };
     return ConstEvalStringBuilderT(newString);
@@ -2650,7 +2650,7 @@ template<typename Char, iSys Len>
 inline consteval ConstEvalStringBuilderT<Char, maxT(Len - 1, 0)> ConstEvalStringBuilderT<Char, Len>::Backspace() const noexcept
 {
     Char newString[Len - 1];
-    (void) ::std::copy_n(m_String, Len - 1, newString);
+    (void) ::std::ranges::copy_n(m_String, Len - 1, newString);
     newString[Len - 2] = Char { '\0' };
     return ConstEvalStringBuilderT(newString);
 }
@@ -2659,7 +2659,7 @@ template<typename Char, iSys Len>
 inline consteval auto ConstEvalStringBuilderT<Char, Len>::Backspace(const uSys count) const noexcept
 {
     Char newString[Len - count];
-    (void) ::std::copy_n(m_String, Len - count, newString);
+    (void) ::std::ranges::copy_n(m_String, Len - count, newString);
     newString[Len - count - 1] = Char { '\0' };
     return ConstEvalStringBuilderT(newString);
 }
@@ -2696,7 +2696,7 @@ inline DynStringT<wchar_t> StringCast<wchar_t, char>(const DynStringT<char>& str
 
     ::std::mbstate_t state;
     uSys len;
-    errno_t error = mbsrtowcs_s(&len, nullptr, 0, &rawStr, 0, &state);
+    int error = mbsrtowcs_s(&len, nullptr, 0, &rawStr, 0, &state);
 
     if(error != 0 && error != ERANGE)
     {
@@ -2742,7 +2742,7 @@ inline DynStringT<char> StringCast<char, wchar_t>(const DynStringT<wchar_t>& str
 
     ::std::mbstate_t state;
     uSys len;
-    errno_t error = wcsrtombs_s(&len, nullptr, 0, &rawStr, 0, &state);
+    int error = wcsrtombs_s(&len, nullptr, 0, &rawStr, 0, &state);
     
     if(error != 0 && error != ERANGE)
     {

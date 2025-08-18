@@ -18,7 +18,7 @@ inline ReferenceCountDataObject<T>::ReferenceCountDataObject(TauAllocator& alloc
 { (void) ::new(this + 1) Type(::std::forward<Args>(args)...); }
 
 template<typename T>
-inline constexpr ReferenceCountDataObject<T>::ReferenceCountDataObject(nullptr_t) noexcept
+inline constexpr ReferenceCountDataObject<T>::ReferenceCountDataObject(::std::nullptr_t) noexcept
     : m_RefCount(0)
     , m_Allocator(DefaultTauAllocator::Instance())
 { }
@@ -45,7 +45,7 @@ inline SWReferenceCount<T>::SWReferenceCount(TauAllocator& allocator, Args&&... 
 { (void) ::new(this + 1) T(::std::forward<Args>(args)...); }
 
 template<typename T>
-inline constexpr SWReferenceCount<T>::SWReferenceCount(nullptr_t) noexcept
+inline constexpr SWReferenceCount<T>::SWReferenceCount(::std::nullptr_t) noexcept
     : m_StrongRefCount(0)
     , m_WeakRefCount(0)
     , m_Allocator(DefaultTauAllocator::Instance())
@@ -151,7 +151,7 @@ inline ReferenceCountingPointer<T>::ReferenceCountingPointer(ReferenceCountingPo
 { rcp._getBlock() = RCDO<TT>::Null(); }
 
 template<typename T>
-inline constexpr ReferenceCountingPointer<T>::ReferenceCountingPointer(const nullptr_t) noexcept
+inline constexpr ReferenceCountingPointer<T>::ReferenceCountingPointer(const ::std::nullptr_t) noexcept
     : m_RCDO(RCDO<T>::Null())
 { }
 
@@ -186,7 +186,7 @@ inline ReferenceCountingPointer<T>::ReferenceCountingPointer(ReferenceCountingPo
 { move.m_RCDO = RCDO<T>::Null(); }
 
 template<typename T>
-inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(const nullptr_t) noexcept
+inline ReferenceCountingPointer<T>& ReferenceCountingPointer<T>::operator=(const ::std::nullptr_t) noexcept
 {
     if(TAU_FORCE_CHECK_RC(m_RCDO) && m_RCDO->m_RefCount && m_RCDO->Release() == 0)
     { m_RCDO->m_Allocator.DeallocateT(m_RCDO); }
@@ -362,7 +362,7 @@ inline StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(StrongR
 { rcp._getBlock() = SWRC<TT>::Null(); }
 
 template<typename T>
-inline constexpr StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(const nullptr_t) noexcept
+inline constexpr StrongReferenceCountingPointer<T>::StrongReferenceCountingPointer(const ::std::nullptr_t) noexcept
     : m_SWRC(SWRC<T>::Null())
 { }
 
@@ -461,7 +461,7 @@ inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::ope
 }
 
 template<typename T>
-inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const nullptr_t) noexcept
+inline StrongReferenceCountingPointer<T>& StrongReferenceCountingPointer<T>::operator=(const ::std::nullptr_t) noexcept
 {
     if(TAU_FORCE_CHECK_RC(m_SWRC) && m_SWRC->m_StrongRefCount <= 1)
     {
@@ -699,7 +699,7 @@ inline WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(WeakReferen
 { rcp._getBlock() = SWRC<TT>::Null(); }
 
 template<typename T>
-inline constexpr WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const nullptr_t) noexcept
+inline constexpr WeakReferenceCountingPointer<T>::WeakReferenceCountingPointer(const ::std::nullptr_t) noexcept
     : m_SWRC(SWRC<T>::Null())
 { }
 
