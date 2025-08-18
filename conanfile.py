@@ -10,7 +10,7 @@ class TauCOMRecipe(ConanFile):
 
     # Optional metadata
     license = "MIT"
-    author = "Hyfloac mail@hyfloac.com"
+    author = "Hyfloac <mail@hyfloac.com>"
     url = "https://github.com/hyfloac/TauUtils"
     description = ""
 
