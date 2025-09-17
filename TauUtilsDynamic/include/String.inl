@@ -735,16 +735,16 @@ inline constexpr bool StringIteratorT<Char>::operator!=(const StringIteratorT<Ch
 { return m_Index != other.m_Index; }
 
 template<typename Char>
-inline constexpr DynStringCodeUnitIteratorT<Char>::DynStringCodeUnitIteratorT(const StringData& string, const uSys index, const uSys start) noexcept
+inline constexpr DynStringCodeUnitIteratorT<Char>::DynStringCodeUnitIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
+    , m_Start(ClampT<iSys>(start, 0, minT<iSys>(string.Length, index)))
+    , m_Index(maxT(index, m_Start))
 { }
 
 template<typename Char>
 inline constexpr DynStringCodeUnitIteratorT<Char>& DynStringCodeUnitIteratorT<Char>::operator++() noexcept
 {
-    if(m_Index < m_String.Length - 1)
+    if(m_Index < m_String.Length)
     { ++m_Index; }
     return *this;
 }
@@ -775,7 +775,14 @@ inline constexpr DynStringCodeUnitIteratorT<Char> DynStringCodeUnitIteratorT<Cha
 
 template<typename Char>
 inline constexpr Char DynStringCodeUnitIteratorT<Char>::operator*() const noexcept
-{ return m_String.String()[m_Index]; }
+{
+    if(m_Index < m_Start || m_Index >= m_String.Length)
+    {
+        return Char{0};
+    }
+
+    return m_String.String()[m_Index];
+}
 
 template<typename Char>
 inline constexpr bool DynStringCodeUnitIteratorT<Char>::operator==(const DynStringCodeUnitIteratorT<Char>& other) const noexcept
@@ -788,8 +795,8 @@ inline constexpr bool DynStringCodeUnitIteratorT<Char>::operator!=(const DynStri
 template<typename Char>
 inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
-    , m_Start(static_cast<iSys>(start))
-    , m_Index(static_cast<iSys>(index))
+    , m_Start(ClampT<iSys>(start, 0, minT<iSys>(string.Length, index)))
+    , m_Index(maxT(index, m_Start))
     , m_CurrentCodePoint(string.Length > 0 ? string.String()[index] : Char{ '\0' })
 { }
 
@@ -801,8 +808,8 @@ inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(
 template<typename Char>
 inline constexpr DynStringCodePointIteratorT<Char>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start, const c32 currentCodePoint) noexcept
     : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
+    , m_Start(ClampT<iSys>(start, 0, minT<iSys>(string.Length, index)))
+    , m_Index(maxT(index, m_Start))
     , m_CurrentCodePoint(currentCodePoint)
 { }
 
@@ -1398,6 +1405,14 @@ inline constexpr DynStringViewT<Char>::DynStringViewT(const DynStringViewT<Char>
     , m_Start(begin)
     , m_Length(end - begin)
     , m_Hash(findHashCode(m_Data.String() + begin, m_Length))
+{ }
+
+template<typename Char>
+inline constexpr DynStringViewT<Char>::DynStringViewT(const DynStringT<Char>& str) noexcept
+    : m_Data(str.m_Data)
+    , m_Start(0)
+    , m_Length(str.Length())
+    , m_Hash(str.HashCode())
 { }
 
 template<typename Char>

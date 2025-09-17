@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(STRING_IN_DEV) || 0
+#if defined(STRING_IN_DEV) || 1
 #include "String.hpp"
 #endif
 
@@ -214,8 +214,8 @@ namespace utf16 {
 template<>
 inline constexpr DynStringCodePointIteratorT<c8>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
+    , m_Start(ClampT<iSys>(start, 0, minT<iSys>(string.Length, index)))
+    , m_Index(maxT(index, m_Start))
     , m_CurrentCodePoint(tau::string::utf8::DecodeCodePointForward(string, m_Index))
 { }
 
@@ -224,6 +224,12 @@ inline constexpr DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8
 {
     ++m_Index;
     m_CurrentCodePoint = tau::string::utf8::DecodeCodePointForward(m_String, m_Index);
+
+    if(m_Index > m_String.Length)
+    {
+        m_Index = m_String.Length;
+    }
+
     return *this;
 }
 
@@ -231,6 +237,10 @@ template<>
 inline constexpr DynStringCodePointIteratorT<c8>& DynStringCodePointIteratorT<c8>::operator--() noexcept
 {
     m_CurrentCodePoint = tau::string::utf8::DecodeCodePointBackward(m_String, m_Index);
+    if(m_Index < 0)
+    {
+        m_Index = 0;
+    }
     return *this;
 }
 
@@ -239,8 +249,8 @@ static inline constexpr uSys C16_INDEX_FLIP_BIT = uSys{1} << ((sizeof(uSys) * CH
 template<>
 inline constexpr DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(const StringData& string, const iSys index, const iSys start) noexcept
     : m_String(string)
-    , m_Start(start)
-    , m_Index(index)
+    , m_Start(ClampT<iSys>(start, 0, minT<iSys>(string.Length, index)))
+    , m_Index(maxT(index, m_Start))
 {
     if(index == 0 && string.String()[0] == 0xFFFE)
     {
@@ -253,13 +263,19 @@ inline constexpr DynStringCodePointIteratorT<c16>::DynStringCodePointIteratorT(c
     }
 }
 
-
 template<>
 inline constexpr DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator++() noexcept
 {
     ++m_Index;
     iSys index = static_cast<iSys>(m_Index & ~C16_INDEX_FLIP_BIT);
-    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(m_String, index);
+    const bool flipEndian = (m_Index & C16_INDEX_FLIP_BIT) == C16_INDEX_FLIP_BIT;
+    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointForward(m_String, index, flipEndian);
+
+    if(index > m_String.Length)
+    {
+        index = m_String.Length;
+    }
+
     m_Index = static_cast<iSys>(static_cast<uSys>(index) | C16_INDEX_FLIP_BIT);
     return *this;
 }
@@ -268,7 +284,14 @@ template<>
 inline constexpr DynStringCodePointIteratorT<c16>& DynStringCodePointIteratorT<c16>::operator--() noexcept
 {
     iSys index = static_cast<iSys>(m_Index & ~C16_INDEX_FLIP_BIT);
-    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointBackward(m_String, index);
+    const bool flipEndian = (m_Index & C16_INDEX_FLIP_BIT) == C16_INDEX_FLIP_BIT;
+    m_CurrentCodePoint = tau::string::utf16::DecodeCodePointBackward(m_String, index, flipEndian);
+
+    if(index < 0)
+    {
+        index = 0;
+    }
+
     m_Index = static_cast<iSys>(static_cast<uSys>(index) | C16_INDEX_FLIP_BIT);
     return *this;
 }
