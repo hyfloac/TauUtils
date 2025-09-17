@@ -1,8 +1,5 @@
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
-from conan.tools.files import get
-from conan.tools.scm import Git
-from conan.tools.files import copy
 
 class TauCOMRecipe(ConanFile):
     name = "tauutils"
@@ -30,17 +27,6 @@ class TauCOMRecipe(ConanFile):
 
     def set_version(self):
         self.version = self.conan_data["latest"]
-
-    # def source(self):
-    #     data = self.conan_data["sources"][self.version];
-    #     repo = self.conan_data["sources"]["repos"][data["url"]]
-    #     if("latest" in data):
-    #         copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
-    #         self.exports_sources = "CMakeLists.txt", "TauUtilsDynamic/*"
-    #     else:
-    #         git = Git(self)
-    #         git.clone(url=repo, target=".")
-    #         git.checkout(data["target"])
 
     def config_options(self):
         if self.settings.os == "Windows":
