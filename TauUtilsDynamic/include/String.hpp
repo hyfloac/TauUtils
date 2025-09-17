@@ -32,7 +32,8 @@ case ConstExprString(CASE).HashCode(): \
     if(ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
-    } else { break; }
+    } \
+    break;
 
 
 #define WSTR_CASE(CASE, BLOCK) \
@@ -40,28 +41,32 @@ case WConstExprString(CASE).HashCode(): \
     if(WConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
-    } else { break; }
+    } \
+    break;
 
 #define C8STR_CASE(CASE, BLOCK) \
 case C8ConstExprString(CASE).HashCode(): \
     if(C8ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
-    } else { break; }
+    } \
+    break;
 
 #define C16STR_CASE(CASE, BLOCK) \
 case C16ConstExprString(CASE).HashCode(): \
     if(C16ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
-    } else { break; }
+    } \
+    break;
 
 #define C32STR_CASE(CASE, BLOCK) \
 case C32ConstExprString(CASE).HashCode(): \
     if(C32ConstExprString(CASE).Equals(_tmp__strSwitch_.c_str())) { \
         _switch_defaulted_ = false; \
         BLOCK \
-    } else { break; }
+    } \
+    break;
 
 namespace tau::string {
 
