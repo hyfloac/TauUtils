@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/c,c++,cmake,rider,visualstudio,premake-gmake,visualstudiocode,clion,windows,macos,linux,conan
-# Edit at https://www.toptal.com/developers/gitignore?templates=c,c++,cmake,rider,visualstudio,premake-gmake,visualstudiocode,clion,windows,macos,linux,conan
+# Created by https://www.toptal.com/developers/gitignore/api/c,c++,clion,cmake,conan,linux,macos,rider,windows,visualstudio,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=c,c++,clion,cmake,conan,linux,macos,rider,windows,visualstudio,visualstudiocode
 
 ### C ###
 # Prerequisites
@@ -201,6 +201,8 @@ CTestTestfile.cmake
 _deps
 
 ### CMake Patch ###
+CMakeUserPresets.json
+
 # External projects
 *-prefix/
 
@@ -273,10 +275,6 @@ Temporary Items
 ### macOS Patch ###
 # iCloud generated files
 *.icloud
-
-### premake-gmake ###
-*.make
-obj/
 
 ### Rider ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -757,9 +755,7 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
-# End of https://www.toptal.com/developers/gitignore/api/c,c++,cmake,rider,visualstudio,premake-gmake,visualstudiocode,clion,windows,macos,linux,conan
+# End of https://www.toptal.com/developers/gitignore/api/c,c++,clion,cmake,conan,linux,macos,rider,windows,visualstudio,visualstudiocode
 
 build/
 
-!premake5.exe
-CMakeUserPresets.json
