@@ -2,7 +2,7 @@
 // ReSharper disable CppUnreachableCode
 #pragma once
 
-#if defined(STRING_IN_DEV) || 1
+#if defined(STRING_IN_DEV) || 0
 #include "String.hpp"
 #endif
 
@@ -1099,7 +1099,13 @@ inline DynStringT<Char> DynStringT<Char>::PassControl(const Char* const str, ::s
 }
 
 template<typename Char>
-inline DynStringT<Char> DynStringT<Char>::PassControl(ReferenceCounter::Type* const refCount, const Char* const str, const uSys length, ::std::function<void(Char*)> deleteStr, ::std::function<void(ReferenceCounter::Type*)> deleteRefCount) noexcept
+inline DynStringT<Char> DynStringT<Char>::PassControl(
+        ReferenceCounter::Type* const refCount,
+        const Char* const str,
+        const uSys length,
+        const ::std::function<void(Char*)>& deleteStr,
+        const ::std::function<void(ReferenceCounter::Type*)>& deleteRefCount
+    ) noexcept
 {
     if(length < 16)
     {
@@ -1287,26 +1293,26 @@ inline constexpr i32 DynStringT<Char>::CompareTo(const Char* const str) const no
 
 template<typename Char>
 inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const StringBaseT<Char>& other) const noexcept
-{ return _concat(other.Length(), other.String()); }
+{ return InternalConcat(other.Length(), other.String()); }
 
 template<typename Char>
 inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const ConstExprStringT<Char>& other) const noexcept
-{ return _concat(other.Length(), other.String()); }
+{ return InternalConcat(other.Length(), other.String()); }
 
 template<typename Char>
 inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const DynStringT<Char>& other) const noexcept
-{ return _concat(other.Length(), other.String()); }
+{ return InternalConcat(other.Length(), other.String()); }
 
 template<typename Char>
 inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const DynStringViewT<Char>& other) const noexcept
-{ return _concat(other.Length(), other.String()); }
+{ return InternalConcat(other.Length(), other.String()); }
 
 template<typename Char>
 inline constexpr DynStringT<Char> DynStringT<Char>::Concat(const Char* const other) const noexcept
-{ return _concat(strLength(other), other); }
+{ return InternalConcat(strLength(other), other); }
 
 template<typename Char>
-inline constexpr DynStringT<Char> DynStringT<Char>::_concat(const uSys len, const Char* const str) const noexcept
+inline constexpr DynStringT<Char> DynStringT<Char>::InternalConcat(const uSys len, const Char* const str) const noexcept
 {
     const uSys newLen = m_Data.Length + len;
     if(newLen >= 16)

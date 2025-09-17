@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(STRING_IN_DEV) || 1
+#if defined(STRING_IN_DEV) || 0
 #include "String.hpp"
 #endif
 

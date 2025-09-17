@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(TauUtils VERSION 1.4.6 LANGUAGES CXX C)
+project(TauUtils VERSION 1.4.7 LANGUAGES CXX C)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 

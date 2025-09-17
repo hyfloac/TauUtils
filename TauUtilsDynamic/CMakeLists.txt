@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(TauUtils VERSION 1.4.6 LANGUAGES CXX C)
+project(TauUtils VERSION 1.4.7 LANGUAGES CXX C)
 
 # Option for building shared or static library
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)

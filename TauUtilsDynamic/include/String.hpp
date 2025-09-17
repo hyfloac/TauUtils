@@ -277,40 +277,40 @@ public:
     [[nodiscard]] i32 compareTo(const Char* other)                   const noexcept { return CompareTo(other); }
 
 #if __has_feature(__cpp_impl_three_way_comparison)
-    [[nodiscard]] i32 operator <=>(const StringBaseT<Char>& other)      const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other)       const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other)   const noexcept { return compareTo(other); }
-    [[nodiscard]] i32 operator <=>(const Char* const other)             const noexcept { return compareTo(other); }
+    [[nodiscard]] i32 operator <=>(const StringBaseT<Char>& other)      const noexcept { return CompareTo(other); }
+    [[nodiscard]] i32 operator <=>(const ConstExprStringT<Char>& other) const noexcept { return CompareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringT<Char>& other)       const noexcept { return CompareTo(other); }
+    [[nodiscard]] i32 operator <=>(const DynStringViewT<Char>& other)   const noexcept { return CompareTo(other); }
+    [[nodiscard]] i32 operator <=>(const Char* const other)             const noexcept { return CompareTo(other); }
 #endif
 
-    [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] bool operator !=(const ConstExprStringT<Char>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] bool operator < (const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) < 0; }
-    [[nodiscard]] bool operator > (const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) > 0; }
-    [[nodiscard]] bool operator <=(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] bool operator >=(const ConstExprStringT<Char>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] bool operator ==(const ConstExprStringT<Char>& other) const noexcept { return  Equals(other); }
+    [[nodiscard]] bool operator !=(const ConstExprStringT<Char>& other) const noexcept { return !Equals(other); }
+    [[nodiscard]] bool operator < (const ConstExprStringT<Char>& other) const noexcept { return CompareTo(other) < 0; }
+    [[nodiscard]] bool operator > (const ConstExprStringT<Char>& other) const noexcept { return CompareTo(other) > 0; }
+    [[nodiscard]] bool operator <=(const ConstExprStringT<Char>& other) const noexcept { return CompareTo(other) <= 0; }
+    [[nodiscard]] bool operator >=(const ConstExprStringT<Char>& other) const noexcept { return CompareTo(other) >= 0; }
 
-    [[nodiscard]] bool operator ==(const DynStringT<Char>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] bool operator !=(const DynStringT<Char>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] bool operator < (const DynStringT<Char>& other) const noexcept { return compareTo(other) < 0; }
-    [[nodiscard]] bool operator > (const DynStringT<Char>& other) const noexcept { return compareTo(other) > 0; }
-    [[nodiscard]] bool operator <=(const DynStringT<Char>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] bool operator >=(const DynStringT<Char>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] bool operator ==(const DynStringT<Char>& other) const noexcept { return  Equals(other); }
+    [[nodiscard]] bool operator !=(const DynStringT<Char>& other) const noexcept { return !Equals(other); }
+    [[nodiscard]] bool operator < (const DynStringT<Char>& other) const noexcept { return CompareTo(other) < 0; }
+    [[nodiscard]] bool operator > (const DynStringT<Char>& other) const noexcept { return CompareTo(other) > 0; }
+    [[nodiscard]] bool operator <=(const DynStringT<Char>& other) const noexcept { return CompareTo(other) <= 0; }
+    [[nodiscard]] bool operator >=(const DynStringT<Char>& other) const noexcept { return CompareTo(other) >= 0; }
 
-    [[nodiscard]] bool operator ==(const DynStringViewT<Char>& other) const noexcept { return  equals(other); }
-    [[nodiscard]] bool operator !=(const DynStringViewT<Char>& other) const noexcept { return !equals(other); }
-    [[nodiscard]] bool operator < (const DynStringViewT<Char>& other) const noexcept { return compareTo(other) < 0; }
-    [[nodiscard]] bool operator > (const DynStringViewT<Char>& other) const noexcept { return compareTo(other) > 0; }
-    [[nodiscard]] bool operator <=(const DynStringViewT<Char>& other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] bool operator >=(const DynStringViewT<Char>& other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] bool operator ==(const DynStringViewT<Char>& other) const noexcept { return  Equals(other); }
+    [[nodiscard]] bool operator !=(const DynStringViewT<Char>& other) const noexcept { return !Equals(other); }
+    [[nodiscard]] bool operator < (const DynStringViewT<Char>& other) const noexcept { return CompareTo(other) < 0; }
+    [[nodiscard]] bool operator > (const DynStringViewT<Char>& other) const noexcept { return CompareTo(other) > 0; }
+    [[nodiscard]] bool operator <=(const DynStringViewT<Char>& other) const noexcept { return CompareTo(other) <= 0; }
+    [[nodiscard]] bool operator >=(const DynStringViewT<Char>& other) const noexcept { return CompareTo(other) >= 0; }
 
-    [[nodiscard]] bool operator ==(const Char* const other) const noexcept { return  equals(other); }
-    [[nodiscard]] bool operator !=(const Char* const other) const noexcept { return !equals(other); }
-    [[nodiscard]] bool operator < (const Char* const other) const noexcept { return compareTo(other) < 0; }
-    [[nodiscard]] bool operator > (const Char* const other) const noexcept { return compareTo(other) > 0; }
-    [[nodiscard]] bool operator <=(const Char* const other) const noexcept { return compareTo(other) <= 0; }
-    [[nodiscard]] bool operator >=(const Char* const other) const noexcept { return compareTo(other) >= 0; }
+    [[nodiscard]] bool operator ==(const Char* const other) const noexcept { return  Equals(other); }
+    [[nodiscard]] bool operator !=(const Char* const other) const noexcept { return !Equals(other); }
+    [[nodiscard]] bool operator < (const Char* const other) const noexcept { return CompareTo(other) < 0; }
+    [[nodiscard]] bool operator > (const Char* const other) const noexcept { return CompareTo(other) > 0; }
+    [[nodiscard]] bool operator <=(const Char* const other) const noexcept { return CompareTo(other) <= 0; }
+    [[nodiscard]] bool operator >=(const Char* const other) const noexcept { return CompareTo(other) >= 0; }
 };
 
 template<typename Char>
@@ -515,14 +515,29 @@ public:
     constexpr static DynStringT<Char> FromStatic(const Char (&str)[Len]) noexcept;
 
     static DynStringT<Char> PassControl(const Char* str, ::std::function<void(Char*)> deleteStr = nullptr) noexcept;
-    static DynStringT<Char> PassControl(ReferenceCounter::Type* refCount, const Char* str, uSys length, ::std::function<void(Char*)> deleteStr, ::std::function<void(ReferenceCounter::Type*)> deleteRefCount) noexcept;
+    static DynStringT<Char> PassControl(
+        ReferenceCounter::Type* const refCount,
+        const Char* const str,
+        const uSys length,
+        const ::std::function<void(Char*)>& deleteStr,
+        const ::std::function<void(ReferenceCounter::Type*)>& deleteRefCount
+    ) noexcept;
 
-    static DynStringT<Char> passControl(const Char* str, ::std::function<void(Char*)> deleteStr = nullptr) noexcept
+    static DynStringT<Char> passControl(
+        const Char* const str,
+        const ::std::function<void(Char*)>& deleteStr = nullptr
+    ) noexcept
     {
         return PassControl(str, deleteStr);
     }
 
-    static DynStringT<Char> passControl(ReferenceCounter::Type* refCount, const Char* str, uSys length, ::std::function<void(Char*)> deleteStr, ::std::function<void(ReferenceCounter::Type*)> deleteRefCount) noexcept
+    static DynStringT<Char> passControl(
+        ReferenceCounter::Type* const refCount,
+        const Char* const str,
+        const uSys length,
+        const ::std::function<void(Char*)>& deleteStr,
+        const ::std::function<void(ReferenceCounter::Type*)>& deleteRefCount
+    ) noexcept
     {
         return PassControl(refCount, str, length, deleteStr, deleteRefCount);
     }
@@ -580,11 +595,11 @@ public:
     [[nodiscard]] constexpr DynStringT<Char> Concat(const DynStringViewT<Char>&   other) const noexcept;
     [[nodiscard]] constexpr DynStringT<Char> Concat(const Char*                   other) const noexcept;
 
-    [[nodiscard]] constexpr DynStringT<Char> operator +(const StringBaseT<Char>&      other) const noexcept { return concat(other); }
-    [[nodiscard]] constexpr DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return concat(other); }
-    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringT<Char>&       other) const noexcept { return concat(other); }
-    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>&   other) const noexcept { return concat(other); }
-    [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const StringBaseT<Char>&      other) const noexcept { return Concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const ConstExprStringT<Char>& other) const noexcept { return Concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringT<Char>&       other) const noexcept { return Concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const DynStringViewT<Char>&   other) const noexcept { return Concat(other); }
+    [[nodiscard]] constexpr DynStringT<Char> operator +(const Char* const             other) const noexcept { return Concat(other); }
 
     [[nodiscard]] constexpr DynStringT<Char> SubStringLen(INCLUSIVE uSys begin, uSys length) const noexcept;
     [[nodiscard]] constexpr DynStringT<Char> SubString(INCLUSIVE uSys begin, EXCLUSIVE uSys end) const noexcept;
@@ -593,7 +608,7 @@ public:
     [[nodiscard]] constexpr Char operator [](uSys index) const noexcept;
     [[nodiscard]] constexpr Char At(uSys index) const noexcept;
 private:
-    [[nodiscard]] constexpr DynStringT<Char> _concat(uSys len, const Char* str) const noexcept;
+    [[nodiscard]] constexpr DynStringT<Char> InternalConcat(uSys len, const Char* str) const noexcept;
 private:
     template<typename CharC>
     friend class ConstExprStringT;
